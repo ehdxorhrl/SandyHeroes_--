@@ -1,0 +1,299 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="0.GameFramework">
+      <UniqueIdentifier>{54b30a6e-012b-448c-bbe4-d5a0d71a4833}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="0.GameFramework\Timer">
+      <UniqueIdentifier>{bed15316-310d-49b1-8a95-33f7d6e37372}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1.Manager">
+      <UniqueIdentifier>{0c896eae-9fae-4042-93c7-23ed579efab6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1.Manager\SessionManager">
+      <UniqueIdentifier>{c5a6adb1-d6de-410b-b2a1-69be4f9a33f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1.Manager\SessionManager\User">
+      <UniqueIdentifier>{4a8154a5-57b9-43b6-a9d1-effd868fcd89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2.Scene">
+      <UniqueIdentifier>{25ffaecb-2005-4716-aa86-141ebc72b4f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3.Object">
+      <UniqueIdentifier>{d150b7c6-3f0c-4c10-9ae4-e7238b211153}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2.Scene\BaseScene">
+      <UniqueIdentifier>{1dbd92e0-a334-4f78-a96c-372328056e24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4.Mesh">
+      <UniqueIdentifier>{ebc8355d-55eb-405d-9d7a-eed930a1f2a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5.Component">
+      <UniqueIdentifier>{5ad086d0-642a-4a73-8529-d7c822d5fe14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5.Component\Collider">
+      <UniqueIdentifier>{87823461-ad8c-445b-9d57-0ae7da1c6819}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5.Component\Mesh">
+      <UniqueIdentifier>{a4fffff3-c689-4adb-907f-a8cb0ad2a1f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ModelInfo">
+      <UniqueIdentifier>{1e922e77-53aa-41f8-9ae4-2eeccb48645c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5.Component\Movement">
+      <UniqueIdentifier>{d86fc7f7-4090-4c4a-9792-7bbd5c279af0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4.Mesh\Cube">
+      <UniqueIdentifier>{9057bb84-890b-4731-af9a-f603e6cda755}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5.Component\Mesh\DebugMesh">
+      <UniqueIdentifier>{44695434-3b8e-47cb-afba-189599102987}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation">
+      <UniqueIdentifier>{d4a17cb6-2b30-4c5c-93cf-c91820ec4a2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation\State">
+      <UniqueIdentifier>{1629943e-188c-4ff0-b1c8-a07bc2ca0e8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation\State\Player">
+      <UniqueIdentifier>{4c1786e5-9bd6-44db-9dc2-5c545c49f083}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5.Component\Animator">
+      <UniqueIdentifier>{bb35f466-4f55-400a-b22e-bb8e0ff87422}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Material">
+      <UniqueIdentifier>{eff71d27-d024-4bfb-b1a2-4ac0417c6446}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5.Component\Mesh\SkinnedMesh">
+      <UniqueIdentifier>{5ac29aa7-a2bd-4499-a667-1d1d8b05960f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5.Component\Gun">
+      <UniqueIdentifier>{797d1f6b-31ec-4b1a-ae8e-99ca6a97277a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5.Component\Spawner">
+      <UniqueIdentifier>{311326fa-5eb3-41a8-a310-7a0e89fb4c4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sector">
+      <UniqueIdentifier>{d7b57ef1-5da7-4638-9972-a3ad566c31d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5.Component\Monster">
+      <UniqueIdentifier>{2b514a55-033e-4fde-a0f6-08428e9391bc}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework.h">
+      <Filter>0.GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>0.GameFramework\Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="User.h">
+      <Filter>1.Manager\SessionManager\User</Filter>
+    </ClInclude>
+    <ClInclude Include="SessionManager.h">
+      <Filter>1.Manager\SessionManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>2.Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>3.Object</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseScene.h">
+      <Filter>2.Scene\BaseScene</Filter>
+    </ClInclude>
+    <ClInclude Include="BoxColliderComponent.h">
+      <Filter>5.Component\Collider</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshColliderComponent.h">
+      <Filter>5.Component\Collider</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>5.Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>4.Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshComponent.h">
+      <Filter>5.Component\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelInfo.h">
+      <Filter>ModelInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="XMathUtil.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MovementComponent.h">
+      <Filter>5.Component\Movement</Filter>
+    </ClInclude>
+    <ClInclude Include="CubeMesh.h">
+      <Filter>4.Mesh\Cube</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugMeshComponent.h">
+      <Filter>5.Component\Mesh\DebugMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationTrack.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationSet.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationState.h">
+      <Filter>Animation\State</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerAnimationState.h">
+      <Filter>Animation\State\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimatorComponent.h">
+      <Filter>5.Component\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Material</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dx12.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinnedMesh.h">
+      <Filter>4.Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinnedMeshComponent.h">
+      <Filter>5.Component\Mesh\SkinnedMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="GunComponent.h">
+      <Filter>5.Component\Gun</Filter>
+    </ClInclude>
+    <ClInclude Include="SpawnerComponent.h">
+      <Filter>5.Component\Spawner</Filter>
+    </ClInclude>
+    <ClInclude Include="GroundColliderComponent.h">
+      <Filter>5.Component\Collider</Filter>
+    </ClInclude>
+    <ClInclude Include="WallColliderComponent.h">
+      <Filter>5.Component\Collider</Filter>
+    </ClInclude>
+    <ClInclude Include="Sector.h">
+      <Filter>Sector</Filter>
+    </ClInclude>
+    <ClInclude Include="MonsterComponent.h">
+      <Filter>5.Component\Monster</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SandyHeroesServer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework.cpp">
+      <Filter>0.GameFramework</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>0.GameFramework\Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="User.cpp">
+      <Filter>1.Manager\SessionManager\User</Filter>
+    </ClCompile>
+    <ClCompile Include="SessionManager.cpp">
+      <Filter>1.Manager\SessionManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>2.Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>3.Object</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseScene.cpp">
+      <Filter>2.Scene\BaseScene</Filter>
+    </ClCompile>
+    <ClCompile Include="BoxColliderComponent.cpp">
+      <Filter>5.Component\Collider</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshColliderComponent.cpp">
+      <Filter>5.Component\Collider</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>5.Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>4.Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshComponent.cpp">
+      <Filter>5.Component\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelInfo.cpp">
+      <Filter>ModelInfo</Filter>
+    </ClCompile>
+    <ClCompile Include="MovementComponent.cpp">
+      <Filter>5.Component\Movement</Filter>
+    </ClCompile>
+    <ClCompile Include="CubeMesh.cpp">
+      <Filter>4.Mesh\Cube</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugMeshComponent.cpp">
+      <Filter>5.Component\Mesh\DebugMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationTrack.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationSet.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationState.cpp">
+      <Filter>Animation\State</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerAnimationState.cpp">
+      <Filter>Animation\State\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimatorComponent.cpp">
+      <Filter>5.Component\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Material</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinnedMesh.cpp">
+      <Filter>4.Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinnedMeshComponent.cpp">
+      <Filter>5.Component\Mesh\SkinnedMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="GunComponent.cpp">
+      <Filter>5.Component\Gun</Filter>
+    </ClCompile>
+    <ClCompile Include="SpawnerComponent.cpp">
+      <Filter>5.Component\Spawner</Filter>
+    </ClCompile>
+    <ClCompile Include="GroundColliderComponent.cpp">
+      <Filter>5.Component\Collider</Filter>
+    </ClCompile>
+    <ClCompile Include="WallColliderComponent.cpp">
+      <Filter>5.Component\Collider</Filter>
+    </ClCompile>
+    <ClCompile Include="Sector.cpp">
+      <Filter>Sector</Filter>
+    </ClCompile>
+    <ClCompile Include="MonsterComponent.cpp">
+      <Filter>5.Component\Monster</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
