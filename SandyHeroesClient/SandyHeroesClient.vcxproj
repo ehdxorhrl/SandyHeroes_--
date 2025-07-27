@@ -111,10 +111,13 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>./Resource\Fmod\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>./Resource\Fmod\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -126,12 +129,15 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>./Resource\Fmod\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>./Resource\Fmod\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -144,6 +150,9 @@
     <ClInclude Include="BoxColliderComponent.h" />
     <ClInclude Include="BreathingShader.h" />
     <ClInclude Include="CameraComponent.h" />
+    <ClInclude Include="CharacterComponent.h" />
+    <ClInclude Include="ChestAnimationState.h" />
+    <ClInclude Include="ChestComponent.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="CubeMesh.h" />
     <ClInclude Include="CutSceneRecorder.h" />
@@ -153,6 +162,7 @@
     <ClInclude Include="DebugMeshComponent.h" />
     <ClInclude Include="DebugShader.h" />
     <ClInclude Include="DescriptorManager.h" />
+    <ClInclude Include="FMODSoundManager.h" />
     <ClInclude Include="FPSControllerComponent.h" />
     <ClInclude Include="FrameResource.h" />
     <ClInclude Include="FrameResourceManager.h" />
@@ -180,6 +190,7 @@
     <ClInclude Include="ProgressBarComponent.h" />
     <ClInclude Include="RecorderScene.h" />
     <ClInclude Include="RecordingScene.h" />
+    <ClInclude Include="ScrollComponent.h" />
     <ClInclude Include="Sector.h" />
     <ClInclude Include="ShadowShader.h" />
     <ClInclude Include="ShotDragonAnimationState.h" />
@@ -222,6 +233,9 @@
     <ClCompile Include="BoxColliderComponent.cpp" />
     <ClCompile Include="BreathingShader.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
+    <ClCompile Include="CharacterComponent.cpp" />
+    <ClCompile Include="ChestAnimationState.cpp" />
+    <ClCompile Include="ChestComponent.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="CubeMesh.cpp" />
     <ClCompile Include="CutSceneRecorder.cpp" />
@@ -230,6 +244,7 @@
     <ClCompile Include="DebugMeshComponent.cpp" />
     <ClCompile Include="DebugShader.cpp" />
     <ClCompile Include="DescriptorManager.cpp" />
+    <ClCompile Include="FMODSoundManager.cpp" />
     <ClCompile Include="FPSControllerComponent.cpp" />
     <ClCompile Include="FrameResourceManager.cpp" />
     <ClCompile Include="GameFramework.cpp" />
@@ -255,6 +270,7 @@
     <ClCompile Include="ProgressBarComponent.cpp" />
     <ClCompile Include="RecorderScene.cpp" />
     <ClCompile Include="RecordingScene.cpp" />
+    <ClCompile Include="ScrollComponent.cpp" />
     <ClCompile Include="Sector.cpp" />
     <ClCompile Include="ShadowShader.cpp" />
     <ClCompile Include="ShotDragonAnimationState.cpp" />

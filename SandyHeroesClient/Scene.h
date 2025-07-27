@@ -61,7 +61,6 @@ public:
 
 	//반환 값: 월드 좌표계에서 피킹된 지점
 	//설명: 스크린 x, y좌표를 받아 피킹 광선과 오브젝트들간 충돌검사를 시행
-	//TODO: 피킹 디버깅 필요, 현재 제대로 동작하지 않음
 	XMVECTOR GetPickingPointAtWorld(float sx, float sy, Object* picked_object);
 
 	virtual void Update(float elapsed_time);
@@ -133,7 +132,6 @@ protected:
 	// 플레이어의 스테이지 진행도
 	int stage_clear_num_{ 0 };
 
-	//TODO: Player 객체 구현
 	Object* player_ = nullptr;
 
 	//For ParticleRender

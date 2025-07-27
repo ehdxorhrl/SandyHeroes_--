@@ -39,7 +39,6 @@ XMVECTOR Scene::GetPickingPointAtWorld(float sx, float sy, Object* picked_object
 	ray_origin = XMVector3TransformCoord(ray_origin, inverse_view);
 	ray_direction = XMVector3Normalize(XMVector3Transform(ray_direction, inverse_view));
 
-	//TODO: 피킹 처리 리펙토링
 	for (const auto& mesh : meshes_)
 	{
 		if (mesh->name() == "Debug_Mesh")
@@ -63,7 +62,6 @@ XMVECTOR Scene::GetPickingPointAtWorld(float sx, float sy, Object* picked_object
 				t_min = std::numeric_limits<float>::max();
 				for (auto& indices : indices_array)
 				{
-					//TODO: mesh가 triangle list 인지 strip 인지 판정해야함
 					float t{ 0 };
 					for (int i = 0; i < indices.size(); i += 3)
 					{
@@ -371,7 +369,6 @@ void Scene::UpdateRenderPassConstantBuffer(ID3D12GraphicsCommandList* command_li
 	cb_pass.camera_position = main_camera_->world_position();
 	cb_pass.camera_up_axis = main_camera_->up_vector();
 
-	//TODO: 조명 관련 클래스를 생성후 그것을 사용하여 아래 정보 업데이트(현재는 테스트용 하드코딩)
 	cb_pass.ambient_light = XMFLOAT4{ 0.01,0.01,0.01, 1 };
 	cb_pass.lights[0].strength = XMFLOAT3{ 0.7, 0.7, 0.7 };
 	cb_pass.lights[0].direction = XMFLOAT3{ 0.577350020,  -0.577350020, 0.577350020 };
@@ -502,8 +499,8 @@ void Scene::Render(ID3D12GraphicsCommandList* command_list)
 	//RunViewFrustumCulling();
 
 	//Default-Render-Pass
-	UpdateRenderPassConstantBuffer(command_list);
-	UpdateObjectConstantBuffer(curr_frame_resource);
+	//UpdateRenderPassConstantBuffer(command_list);
+	//UpdateObjectConstantBuffer(curr_frame_resource);
 
 	for (const auto& [type, shader] : shaders_)
 	{

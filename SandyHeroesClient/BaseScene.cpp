@@ -47,8 +47,8 @@
 #include "GroundColliderComponent.h"
 #include "WallColliderComponent.h"
 //#include "ScrollComponent.h"
-//#include "ChestComponent.h"
-//#include "ChestAnimationState.h"
+#include "ChestComponent.h"
+#include "ChestAnimationState.h"
 //#include "SoundComponent.h"
 //#include "FMODSoundManager.h"
 //#include "RazerShader.h"
@@ -134,13 +134,13 @@ void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* comma
 	meshes_.push_back(std::make_unique<UIMesh>(ui_x, ui_y, ui_width, ui_height));
 	meshes_.back().get()->set_name("Star");
 
-	////Dash Icon
-	//ui_width = client_size.x / 16.f;
-	//ui_height = client_size.y / 9.f;
-	//ui_x = ui_width * 1.0f;
-	//ui_y = client_size.y - ui_height * 2.5f;
-	//meshes_.push_back(std::make_unique<UIMesh>(ui_x, ui_y, ui_width, ui_height));
-	//meshes_.back().get()->set_name("Dash");
+	//Dash Icon
+	ui_width = client_size.x / 16.f;
+	ui_height = client_size.y / 9.f;
+	ui_x = ui_width * 1.0f;
+	ui_y = client_size.y - ui_height * 2.5f;
+	meshes_.push_back(std::make_unique<UIMesh>(ui_x, ui_y, ui_width, ui_height));
+	meshes_.back().get()->set_name("Dash");
 
 	//Player Hp, Shield Bar
 	ui_width = client_size.x / 16.f * 3.f;
@@ -150,13 +150,13 @@ void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* comma
 	meshes_.push_back(std::make_unique<UIMesh>(ui_x, ui_y, ui_width, ui_height));
 	meshes_.back().get()->set_name("PlayerHpBar");
 
-	////Scroll
-	//constexpr float scroll_width = 150.f;
-	//constexpr float scroll_height = 250.f;
-	//ui_width = scroll_width;
-	//ui_height = scroll_height;
-	//meshes_.push_back(std::make_unique<UIMesh>(ui_width, ui_height));
-	//meshes_.back().get()->set_name("Scroll");
+	//Scroll
+	constexpr float scroll_width = 150.f;
+	constexpr float scroll_height = 250.f;
+	ui_width = scroll_width;
+	ui_height = scroll_height;
+	meshes_.push_back(std::make_unique<UIMesh>(ui_width, ui_height));
+	meshes_.back().get()->set_name("Scroll");
 
 	//skybox
 	meshes_.push_back(std::make_unique<SkyboxMesh>(meshes_[0].get()));
@@ -393,57 +393,56 @@ void BaseScene::BuildMaterial(ID3D12Device* device, ID3D12GraphicsCommandList* c
 		}
 	}
 
-	//// 스크롤 UI
-	//constexpr int kScrollTextureCount = 10;
-	//for (int i = 0; i < kScrollTextureCount; ++i)
-	//{
-	//	std::string texture_name = "scroll_texture_" + std::to_string(i);
-	//	std::string material_name = "scroll_material_" + std::to_string(i);
-	//
-	//	// 텍스처 생성
-	//	auto texture = std::make_unique<Texture>();
-	//	texture->name = texture_name;
-	//	texture->type = TextureType::kAlbedoMap;
-	//	textures_.push_back(std::move(texture));
-	//
-	//	// 머티리얼 생성
-	//	auto material = new Material{ material_name, (int)ShaderType::kUI };
-	//	material->AddTexture(textures_.back().get());
-	//	materials_.emplace_back(material);
-	//}
-	//
+	// 스크롤 UI
+	constexpr int kScrollTextureCount = 10;
+	for (int i = 0; i < kScrollTextureCount; ++i)
+	{
+		std::string texture_name = "scroll_texture_" + std::to_string(i);
+		std::string material_name = "scroll_material_" + std::to_string(i);
+	
+		// 텍스처 생성
+		auto texture = std::make_unique<Texture>();
+		texture->name = texture_name;
+		texture->type = TextureType::kAlbedoMap;
+		textures_.push_back(std::move(texture));
+	
+		// 머티리얼 생성
+		auto material = new Material{ material_name, (int)ShaderType::kUI };
+		material->AddTexture(textures_.back().get());
+		materials_.emplace_back(material);
+	}
+	
 	//// Razer Material
 	//{
 	//	material = new Material{ "Razer", (int)ShaderType::kRazer };
 	//	materials_.emplace_back();
 	//	materials_.back().reset(material);
 	//}
-	//
-	//// Dash UI용 Material 추가
-	//{
-	//	// 배경 (dash_background.dds)
-	//	Material* dash_background_material = new Material{ "Dash_Background", (int)ShaderType::kUI };
-	//	textures_.push_back(std::make_unique<Texture>());
-	//	textures_.back()->name = "dash_background";
-	//	textures_.back()->type = TextureType::kAlbedoMap;
-	//	dash_background_material->AddTexture(textures_.back().get());
-	//	materials_.emplace_back().reset(dash_background_material);
-	//
-	//	// 전면 (dash.dds)
-	//	Material* dash_material = new Material{ "Dash", (int)ShaderType::kUI };
-	//	textures_.push_back(std::make_unique<Texture>());
-	//	textures_.back()->name = "dash";
-	//	textures_.back()->type = TextureType::kAlbedoMap;
-	//	dash_material->AddTexture(textures_.back().get());
-	//	materials_.emplace_back().reset(dash_material);
-	//}
+	
+	// Dash UI용 Material 추가
+	{
+		// 배경 (dash_background.dds)
+		Material* dash_background_material = new Material{ "Dash_Background", (int)ShaderType::kUI };
+		textures_.push_back(std::make_unique<Texture>());
+		textures_.back()->name = "dash_background";
+		textures_.back()->type = TextureType::kAlbedoMap;
+		dash_background_material->AddTexture(textures_.back().get());
+		materials_.emplace_back().reset(dash_background_material);
+	
+		// 전면 (dash.dds)
+		Material* dash_material = new Material{ "Dash", (int)ShaderType::kUI };
+		textures_.push_back(std::make_unique<Texture>());
+		textures_.back()->name = "dash";
+		textures_.back()->type = TextureType::kAlbedoMap;
+		dash_material->AddTexture(textures_.back().get());
+		materials_.emplace_back().reset(dash_material);
+	}
 
 	Scene::BuildMaterial(device, command_list);
 }
 
 void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* command_list)
 {
-	//TODO: 각 메쉬의 컴포넌트 연결 개수를 파악하면 아래 수치를 디테일하게 설정할 수 있을것 같다..
 	cb_object_capacity_ = 10000;
 	cb_skinned_mesh_object_capacity_ = 1000;
 	cb_ui_mesh_capacity_ = 100;
@@ -545,81 +544,83 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 		spawn_boxs_.push_back(box);
 	}
 
-	//// 보물상자
-	//{
-	//	constexpr int kChestCount = 6;
-	//	XMFLOAT3 chest_positions[kChestCount] = {
-	//		{ 32.19f, 0.38f, 8.44f },
-	//		{ 101.82f, 0.38f, 16.34f },
-	//		{ 56.3f, 0.147f, -108.4f },
-	//		{ 65.9f, 0.351f, -183.7f },
-	//		{ 110.72f, 0.346f, -175.84f},
-	//		{ 141.55f, 0.35f, -164.17f }
-	//	};
-	//	XMFLOAT3 chest_rotations[kChestCount] = {
-	//	{ 0.0f, 171.0f, 0.0f },
-	//	{ 0.0f, 294.6f, 0.0f },
-	//	{ 0.0f, 383.8f, 0.0f },
-	//	{ 0.0f, 361.4f, 0.0f },
-	//	{ 0.0f, 299.42f, 0.0f },
-	//	{ 0.0f, 179.44f, 0.0f }
-	//	};
-	//
-	//	chests_.reserve(kChestCount);
-	//
-	//	// 스크롤 인덱스 무작위화
-	//	std::vector<int> scroll_index(10);
-	//	std::iota(scroll_index.begin(), scroll_index.end(), 0); // 0~9 채우기
-	//	std::shuffle(scroll_index.begin(), scroll_index.end(), kRandomGenerator);
-	//
-	//	//테스트용
-	//	/*scroll_index = {
-	//		(int)ScrollType::kNinja,
-	//		(int)ScrollType::kSprinter,
-	//		(int)ScrollType::kWeaponMaster,
-	//		(int)ScrollType::kFlameMaster,
-	//		(int)ScrollType::kAcidMaster,
-	//		(int)ScrollType::kElectricMaster
-	//	};*/
-	//
-	//	for (int i = 0; i < kChestCount; ++i)
-	//	{
-	//		Object* chest = model_infos_[12]->GetInstance();
-	//		chest->set_name("Chest" + std::to_string(i));
-	//		chest->set_position_vector(chest_positions[i]);
-	//		chest->set_local_rotation(chest_rotations[i]);
-	//		chest->set_is_movable(true);
-	//
-	//		//스크롤 추가
-	//		auto chest_component = new ChestComponent(chest, this);
-	//		//박스당 1개 사용
-	//		auto scroll_model = FindModelInfo("Scroll_" + std::to_string(scroll_index[i]));
-	//		chest_component->set_scroll_model(scroll_model);
-	//		chest->AddComponent(chest_component);
-	//
-	//		// 충돌용 BoxColliderComponent 부착
-	//		BoundingBox box_bounds{ {0.0f, 0.0f, 0.0f}, {1.5f, 1.0f, 1.5f} };
-	//		auto collider = new BoxColliderComponent(chest, box_bounds);
-	//		chest->AddComponent(collider);
-	//
-	//		// 파티클
-	//		Material* particle_material = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
-	//			return material->name() == "Trail_1";
-	//			})->get();
-	//			ParticleComponent* chest_particle = new ParticleComponent(
-	//				chest, device, 222, ParticleComponent::eShape::UpCone, particle_material);
-	//			chest_particle->set_scene(this);
-	//			chest_particle->set_loop(false);
-	//			chest_particle->set_color(XMFLOAT4(1.0f, 0.843f, 0.0f, 1.0f));
-	//			chest->AddComponent(chest_particle);
-	//
-	//			AddObject(chest);
-	//			chests_.push_back(chest);
-	//
-	//	}
-	//}
+	// 보물상자
+	//TODO: 스크롤 뽑는거 서버로 옮기기
+	{
+		constexpr int kChestCount = 6;
+		XMFLOAT3 chest_positions[kChestCount] = {
+			{ 32.19f, 0.38f, 8.44f },
+			{ 101.82f, 0.38f, 16.34f },
+			{ 56.3f, 0.147f, -108.4f },
+			{ 65.9f, 0.351f, -183.7f },
+			{ 110.72f, 0.346f, -175.84f},
+			{ 141.55f, 0.35f, -164.17f }
+		};
+		XMFLOAT3 chest_rotations[kChestCount] = {
+		{ 0.0f, 171.0f, 0.0f },
+		{ 0.0f, 294.6f, 0.0f },
+		{ 0.0f, 383.8f, 0.0f },
+		{ 0.0f, 361.4f, 0.0f },
+		{ 0.0f, 299.42f, 0.0f },
+		{ 0.0f, 179.44f, 0.0f }
+		};
+	
+		chests_.reserve(kChestCount);
+	
+		// 스크롤 인덱스 무작위화
+		//TODO: 스크롤 인덱스 서버에서 받아오기
+		std::vector<int> scroll_index(10);
+		std::iota(scroll_index.begin(), scroll_index.end(), 0); // 0~9 채우기
+		std::shuffle(scroll_index.begin(), scroll_index.end(), kRandomGenerator);
+	
+		//테스트용
+		/*scroll_index = {
+			(int)ScrollType::kNinja,
+			(int)ScrollType::kSprinter,
+			(int)ScrollType::kWeaponMaster,
+			(int)ScrollType::kFlameMaster,
+			(int)ScrollType::kAcidMaster,
+			(int)ScrollType::kElectricMaster
+		};*/
+	
+		for (int i = 0; i < kChestCount; ++i)
+		{
+			Object* chest = model_infos_[12]->GetInstance();
+			chest->set_name("Chest" + std::to_string(i));
+			chest->set_position_vector(chest_positions[i]);
+			chest->set_local_rotation(chest_rotations[i]);
+			chest->set_is_movable(true);
+	
+			//스크롤 추가
+			auto chest_component = new ChestComponent(chest, this);
+			//박스당 1개 사용
+			auto scroll_model = FindModelInfo("Scroll_" + std::to_string(scroll_index[i]));
+			chest_component->set_scroll_model(scroll_model);
+			chest->AddComponent(chest_component);
+	
+			// 충돌용 BoxColliderComponent 부착
+			BoundingBox box_bounds{ {0.0f, 0.0f, 0.0f}, {1.5f, 1.0f, 1.5f} };
+			auto collider = new BoxColliderComponent(chest, box_bounds);
+			chest->AddComponent(collider);
+	
+			// 파티클
+			Material* particle_material = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
+				return material->name() == "Trail_1";
+				})->get();
+				ParticleComponent* chest_particle = new ParticleComponent(
+					chest, device, 222, ParticleComponent::eShape::UpCone, particle_material);
+				chest_particle->set_scene(this);
+				chest_particle->set_loop(false);
+				chest_particle->set_color(XMFLOAT4(1.0f, 0.843f, 0.0f, 1.0f));
+				chest->AddComponent(chest_particle);
+	
+				AddObject(chest);
+				chests_.push_back(chest);
+	
+		}
+	}
 
-	//// 사운드
+	// 사운드
 	//{
 	//	FMODSoundManager::Instance().Initialize();
 	//	Object* sound_object = new Object();
@@ -1130,61 +1131,61 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			}
 		}
 	}
-	////Fix Scroll(Add Scroll UI)
-	//{
-	//	const int scroll_model_index = 13;
-	//	const int scroll_num = 10;
-	//
-	//	for (int i = 0; i < scroll_num; ++i)
-	//	{
-	//		// 스크롤 오브젝트 생성
-	//		ModelInfo* scroll_model_info = new ModelInfo();
-	//		scroll_model_info->set_model_name("Scroll_" + std::to_string(i));
-	//		model_infos_.emplace_back();
-	//		model_infos_.back().reset(scroll_model_info);
-	//
-	//		Object* scroll = model_infos_[scroll_model_index]->GetInstance();
-	//		scroll_model_info->set_hierarchy_root(scroll);
-	//		scroll->set_name("Scroll_" + std::to_string(i));
-	//		scroll->set_tag("Scroll");
-	//		scroll->set_is_movable(true);
-	//
-	//		auto scroll_component = new ScrollComponent(scroll);
-	//		scroll_component->set_type(static_cast<ScrollType>(i));
-	//		scroll->AddComponent(scroll_component);
-	//
-	//		//scroll->set_local_rotation(scroll_rotations[0]);
-	//
-	//		Object* ui_bar = new Object();
-	//		ui_bar->set_tag("Scroll_UI");
-	//
-	//		// 메쉬 및 머티리얼 설정
-	//		Mesh* mesh = Scene::FindMesh("Scroll", meshes_);
-	//		std::string material_name = "scroll_material_" + std::to_string(i); // 인덱스별
-	//		Material* material = Scene::FindMaterial(material_name, materials_);
-	//
-	//		// UI 컴포넌트 생성
-	//		auto ui_component = new UiMeshComponent(ui_bar, mesh, material, this);
-	//		ui_bar->AddComponent(ui_component);
-	//		material->DeleteMeshComponent(ui_component); // 씬 렌더에서 제외
-	//		ui_component->set_ui_layer(UiLayer::kZero);
-	//		ui_component->set_is_static(false);
-	//		ui_component->set_position_offset({ 0.f, -200.f });
-	//		scroll->AddChild(ui_bar);
-	//	}
-	//}
-	//
-	////Fix Chest
-	//{
-	//	auto model_hierarchy_root = model_infos_[12]->hierarchy_root();
-	//	auto animator = Object::GetComponentInChildren<AnimatorComponent>(model_hierarchy_root);
-	//	if (animator)
-	//	{
-	//		animator->set_animation_state(new ChestAnimationState);
-	//		animator->set_max_change_time(0.001f);
-	//	}
-	//}
-	//
+	//Fix Scroll(Add Scroll UI)
+	{
+		const int scroll_model_index = 13;
+		const int scroll_num = 10;
+	
+		for (int i = 0; i < scroll_num; ++i)
+		{
+			// 스크롤 오브젝트 생성
+			ModelInfo* scroll_model_info = new ModelInfo();
+			scroll_model_info->set_model_name("Scroll_" + std::to_string(i));
+			model_infos_.emplace_back();
+			model_infos_.back().reset(scroll_model_info);
+	
+			Object* scroll = model_infos_[scroll_model_index]->GetInstance();
+			scroll_model_info->set_hierarchy_root(scroll);
+			scroll->set_name("Scroll_" + std::to_string(i));
+			scroll->set_tag("Scroll");
+			scroll->set_is_movable(true);
+	
+			auto scroll_component = new ScrollComponent(scroll);
+			scroll_component->set_type(static_cast<ScrollType>(i));
+			scroll->AddComponent(scroll_component);
+	
+			//scroll->set_local_rotation(scroll_rotations[0]);
+	
+			Object* ui_bar = new Object();
+			ui_bar->set_tag("Scroll_UI");
+	
+			// 메쉬 및 머티리얼 설정
+			Mesh* mesh = Scene::FindMesh("Scroll", meshes_);
+			std::string material_name = "scroll_material_" + std::to_string(i); // 인덱스별
+			Material* material = Scene::FindMaterial(material_name, materials_);
+	
+			// UI 컴포넌트 생성
+			auto ui_component = new UiMeshComponent(ui_bar, mesh, material, this);
+			ui_bar->AddComponent(ui_component);
+			material->DeleteMeshComponent(ui_component); // 씬 렌더에서 제외
+			ui_component->set_ui_layer(UiLayer::kZero);
+			ui_component->set_is_static(false);
+			ui_component->set_position_offset({ 0.f, -200.f });
+			scroll->AddChild(ui_bar);
+		}
+	}
+	
+	//Fix Chest
+	{
+		auto model_hierarchy_root = model_infos_[12]->hierarchy_root();
+		auto animator = Object::GetComponentInChildren<AnimatorComponent>(model_hierarchy_root);
+		if (animator)
+		{
+			animator->set_animation_state(new ChestAnimationState);
+			animator->set_max_change_time(0.001f);
+		}
+	}
+	
 	////Create Razer Model
 	//{
 	//	ModelInfo* razer_model = new ModelInfo();
@@ -1808,133 +1809,6 @@ void BaseScene::DeleteDeadObjects()
 	Scene::DeleteDeadObjects();
 }
 
-void BaseScene::UpdateObjectIsGround()
-{
-	if (!is_prepare_ground_checking_)
-	{
-		PrepareGroundChecking();
-	}
-
-	for (auto& object : ground_check_object_list_)
-	{
-		CheckObjectIsGround(object);
-	}
-}
-
-void BaseScene::UpdateObjectHitWall()
-{
-	if (!is_prepare_ground_checking_)
-	{
-		PrepareGroundChecking();
-	}
-
-	for (auto& wall_check_object : wall_check_object_list_)
-	{
-		CheckPlayerHitWall(wall_check_object.object, wall_check_object.movement);
-	}
-}
-
-void BaseScene::UpdateObjectHitBullet()
-{
-	if (!is_prepare_ground_checking_)
-	{
-		PrepareGroundChecking();
-	}
-	for (auto& object : ground_check_object_list_)
-	{
-		if (object == player_)
-		{
-			CheckPlayerHitGun(object);
-			continue;
-		}
-		CheckObjectHitBullet(object);
-		CheckObjectHitFlamethrow(object);
-	}
-}
-
-void BaseScene::UpdateObjectHitObject()
-{
-	if (!is_prepare_ground_checking_)
-	{
-		PrepareGroundChecking();
-	}
-	for (auto& object : ground_check_object_list_)
-	{
-		auto movement = Object::GetComponentInChildren<MovementComponent>(object);
-		CheckObjectHitObject(object);
-	}
-}
-
-void BaseScene::UpdateStageClear()
-{
-	if (!is_prepare_ground_checking_)
-	{
-		PrepareGroundChecking();
-	}
-	switch (stage_clear_num_)
-	{
-	case 0:
-		if (catch_monster_num_ <= 0)
-			return;
-		break;
-	case 1:
-		if (catch_monster_num_ < 11)
-			return;
-		break;
-	case 2:
-		if (catch_monster_num_ < 14)
-			return;
-		break;
-	case 3:		
-		if (catch_monster_num_ < 1)
-			return;
-		//TODO: 스테이지 3번은 투명발판을 밟아 다음 스테이지로 진행해야 클리어
-		break;
-	case 4:
-		if (catch_monster_num_ < 1)
-			return;
-		break;
-	case 5:
-		if (catch_monster_num_ < 10)
-			return;
-		break;
-	case 6:
-		for (auto& object : ground_check_object_list_)
-		{
-			auto movement = Object::GetComponentInChildren<MovementComponent>(object);
-			CheckPlayerHitPyramid(object);
-		}
-		if (get_key_num_ == 3)
-		{
-			auto& mesh_list = stage_wall_collider_list_[stage_clear_num_];
-			mesh_list.remove_if([](MeshColliderComponent* collider) {
-				return collider->mesh() && collider->mesh()->name() == "Cube";
-				});
-			++stage_clear_num_;
-			get_key_num_ = 0;
-		}
-		break;
-	case 7:
-		// TODO: 게임클리어!
-		if (catch_monster_num_ < 1)
-			return;
-		break;
-	default:
-		break;
-	}
-	// 현재 스테이지에서 "Cube" 메쉬 제거
-	auto& mesh_list = stage_wall_collider_list_[stage_clear_num_];
-	mesh_list.remove_if([](auto collider) {
-		return collider->mesh() && collider->mesh()->name() == "Cube";
-		});
-
-	// 스테이지 넘버 증가
-	++stage_clear_num_;
-	catch_monster_num_ = 0;
-
-	is_activate_spawner_ = false;
-
-}
 
 void BaseScene::CheckObjectIsGround(Object* object)
 {
@@ -2147,151 +2021,6 @@ void BaseScene::CheckObjectHitObject(Object* object)
 	}
 }
 
-void BaseScene::CheckObjectHitBullet(Object* object)
-{
-	GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_);
-	auto& bullet_list = gun->fired_bullet_list();
-
-	auto& box_collider_list = Object::GetComponentsInChildren<BoxColliderComponent>(object);
-	if (!box_collider_list.size())
-		return;
-
-	for (auto& box_collider : box_collider_list)
-	{
-		for (auto& bullet : bullet_list)
-		{
-			if (bullet->is_dead())
-				continue;
-			BoxColliderComponent* bullet_collider = Object::GetComponent<BoxColliderComponent>(bullet);
-			if (!bullet_collider)
-				continue;
-
-			if (bullet_collider->animated_box().Intersects(box_collider->animated_box()))
-			{
-				MonsterComponent* monster = Object::GetComponent<MonsterComponent>(object);
-				if (monster && monster->IsDead())
-					continue;
-				bullet->set_is_dead(true);
-				if (monster && !monster->IsDead())
-				{
-					ParticleComponent* gun_particle = nullptr;
-					{
-						Object* flame_tip = player_->FindFrame("gun_particle_pivot");
-						if (flame_tip)
-							gun_particle = Object::GetComponent<ParticleComponent>(flame_tip);
-					}
-
-					// 몬스터 HIT 파티클 출력
-					ParticleComponent* particle_component = Object::GetComponent<ParticleComponent>(monster_hit_particles_.front());
-					particle_component->set_hit_position(monster->owner()->world_position_vector());
-					particle_component->set_color(gun_particle->color());
-					particle_component->Play(50);
-					
-					monster->HitDamage(gun->damage() * (1 + gun->upgrade() * 0.2));
-
-					if (monster->IsDead())
-					{
-						catch_monster_num_++;
-
-						// 총기 이름 목록
-						std::vector<std::string> gun_names = { "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
-
-						std::vector<int> drop_weights = { 15, 10, 7, 5, 3, 1 }; // 전체 합 = 41
-
-						// 드랍할지 말지: 41% 확률로 총기 드랍, 나머지 59%는 아무것도 안 떨어짐
-						if (rand() % 100 >= 41) return; // 59% 확률로 드랍 안 함
-
-						// 랜덤 엔진 및 분포 생성
-						std::random_device rd;
-						std::mt19937 gen(rd());
-						std::discrete_distribution<> dist(drop_weights.begin(), drop_weights.end());
-
-						int random_index = dist(gen);
-						std::string gun_name = gun_names[random_index];
-						Object* dropped_gun = FindModelInfo(gun_names[random_index])->GetInstance();
-
-						XMFLOAT3 drop_pos = monster->owner()->world_position_vector();
-						drop_pos.y += 0.1f;
-						dropped_gun->set_position_vector(drop_pos);
-						dropped_gun->set_is_movable(true);
-
-						BoundingBox gun_bb{ {0.f, 0.f, 0.f}, {0.5f, 0.3f, 1.0f} };
-						auto box_comp = new BoxColliderComponent(dropped_gun, gun_bb);
-						dropped_gun->AddComponent(box_comp);
-
-						// UI
-						/*Object* ui_texture = FindModelInfo("Gun_UI")->GetInstance();
-						ui_texture->set_local_position({ 0.0f, 0.5f, 0.1f });
-						dropped_gun->AddChild(ui_texture);*/
-
-						std::string dropped_name = dropped_gun->name();  // 예: "Dropped_Classic"
-
-						GunComponent* dropped_gun_component = Object::GetComponent<GunComponent>(dropped_gun);
-						std::string gun_ui_name = "Gun_UI_" + dropped_name.substr(dropped_name.find('_') + 1); // "Classic", "Sherif" 등
-
-						// 랜덤 강화, 속성
-						int upgrade = rand() % 4;
-						dropped_gun_component->set_upgrade(upgrade);
-
-						// [2] 속성 타입: 0 = Fire, 1 = Electric, 2 = Poison
-						int element_random = rand() % 3;
-						ElementType element = static_cast<ElementType>(element_random);
-						dropped_gun_component->set_element(element);
-
-						if (upgrade > 0)
-						{
-							gun_ui_name += "+" + std::to_string(upgrade);
-						}
-
-						ModelInfo* ui_model = FindModelInfo(gun_ui_name);
-						if (ui_model)
-						{
-							Object* ui_texture = ui_model->GetInstance();
-							ui_texture->set_local_position({ 0.0f, 0.5f, 0.1f }); // 위치는 필요 시 조정
-							dropped_gun->AddChild(ui_texture);
-						}
-
-						// 파티클 추가
-						Material* particle_material = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
-							return material->name() == "Trail_1";
-							})->get();
-						ParticleComponent* particle = new ParticleComponent(
-							dropped_gun,
-							device_,
-							100,
-							ParticleComponent::Circle,
-							particle_material
-						);
-						particle->set_scene(this);
-						particle->set_loop(true);
-						particle->set_color({ 1.0f, 1.0f, 1.0f, 1.0f });
-						switch (dropped_gun_component->element())
-						{
-						case ElementType::kFire:
-							particle->set_color({ 0.9f, 0.1f, 0.1f, 0.5f }); // Red
-							break;
-						case ElementType::kElectric:
-							particle->set_color({ 0.1f, 0.9f, 0.1f, 0.5f }); // Yellowish Green
-							break;
-						case ElementType::kPoison:
-							particle->set_color({ 0.9f, 0.9f, 0.1f, 0.5f }); // Greenish Yellow
-							break;
-						default:
-							particle->set_color({ 1.0f, 1.0f, 1.0f, 0.5f }); // fallback white
-							break;
-						}
-
-						dropped_gun->AddComponent(particle);
-						particle->Play(50);
-
-						AddObject(dropped_gun);
-						dropped_guns_.push_back(dropped_gun);
-					}
-				}
-			}
-		}
-	}
-}
 
 void BaseScene::CheckObjectHitFlamethrow(Object* object)
 {

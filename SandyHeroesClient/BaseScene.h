@@ -112,6 +112,10 @@ private:
 
 	std::vector<Object*> dropped_guns_;
 
+	std::vector<Object*> chests_;
+
+	std::vector<Object*> sounds_;
+
 	std::vector<BoxColliderComponent*> spawn_boxs_{}; // 스테이지 몬스터 생성 체크를 위한 박스들
 
 	std::vector<CutSceneTrack> cut_scene_tracks_{};
