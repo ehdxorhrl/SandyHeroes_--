@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+//version 0.1   버전은 항상 바꿔줄 것
 
 // 서버 주소와 포트는 나중에 입력받는식으로 수정
 constexpr short SERVER_PORT = 5000;
@@ -15,6 +16,7 @@ constexpr char S2C_P_CREATE_BULLET = 6;
 constexpr char S2C_P_LOADED_BULLET = 7;
 constexpr char S2C_P_PLAYER_DAMAGED = 8;    // 플레이어가 입은 데미지
 constexpr char S2C_P_PLAYER_DEATH = 9;		// 플레이어 사망
+constexpr char S2C_P_DROP_GUN = 10;
 
 
 constexpr char S2C_P_MONSTER_INFO = 11;		// 몬스터 생성
@@ -37,12 +39,25 @@ constexpr char PRESS_ON = 1;
 
 #pragma pack (push,1)
 
+struct sc_packet_drop_gun
+{
+    uint8_t  size;           // 패킷 전체 크기
+    uint8_t  type;           // 패킷 타입 (예: S2C_P_DROP_GUN)
+    uint32_t id;             // 드랍된 총기의 고유 ID
+    uint8_t  gun_type;       // 총기 종류 (0=Classic, ..., 5=Flamethrower)
+    uint8_t  upgrade_level;  // 강화 수치 (0~3)
+    uint8_t  element_type;   // 속성 (0=Fire, 1=Electric, 2=Poison)
+    float    matrix[16];     // 드랍된 총기의 위치/회전을 포함한 변환 행렬
+};
+
+
 struct sc_packet_loaded_bullet {
     uint8_t size;
     uint8_t type;
     uint32_t id;
     uint8_t loaded_bullets;
 };
+
 
 struct sc_packet_monster_move {
     uint8_t size;

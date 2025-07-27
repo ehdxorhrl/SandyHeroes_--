@@ -337,6 +337,7 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 	case C2S_P_MOUSE_CLICK: {
 		cs_packet_mouse_click* packet = reinterpret_cast<cs_packet_mouse_click*>(p);
 
+		std::cout << "진입완료" << std::endl;
 		// 카메라 방향을 받는다
 		XMFLOAT3 cam_pos{ packet->camera_px, packet->camera_py, packet->camera_pz };
 		XMFLOAT3 cam_look{ packet->camera_lx, packet->camera_ly, packet->camera_lz };

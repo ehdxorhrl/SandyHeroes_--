@@ -1754,7 +1754,6 @@ void BaseScene::Update(float elapsed_time)
 	//
 	//CheckSpawnBoxHitPlayer();
 
-
 }
 
 void BaseScene::RenderText(ID2D1DeviceContext2* d2d_device_context)
@@ -2456,7 +2455,6 @@ void BaseScene::CheckPlayerHitGun(Object* object)
 		return;
 	}
 	
-
 	BoundingOrientedBox player_obb = player_box->GetWorldOBB();
 
 	for (auto it = dropped_guns_.begin(); it != dropped_guns_.end(); )
@@ -2672,4 +2670,85 @@ void BaseScene::add_monster(uint32_t id, const XMFLOAT4X4& matrix, int32_t max_h
 	
 	AddObject(new_monster);
 
+}
+
+void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, uint8_t element_type, const XMFLOAT4X4& matrix)
+{
+	std::vector<std::string> gun_names = { "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
+	std::string gun_name = gun_names[gun_type];
+	Object* dropped_gun = FindModelInfo(gun_names[gun_type])->GetInstance();
+
+	dropped_gun->set_transform_matrix(matrix);
+	dropped_gun->set_is_movable(true);
+	dropped_gun->set_id(id);
+
+	BoundingBox gun_bb{ {0.f, 0.f, 0.f}, {0.5f, 0.3f, 1.0f} };
+	auto box_comp = new BoxColliderComponent(dropped_gun, gun_bb);
+	dropped_gun->AddComponent(box_comp);
+
+	// UI
+	/*Object* ui_texture = FindModelInfo("Gun_UI")->GetInstance();
+	ui_texture->set_local_position({ 0.0f, 0.5f, 0.1f });
+	dropped_gun->AddChild(ui_texture);*/
+
+	std::string dropped_name = dropped_gun->name();  // 예: "Dropped_Classic"
+
+	GunComponent* dropped_gun_component = Object::GetComponent<GunComponent>(dropped_gun);
+	std::string gun_ui_name = "Gun_UI_" + dropped_name.substr(dropped_name.find('_') + 1); // "Classic", "Sherif" 등
+
+	// 랜덤 강화, 속성
+	dropped_gun_component->set_upgrade(upgrade_level);
+
+	// [2] 속성 타입: 0 = Fire, 1 = Electric, 2 = Poison
+	ElementType element = static_cast<ElementType>(element_type);
+	dropped_gun_component->set_element(element);
+
+	if (upgrade_level > 0)
+	{
+		gun_ui_name += "+" + std::to_string(upgrade_level);
+	}
+
+	ModelInfo* ui_model = FindModelInfo(gun_ui_name);
+	if (ui_model)
+	{
+		Object* ui_texture = ui_model->GetInstance();
+		ui_texture->set_local_position({ 0.0f, 0.5f, 0.1f }); // 위치는 필요 시 조정
+		dropped_gun->AddChild(ui_texture);
+	}
+
+	// 파티클 추가
+	Material* particle_material = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
+		return material->name() == "Trail_1";
+		})->get();
+		ParticleComponent* particle = new ParticleComponent(
+			dropped_gun,
+			device_,
+			100,
+			ParticleComponent::Circle,
+			particle_material
+		);
+		particle->set_scene(this);
+		particle->set_loop(true);
+		particle->set_color({ 1.0f, 1.0f, 1.0f, 1.0f });
+		switch (dropped_gun_component->element())
+		{
+		case ElementType::kFire:
+			particle->set_color({ 0.9f, 0.1f, 0.1f, 0.5f }); // Red
+			break;
+		case ElementType::kElectric:
+			particle->set_color({ 0.1f, 0.9f, 0.1f, 0.5f }); // Yellowish Green
+			break;
+		case ElementType::kPoison:
+			particle->set_color({ 0.9f, 0.9f, 0.1f, 0.5f }); // Greenish Yellow
+			break;
+		default:
+			particle->set_color({ 1.0f, 1.0f, 1.0f, 0.5f }); // fallback white
+			break;
+		}
+
+		dropped_gun->AddComponent(particle);
+		particle->Play(50);
+
+		AddObject(dropped_gun);
+		dropped_guns_.push_back(dropped_gun);
 }

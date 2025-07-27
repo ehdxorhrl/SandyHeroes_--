@@ -1006,9 +1006,16 @@ void GameFramework::ProcessPacket(char* p)
         }
     }
         break;
-    case S2C_P_STAGE_CLEAR:
+    case S2C_P_DROP_GUN:
     {
-
+        sc_packet_drop_gun* packet = reinterpret_cast<sc_packet_drop_gun*>(p);
+        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
+        if (base_scene)
+        {
+            XMFLOAT4X4 xf;
+            memcpy(&xf, packet->matrix, sizeof(float) * 16);
+            base_scene->add_drop_gun(packet->id, packet->gun_type, packet->upgrade_level, packet->element_type, xf);
+        }
     }
         break;
     case S2C_P_MONSTER_INFO:
@@ -1018,7 +1025,7 @@ void GameFramework::ProcessPacket(char* p)
         if (base_scene)
         {
             XMFLOAT4X4 xf;
-            memcpy(&xf, packet->matrix, sizeof(float) * 16);  // 몬스터 행렬
+            memcpy(&xf, packet->matrix, sizeof(float) * 16);
             base_scene->add_monster(packet->id, xf, packet->max_hp, packet->max_shield, packet->attack_force, packet->monster_type);
         }
     }
@@ -1034,11 +1041,28 @@ void GameFramework::ProcessPacket(char* p)
             {
                 MonsterComponent* monster_component = Object::GetComponentInChildren<MonsterComponent>(monster);
                 if (!monster_component)
-                {
                     break;
-                }
+
                 monster_component->set_hp(packet->hp);
                 monster_component->set_shield(packet->shield);
+                if (monster_component->IsDead())
+                    break;
+                if (!monster_component->IsDead())
+                {
+
+                    //ParticleComponent* gun_particle = nullptr;
+                    //{
+                    //    Object* flame_tip = player_->FindFrame("gun_particle_pivot");
+                    //    if (flame_tip)
+                    //        gun_particle = Object::GetComponent<ParticleComponent>(flame_tip);
+                    //}
+                    //
+                    //// 몬스터 HIT 파티클 출력
+                    //ParticleComponent* particle_component = Object::GetComponent<ParticleComponent>(base_scene->monster_hit_particles_.front());
+                    //particle_component->set_hit_position(monster_component->owner()->world_position_vector());
+                    //particle_component->set_color(gun_particle->color());
+                    //particle_component->Play(50);
+                }
             }
         }
     }
@@ -1059,7 +1083,7 @@ void GameFramework::ProcessPacket(char* p)
                     break;
                 }
                 XMFLOAT4X4 xf;
-                memcpy(&xf, packet->matrix, sizeof(float) * 16);  // 몬스터 행렬
+                memcpy(&xf, packet->matrix, sizeof(float) * 16);
                 monster->set_transform_matrix(xf);
                 auto movement = Object::GetComponentInChildren<MovementComponent>(monster);
                 movement->set_velocity(XMFLOAT3(packet->speed, 0, 0));

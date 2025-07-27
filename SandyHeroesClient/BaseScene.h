@@ -72,6 +72,8 @@ public:
 		int32_t max_shield,
 		int32_t attack_force,
 		int32_t monster_type_int);
+	void add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, uint8_t element_type, const XMFLOAT4X4& matrix);
+
 private:
 	//static constexpr int kStageMaxCount{ 8 };	// 게임 스테이지 총 개수
 
