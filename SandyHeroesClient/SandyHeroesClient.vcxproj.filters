@@ -172,6 +172,12 @@
     <Filter Include="3.Shader\Particle">
       <UniqueIdentifier>{2383cc65-78a7-44de-9845-179f95770c2e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="7.Component\Scroll">
+      <UniqueIdentifier>{aa342c6d-c26a-4fd5-93dd-f9e8065a340f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1.Manager\FMODSound">
+      <UniqueIdentifier>{1c738490-afd0-44a3-a187-834dce71e566}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -402,6 +408,21 @@
     <ClInclude Include="Packet.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="ChestAnimationState.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ChestComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CharacterComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollComponent.h">
+      <Filter>7.Component\Scroll</Filter>
+    </ClInclude>
+    <ClInclude Include="FMODSoundManager.h">
+      <Filter>1.Manager\FMODSound</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandyHeroesClient.cpp">
@@ -613,6 +634,21 @@
     </ClCompile>
     <ClCompile Include="WallColliderComponent.cpp">
       <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ChestAnimationState.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ChestComponent.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="CharacterComponent.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollComponent.cpp">
+      <Filter>7.Component\Scroll</Filter>
+    </ClCompile>
+    <ClCompile Include="FMODSoundManager.cpp">
+      <Filter>1.Manager\FMODSound</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

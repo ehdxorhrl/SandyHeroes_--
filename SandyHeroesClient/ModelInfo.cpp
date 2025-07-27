@@ -75,7 +75,6 @@ void ModelInfo::LoadModelInfoFromFile(const std::string& file_name, std::vector<
 
 	if (animation_sets_.size())
 	{
-		//TODO: 모델 종류에 따라 알맞은 AS 클래스 분배가 필요
 		AnimatorComponent* animator = new AnimatorComponent(hierarchy_root_, animation_sets_, frame_names_, root_bone_name_, new PlayerAnimationState);
 		hierarchy_root_->AddComponent(animator);
 	}
@@ -120,7 +119,6 @@ Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::u
 		box.Extents = ReadFromFile<XMFLOAT3>(file);
 		frame->AddComponent(new BoxColliderComponent(frame, box));
 #ifdef _DEBUG
-		//TODO: 디버그 material 추가 및 컴포넌트에 연결
 		frame->AddComponent(new DebugMeshComponent(frame, Scene::FindMesh("Debug_Mesh", meshes), box));
 #endif // _DEBUG
 

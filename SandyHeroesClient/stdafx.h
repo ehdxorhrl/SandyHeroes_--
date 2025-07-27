@@ -350,8 +350,8 @@ namespace RANDOM {
 		std::uniform_real_distribution<float> distZ(cosf(angleRadians), 1.0f);
 		std::uniform_real_distribution<float> distTheta(0.0f, XM_2PI);
 
-		float z = std::cos(angleRadians);
-		//float z = distZ(dre);
+		//float z = std::cos(angleRadians);
+		float z = distZ(dre);
 		float theta = distTheta(dre);
 
 		float r = sqrtf(1.0f - z * z);

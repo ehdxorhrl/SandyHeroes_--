@@ -48,7 +48,6 @@ bool MeshColliderComponent::CollisionCheckByRay(FXMVECTOR ray_origin, FXMVECTOR 
 		auto& positions = mesh_->positions();
 		auto& indices_array = mesh_->indices_array();
 
-		//TODO: 트라이앵글 스트립에 대한 처리 구현
 		if (mesh_->primitive_topology() == D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
 		{
 			for (auto& indices : indices_array)
@@ -93,7 +92,6 @@ bool MeshColliderComponent::CollisionCheckByObb(BoundingOrientedBox obb)
 		auto& positions = mesh_->positions();
 		auto& indices_array = mesh_->indices_array();
 
-		//TODO: 트라이앵글 스트립에 대한 처리 구현
 		if (mesh_->primitive_topology() == D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
 		{
 			for (auto& indices : indices_array)

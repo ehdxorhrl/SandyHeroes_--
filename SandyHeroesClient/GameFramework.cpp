@@ -33,7 +33,6 @@ GameFramework::~GameFramework()
     if (d3d_device_)
     {
         FlushCommandQueue();
-        //TODO: ��üȭ�� ��忡�� ����� ���� �߻� �ذ�
 		if (client_full_screen_state_)
 		{
             ChangeWindowMode();
@@ -630,10 +629,8 @@ void GameFramework::FrameAdvance()
 {
     client_timer_->Tick();
 
-    //��ǲ ó��
     ProcessInput();
 
-    //scene_->CheckObjectByObjectCollisions();
 
     scene_->Update(client_timer_->ElapsedTime());
     scene_->UpdateObjectWorldMatrix();

@@ -56,6 +56,5 @@ private:
 	bool is_pushed_{ false };
 	float push_timer_{ 0.0f }; // 밀린 후 일정 시간 이동 금지
 
-	//TODO: 몬스터를 움직일 AI 추가
 };
 

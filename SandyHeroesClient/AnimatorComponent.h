@@ -27,6 +27,7 @@ public:
     void set_animation_state(AnimationState* value);
     void set_speed_scale(float value);
     void set_is_ignore_root_bone_traslation(bool value);
+    void set_max_change_time(float value) { max_change_time_ = value; }
 
     //getter
     AnimationState* animation_state() const;

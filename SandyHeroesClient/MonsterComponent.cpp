@@ -57,7 +57,7 @@ void MonsterComponent::Update(float elapsed_time)
         }
     }
 
-	//TODO: 몬스터의 행동을 결정하는 AI 추가
+	//TODO: 서버에서 몬스터의 상태를 받아서 업데이트
 	//EX) ai->Update(owner_, elapsed_time);
     if (target_)
     {

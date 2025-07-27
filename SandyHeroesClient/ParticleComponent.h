@@ -33,6 +33,8 @@ public:
 		Cone,
 		Circle,
 		BigCone,
+		Rect,
+		UpCone,
 		Count
 	};
 

@@ -59,7 +59,7 @@ bool FPSControllerComponent::ProcessInput(UINT message_id, WPARAM w_param, LPARA
 		}
 		SetCursorPos(center.x, center.y);
 
-		GameFramework::	Instance()->send_mouse_move_packet(mouse_cursor_pos.x, center.x);
+		GameFramework::Instance()->send_mouse_move_packet(mouse_cursor_pos.x, center.x);
 	}
 		break;
 	case WM_KEYDOWN:
@@ -223,7 +223,6 @@ void FPSControllerComponent::Update(float elapsed_time)
 	//		int sy = mouse_xy_.y;
 	//		Object* picked_object = nullptr;
 	//
-	//		//TODO: 피킹 처리 디버깅 후 아래 코드를 피킹된 좌표로 변경
 	//		XMVECTOR picking_point_w = XMLoadFloat3(&(camera_object_->world_position_vector() + (camera_object_->world_look_vector() * 100.f)));
 	//
 	//

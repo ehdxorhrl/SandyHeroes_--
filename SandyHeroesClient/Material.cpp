@@ -65,8 +65,6 @@ void Material::UpdateShaderVariables(ID3D12GraphicsCommandList* command_list,
 	for (const auto& const texture : texture_list_)
 	{
 		texture_handle = descriptor_manager->GetGpuHandle(srv_offset + texture->heap_index);
-		//TODO: RootParameterIndex를 텍스처에 직접부여하고 
-		//텍스처 마스크는 머터리얼 생성과정에서 설정하면 아래 스위치문을 지워버릴 수 있을것같다..
 		switch (texture->type)
 		{
 		case TextureType::kAlbedoMap:
