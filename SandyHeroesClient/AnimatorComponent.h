@@ -35,8 +35,8 @@ public:
 private:
     std::unique_ptr<AnimationState> animation_state_;
     
-	float track_index_ = -1;         //현재 재생중인 트랙 인덱스
-	float before_track_index_ = -1;  //이전 트랙 인덱스
+	float track_index_ = 0;         //현재 재생중인 트랙 인덱스
+	float before_track_index_ = 0;  //이전 트랙 인덱스
 
     //적용할 애니메이션 목록
     std::vector<AnimationTrack> animation_tracks_;
