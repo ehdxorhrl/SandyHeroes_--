@@ -1,0 +1,408 @@
+﻿// header.h: 표준 시스템 포함 파일
+// 또는 프로젝트 특정 포함 파일이 들어 있는 포함 파일입니다.
+//
+
+#pragma once
+
+#include "targetver.h"
+#define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용을 Windows 헤더에서 제외합니다.
+#define NOMINMAX						// min, max 메크로를 사용하지 않음
+// Windows 헤더 파일
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+#pragma comment (lib, "WS2_32.lib")
+#pragma comment (lib, "MSWSock.lib")
+// C 런타임 헤더 파일입니다.
+#include <stdlib.h>
+#include <malloc.h>
+#include <memory.h>
+#include <tchar.h>
+#include <assert.h>
+
+// C++ 헤더 파일
+#include <iostream>
+#include <vector>
+#include <list>
+#include <array>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <fstream>
+#include <limits>
+#include <sstream>
+#include <numeric>
+#include <functional>
+#include <random>
+#include <algorithm>
+#include <ranges>
+#include <chrono>
+#include <thread>
+
+// DirectX 관련 헤더 파일 및 선언문
+#include <wrl.h>
+#include <shellapi.h>
+
+#include <d2d1_3.h>
+#include <d2d1_3helper.h>
+#include <dwrite.h>
+#include <d3d11on12.h>
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include <dxgidebug.h>
+#include <D3Dcompiler.h>
+#include <DirectXMath.h>
+#include <DirectXPackedVector.h>
+#include <DirectXColors.h>
+#include <DirectXCollision.h>
+
+#pragma comment(lib, "d3dcompiler.lib")
+#pragma comment(lib, "d3d12.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "d2d1.lib")
+#pragma comment(lib, "dwrite.lib")
+#pragma comment(lib, "d3d11.lib")
+
+#include "d3dx12.h"
+
+#include "Packet.h"
+
+using Microsoft::WRL::ComPtr;
+using namespace DirectX;
+
+// 상수값
+constexpr int kDefaultFrameBufferWidth = 1920;
+constexpr int kDefaultFrameBufferHeight = 1080;
+constexpr UINT kDefaultRefreshRate = 60;
+constexpr int kMaxBoneCount = 128; //skinned mesh의 본 최대 개수
+constexpr int kMaxLights = 16;		// 조명처리의 최대 개수
+
+//랜덤 머신
+static std::random_device kRandomDevice;
+static std::mt19937 kRandomGenerator(kRandomDevice());
+
+
+enum class RootParameterIndex {
+	kWorldMatrix = 0, kBoneTransform, kBoneOffset, kUi, kRenderPass,
+	kMaterial, kAlbedoMap, kSpecGlosMap, kMetalGlosMap, kEmissionMap,
+	kNormalMap, kCubeMap, kShadowMap, kShadowPass
+};
+
+// 유틸 함수
+
+inline bool IsZero(float value, float epsilon = std::numeric_limits<float>::epsilon() * 100)
+{
+	return std::fabs(value) < epsilon;
+}
+
+namespace d3d_util
+{
+	// 업로드 버퍼를 이용하여 디폴트버퍼 생성
+	// 주의: 이 함수가 실행되고 gpu 명령이 전부 실행된 뒤 upload_buffer를 해제해야한다.
+	ComPtr<ID3D12Resource> CreateDefaultBuffer(
+		ID3D12Device* device,						
+		ID3D12GraphicsCommandList* command_list,
+		const void* init_data,
+		UINT64 byte_size,
+		ComPtr<ID3D12Resource>& upload_buffer);
+
+	// 상수 버퍼는 항상 256바이트의 배수여야 한다.
+	// 이 함수는 버퍼의 사이즈를 256의 배수로 계산해주는 함수다.
+	UINT CalculateConstantBufferSize(UINT byte_size);
+}
+
+namespace xmath_util_float3
+{
+	inline XMFLOAT3 Add(const XMFLOAT3& vector1, const XMFLOAT3& vector2) 
+	{ 
+		XMFLOAT3 r_value;
+		XMStoreFloat3(&r_value, XMLoadFloat3(&vector1) + XMLoadFloat3(&vector2));
+		return r_value;
+	}
+
+	inline XMFLOAT3 Subtract(const XMFLOAT3& vector1, const XMFLOAT3& vector2)
+	{
+		XMFLOAT3 r_value;
+		XMStoreFloat3(&r_value, XMLoadFloat3(&vector1) - XMLoadFloat3(&vector2));
+		return r_value;
+	}
+
+	inline XMFLOAT3 ScalarProduct(const XMFLOAT3& vector, float scalar)
+	{
+		XMFLOAT3 r_value;
+		XMStoreFloat3(&r_value, XMLoadFloat3(&vector) * scalar);
+		return r_value;
+	}
+
+	inline float DotProduct(const XMFLOAT3& vector1, const XMFLOAT3& vector2)
+	{
+		XMFLOAT3 r_value;
+		XMStoreFloat3(&r_value, XMVector3Dot(XMLoadFloat3(&vector1), XMLoadFloat3(&vector2)));
+		return r_value.x;
+	}
+
+	inline XMFLOAT3 CrossProduct(const XMFLOAT3& vector1, const XMFLOAT3& vector2)
+	{
+		XMFLOAT3 r_value;
+		XMStoreFloat3(&r_value, XMVector3Cross(XMLoadFloat3(&vector1), XMLoadFloat3(&vector2)));
+		return r_value;
+	}
+
+	inline XMFLOAT3 Normalize(const XMFLOAT3& vector)
+	{
+		XMFLOAT3 r_value;
+		XMStoreFloat3(&r_value, XMVector3Normalize(XMLoadFloat3(&vector)));
+		return r_value;
+	}
+
+	inline float Length(const XMFLOAT3& vector)
+	{
+		XMFLOAT3 r_value;
+		XMStoreFloat3(&r_value, XMVector3Length(XMLoadFloat3(&vector)));
+		return r_value.x;
+	}
+
+	inline float AngleBetween(const XMFLOAT3& vector1, const XMFLOAT3& vector2)
+	{
+		XMFLOAT3 r_value;
+		XMStoreFloat3(&r_value, XMVector3AngleBetweenNormals(XMLoadFloat3(&vector1), XMLoadFloat3(&vector2)));
+		return r_value.x;
+	}
+
+}
+
+namespace xmath_util_float4
+{
+	inline XMFLOAT4 Add(const XMFLOAT4& vector1, const XMFLOAT4& vector2)
+	{
+		XMFLOAT4 r_value;
+		XMStoreFloat4(&r_value, XMLoadFloat4(&vector1) + XMLoadFloat4(&vector2));
+		return r_value;
+	}
+
+	inline XMFLOAT4 Subtract(const XMFLOAT4& vector1, const XMFLOAT4& vector2)
+	{
+		XMFLOAT4 r_value;
+		XMStoreFloat4(&r_value, XMLoadFloat4(&vector1) - XMLoadFloat4(&vector2));
+		return r_value;
+	}
+
+	inline XMFLOAT4 ScalarProduct(const XMFLOAT4& vector, float scalar)
+	{
+		XMFLOAT4 r_value;
+		XMStoreFloat4(&r_value, XMLoadFloat4(&vector) * scalar);
+		return r_value;
+	}
+
+}
+
+namespace xmath_util_float4x4
+{
+	inline XMFLOAT4X4 Identity()
+	{
+		XMFLOAT4X4 r_value;
+		XMStoreFloat4x4(&r_value, XMMatrixIdentity());
+		return r_value;
+	}
+
+	inline XMFLOAT4X4 Add(const XMFLOAT4X4& matrix1, const XMFLOAT4X4& matrix2)
+	{
+		XMFLOAT4X4 r_value;
+		XMStoreFloat4x4(&r_value, XMLoadFloat4x4(&matrix1) + XMLoadFloat4x4(&matrix2));
+		return(r_value);
+	}
+
+	inline XMFLOAT4X4 PerspectiveFovLH(float fov_angle_y, float aspect_ratio, float near_z, float far_z)
+	{
+		XMFLOAT4X4 r_value;
+		XMStoreFloat4x4(&r_value, XMMatrixPerspectiveFovLH(fov_angle_y, aspect_ratio, near_z, far_z));
+		return(r_value);
+	}
+
+	inline XMFLOAT4X4 Multiply(const XMFLOAT4X4& matrix1, const XMFLOAT4X4& matrix2)
+	{
+		XMFLOAT4X4 r_value;
+		XMStoreFloat4x4(&r_value, XMLoadFloat4x4(&matrix1) * XMLoadFloat4x4(&matrix2));
+		return r_value;
+	}
+
+	inline XMFLOAT4X4 TransPose(const XMFLOAT4X4& matrix)
+	{
+		XMFLOAT4X4 r_value;
+		XMStoreFloat4x4(&r_value, XMMatrixTranspose(XMLoadFloat4x4(&matrix)));
+		return r_value;
+	}
+
+	inline XMFLOAT4X4 ScalarProduct(const XMFLOAT4X4& matrix, float scalar)
+	{
+		XMFLOAT4X4 r_value;
+		XMStoreFloat4x4(&r_value, XMLoadFloat4x4(&matrix) * scalar);
+		return r_value;
+	}
+
+	inline XMFLOAT4X4 Interpolate(const XMFLOAT4X4& matrix1, const XMFLOAT4X4& matrix2, float t)
+	{
+		XMFLOAT4X4 r_value;
+		XMVECTOR s1, r1, t1;
+		XMVECTOR s2, r2, t2;
+		XMMatrixDecompose(&s1, &r1, &t1, XMLoadFloat4x4(&matrix1));
+		XMMatrixDecompose(&s2, &r2, &t2, XMLoadFloat4x4(&matrix2));
+		XMVECTOR S = XMVectorLerp(s1, s2, t);
+		XMVECTOR R = XMQuaternionSlerp(r1, r2, t);
+		XMVECTOR T = XMVectorLerp(t1, t2, t);
+
+		XMStoreFloat4x4(&r_value, XMMatrixAffineTransformation(S, XMVectorZero(), R, T));
+		return r_value;
+	}
+
+
+}
+
+// xmf 관련 연산자 오버로딩
+inline XMFLOAT3 operator+(const XMFLOAT3& lhs, const XMFLOAT3& rhs) { return xmath_util_float3::Add(lhs, rhs); }
+inline void operator+=(XMFLOAT3& lhs, const XMFLOAT3& rhs) { lhs = xmath_util_float3::Add(lhs, rhs); }
+inline XMFLOAT3 operator-(const XMFLOAT3& lhs, const XMFLOAT3& rhs) { return xmath_util_float3::Subtract(lhs, rhs); }
+inline void operator-=(XMFLOAT3& lhs, const XMFLOAT3& rhs) { lhs = xmath_util_float3::Subtract(lhs, rhs); }
+inline XMFLOAT3 operator*(const XMFLOAT3& lhs, const float& rhs) { return xmath_util_float3::ScalarProduct(lhs, rhs); }
+inline XMFLOAT4X4 operator*(const XMFLOAT4X4& lhs, const XMFLOAT4X4& rhs) { return xmath_util_float4x4::Multiply(lhs, rhs); }
+inline bool operator==(const XMFLOAT4X4& lhs, const XMFLOAT4X4& rhs) 
+{  
+	if (lhs._11 != rhs._11) return false;
+	if (lhs._12 != rhs._12) return false;
+	if (lhs._13 != rhs._13) return false;
+	if (lhs._14 != rhs._14) return false;
+	if (lhs._21 != rhs._21) return false;
+	if (lhs._22 != rhs._22) return false;
+	if (lhs._23 != rhs._23) return false;
+	if (lhs._24 != rhs._24) return false;
+	if (lhs._31 != rhs._31) return false;
+	if (lhs._32 != rhs._32) return false;
+	if (lhs._33 != rhs._33) return false;
+	if (lhs._34 != rhs._34) return false;
+	if (lhs._41 != rhs._41) return false;
+	if (lhs._42 != rhs._42) return false;
+	if (lhs._43 != rhs._43) return false;
+	if (lhs._44 != rhs._44) return false;
+	return true;
+}
+inline bool operator!=(const XMFLOAT4X4& lhs, const XMFLOAT4X4& rhs) { return !(lhs == rhs); }
+
+namespace file_load_util
+{
+#ifdef _DEBUG
+	// 로드 토큰이 잘못되었으면 디버그용 문장을 출력해주는 함수
+	inline void PrintDebugStringLoadTokenError(const std::string& file_name, 
+		const std::string& load_token, const std::string& compare_token)
+	{
+		if (load_token != compare_token)
+		{
+			std::string temp = file_name + "을 로드하는 과정에서 " + load_token + "부분에 문제가 생겼습니다.";
+			std::wstring debug_str;
+			debug_str.assign(temp.begin(), temp.end());
+			OutputDebugString(debug_str.c_str());
+		}
+
+	}
+#endif // DEBUG
+
+	inline BYTE ReadStringFromFile(std::ifstream& file, std::string& str)
+	{
+		BYTE strLength = 0;
+		file.read((char*)&strLength, sizeof(BYTE));
+		str.resize(strLength);
+		file.read(&str[0], strLength);
+		return strLength;
+	}
+
+	template <class T>
+	inline T ReadFromFile(std::ifstream& file)
+	{
+		T rvalue;
+		file.read((char*)&rvalue, sizeof(T));
+		return rvalue;
+	}
+
+	template <class T>
+	inline void ReadFromFile(std::ifstream& file, T* buffer, const int& count)
+	{
+		file.read((char*)buffer, sizeof(T) * count);
+	}
+}
+
+// for particle
+namespace RANDOM {
+	static XMVECTOR InsideUnitSphere() {
+		std::random_device rd;
+		std::uniform_real_distribution<float> uidF(-1.0f, 1.0f);
+		std::default_random_engine dre(rd());
+
+		XMVECTOR vec = XMVectorSet(uidF(dre), uidF(dre), uidF(dre), 0.0f);
+		vec = XMVector3Normalize(vec);
+		return vec;
+	}
+
+	static XMVECTOR DirectionInCone(XMVECTOR baseDir, float angleRadians)
+	{
+		std::random_device rd;
+		std::default_random_engine dre(rd());
+		std::uniform_real_distribution<float> distZ(cosf(angleRadians), 1.0f);
+		std::uniform_real_distribution<float> distTheta(0.0f, XM_2PI);
+
+		float z = std::cos(angleRadians);
+		//float z = distZ(dre);
+		float theta = distTheta(dre);
+
+		float r = sqrtf(1.0f - z * z);
+		float x = r * cosf(theta);
+		float y = r * sinf(theta);
+
+		XMVECTOR dirInCone = XMVectorSet(x, y, z, 0.0f);
+
+		XMVECTOR defaultDir = XMVectorSet(0, 0, 1, 0);
+		XMVECTOR rotationAxis = XMVector3Cross(defaultDir, XMVector3Normalize(baseDir));
+		float angle = acosf(XMVectorGetX(XMVector3Dot(XMVector3Normalize(defaultDir), XMVector3Normalize(baseDir))));
+
+		if (XMVector3Equal(rotationAxis, XMVectorZero()))
+			return dirInCone;
+
+		XMMATRIX rotation = XMMatrixRotationAxis(rotationAxis, angle);
+		return XMVector3TransformNormal(dirInCone, rotation);
+	}
+
+	static float GetRandomValue(float minVal, float maxVal) {
+		std::random_device rd;
+		std::uniform_real_distribution<float> uidF(minVal, maxVal);
+		std::default_random_engine dre(rd());
+
+		return uidF(dre);
+	}
+
+	static XMVECTOR CircleEdgePoint(XMVECTOR axis, const float radius, XMVECTOR* direction = nullptr) {
+		std::random_device rd;
+		std::default_random_engine dre(rd());
+		std::uniform_real_distribution<float> distTheta(0.0f, XM_2PI);
+
+		float theta = distTheta(dre);
+
+		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
+		if (fabsf(XMVectorGetX(XMVector3Dot(axis, up))) > 0.99f)
+			up = XMVectorSet(1, 0, 0, 0);
+
+		XMVECTOR u = XMVector3Normalize(XMVector3Cross(axis, up));
+		XMVECTOR v = XMVector3Normalize(XMVector3Cross(axis, u));
+
+		XMVECTOR pointOffset = radius * (cosf(theta) * u + sinf(theta) * v);
+
+		if (nullptr != direction)
+		{
+			float theta2 = theta + XMConvertToRadians(15.0f);
+			XMVECTOR pointOffset2 = radius * (cosf(theta2) * u + sinf(theta2) * v);
+			XMVECTOR dir = XMVector3Normalize(pointOffset2 - pointOffset);
+			*direction = dir;
+		}
+
+		return pointOffset;
+	}
+}

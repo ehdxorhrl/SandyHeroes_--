@@ -1,0 +1,644 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ModelInfo">
+      <UniqueIdentifier>{0d01a7d5-c82d-4034-8e3d-906d6df2f098}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation">
+      <UniqueIdentifier>{0a521d77-a876-459d-bb6e-46a2df2b2b21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="0.GameFramework">
+      <UniqueIdentifier>{8650f60f-2d28-4a04-8c83-5a6f343323b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1.Manager">
+      <UniqueIdentifier>{e8b9f229-4c85-4817-ba09-8e170489aa99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1.Manager\DescriptorManager">
+      <UniqueIdentifier>{7c762a4b-9f15-4f20-a537-e5a4cc10266a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1.Manager\FrameResourceManager">
+      <UniqueIdentifier>{7cb23a6e-4380-474a-844e-c02a6d497ff7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1.Manager\InputManager">
+      <UniqueIdentifier>{4b8d8f53-86ab-4bdc-8cf3-92480074ef7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2.Scene">
+      <UniqueIdentifier>{7fb82dd8-c53f-4508-b745-e52a6e7b874d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2.Scene\Base">
+      <UniqueIdentifier>{ebb6b811-8c07-4146-a0be-75a94f565f5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3.Shader">
+      <UniqueIdentifier>{6fd218ff-d5dd-4ea2-affb-599ffaba36fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3.Shader\Standard">
+      <UniqueIdentifier>{5f21cb53-108b-40c9-a02d-661285dca773}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3.Shader\Skybox">
+      <UniqueIdentifier>{ab6cbec0-4210-400b-adfc-20a94578e96a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4.Mesh">
+      <UniqueIdentifier>{7275f89b-6016-4a00-aee4-df8a76907ee8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4.Mesh\Cube">
+      <UniqueIdentifier>{96e9464c-3e60-43fb-b9dc-c2a3b97bbcee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="0.GameFramework\Timer">
+      <UniqueIdentifier>{18d56895-b4f5-433b-b3fd-6837df7fb1ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5.Material">
+      <UniqueIdentifier>{ebd8e96b-5f5b-429c-8633-9f62894b49eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6.Object">
+      <UniqueIdentifier>{1ad6dd00-9a2f-486d-95cc-455ae6269e3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component">
+      <UniqueIdentifier>{eb13979b-95cf-4b8c-9af3-95f6b3521ad1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Camera">
+      <UniqueIdentifier>{b5ad54b6-d298-486f-9166-bff24f6bf93a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Mesh">
+      <UniqueIdentifier>{595c9353-178b-46b5-a9ad-eaf088f4572a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Input">
+      <UniqueIdentifier>{c225eaad-b137-44ff-9321-939c464687b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Animator">
+      <UniqueIdentifier>{022fb1bb-77bc-4d27-9781-00ec0a98feb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Gun">
+      <UniqueIdentifier>{0ab171bf-9dfb-441d-8a6b-419b19516a8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4.Mesh\Skybox">
+      <UniqueIdentifier>{a75d1d15-ade7-48a3-aa5d-993ca01ebb8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Input\Test">
+      <UniqueIdentifier>{1e16d6a0-6301-463f-9849-076f3d90ab6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Input\FPS">
+      <UniqueIdentifier>{009c1362-c1e8-46de-a90a-c4ca6085ba0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Mesh\SkinnedMesh">
+      <UniqueIdentifier>{1abe438f-5798-44ed-b5a3-c6d476f52c1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Mesh\DebugMesh">
+      <UniqueIdentifier>{bd906ab1-bf5e-4a64-bb7f-3ed9cb07f928}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3.Shader\Debug">
+      <UniqueIdentifier>{ac8b63a8-37bd-434a-bb05-0b611ab6a249}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Collider">
+      <UniqueIdentifier>{0198f9e0-0727-40a1-90c2-86ef339f8ce0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Monster">
+      <UniqueIdentifier>{3f944c60-8398-4aba-878e-1cde285af01b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4.Mesh\UI">
+      <UniqueIdentifier>{5c62b459-576a-41de-b27f-30125beabb27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3.Shader\UI">
+      <UniqueIdentifier>{9c597d13-46c4-4608-8cf9-bb9c121512d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Movement">
+      <UniqueIdentifier>{0cb99051-fcee-4ccd-9178-e1b47aff1cd6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation\State">
+      <UniqueIdentifier>{3ea76285-3a1d-4970-8537-7d79c5269a49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation\State\Player">
+      <UniqueIdentifier>{85509d84-2cb1-4988-ba38-059c2cf4631c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2.Scene\Recorder">
+      <UniqueIdentifier>{0f5d1cc9-d56c-4578-ab12-5832039f449c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3.Shader\ShadowShader">
+      <UniqueIdentifier>{8f917bd3-7cf7-40ca-94ac-41af533b59b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation\State\HitDragon">
+      <UniqueIdentifier>{3e506701-8d07-4d35-bcde-212381278248}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation\State\ShotDragon">
+      <UniqueIdentifier>{91ebb810-ccd0-49e7-82a4-adc13f4746f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation\State\BombDragon">
+      <UniqueIdentifier>{784370e4-4a07-4de7-b283-7705eae42c3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3.Shader\Breathing">
+      <UniqueIdentifier>{08f0a973-8afc-4d07-b343-52e80bc743f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sector">
+      <UniqueIdentifier>{e86a4eb6-b862-48cb-8595-9d6ea71951a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation\State\StrongDragon">
+      <UniqueIdentifier>{1d0f0d12-2ecc-48b8-98f0-f76431c201b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation\State\Test">
+      <UniqueIdentifier>{19a456bf-1368-442a-ae9d-57dc1292a5c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CutScene">
+      <UniqueIdentifier>{a1490ab9-d345-41c1-9832-3ce8cb50dfdb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Mesh\UiMesh">
+      <UniqueIdentifier>{0ec5c7ab-43de-41b3-a569-bac31fbf62aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Spawner">
+      <UniqueIdentifier>{ac562318-7e4e-43ab-a5c8-e942c2fd9215}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\UI">
+      <UniqueIdentifier>{8c9a054e-4462-4175-bad3-ba26694f768b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\UI\ProgressBar">
+      <UniqueIdentifier>{4d626f73-54f3-4672-9c00-aa0ec1b86fa2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\UI\Text">
+      <UniqueIdentifier>{f2870744-75f6-4f5f-a5a9-550909440526}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{f064ec12-b65e-4578-a52e-a097d38200f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3.Shader\Particle">
+      <UniqueIdentifier>{2383cc65-78a7-44de-9845-179f95770c2e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SandyHeroesClient.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dx12.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework.h">
+      <Filter>0.GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>6.Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>0.GameFramework\Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>2.Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>7.Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>3.Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>4.Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshComponent.h">
+      <Filter>7.Component\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="UploadBuffer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameResourceManager.h">
+      <Filter>1.Manager\FrameResourceManager</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameResource.h">
+      <Filter>1.Manager\FrameResourceManager</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorManager.h">
+      <Filter>1.Manager\DescriptorManager</Filter>
+    </ClInclude>
+    <ClInclude Include="CubeMesh.h">
+      <Filter>4.Mesh\Cube</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraComponent.h">
+      <Filter>7.Component\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="InputManager.h">
+      <Filter>1.Manager\InputManager</Filter>
+    </ClInclude>
+    <ClInclude Include="InputControllerComponent.h">
+      <Filter>7.Component\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelInfo.h">
+      <Filter>ModelInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinnedMesh.h">
+      <Filter>4.Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinnedMeshComponent.h">
+      <Filter>7.Component\Mesh\SkinnedMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="DDSTextureLoader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>5.Material</Filter>
+    </ClInclude>
+    <ClInclude Include="StandardMeshShader.h">
+      <Filter>3.Shader\Standard</Filter>
+    </ClInclude>
+    <ClInclude Include="StandardSkinnedMeshShader.h">
+      <Filter>3.Shader\Standard</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationSet.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationTrack.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimatorComponent.h">
+      <Filter>7.Component\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="GunComponent.h">
+      <Filter>7.Component\Gun</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyboxShader.h">
+      <Filter>3.Shader\Skybox</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseScene.h">
+      <Filter>2.Scene\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyboxMesh.h">
+      <Filter>4.Mesh\Skybox</Filter>
+    </ClInclude>
+    <ClInclude Include="TestControllerComponent.h">
+      <Filter>7.Component\Input\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="FPSControllerComponent.h">
+      <Filter>7.Component\Input\FPS</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugMeshComponent.h">
+      <Filter>7.Component\Mesh\DebugMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugShader.h">
+      <Filter>3.Shader\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshColliderComponent.h">
+      <Filter>7.Component\Collider</Filter>
+    </ClInclude>
+    <ClInclude Include="MonsterComponent.h">
+      <Filter>7.Component\Monster</Filter>
+    </ClInclude>
+    <ClInclude Include="UIMesh.h">
+      <Filter>4.Mesh\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIShader.h">
+      <Filter>3.Shader\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="MovementComponent.h">
+      <Filter>7.Component\Movement</Filter>
+    </ClInclude>
+    <ClInclude Include="BoxColliderComponent.h">
+      <Filter>7.Component\Collider</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationState.h">
+      <Filter>Animation\State</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerAnimationState.h">
+      <Filter>Animation\State\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="RecordingScene.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="RecorderScene.h">
+      <Filter>2.Scene\Recorder</Filter>
+    </ClInclude>
+    <ClInclude Include="TransparentShader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowShader.h">
+      <Filter>3.Shader\ShadowShader</Filter>
+    </ClInclude>
+    <ClInclude Include="HitDragonAnimationState.h">
+      <Filter>Animation\State\HitDragon</Filter>
+    </ClInclude>
+    <ClInclude Include="ShotDragonAnimationState.h">
+      <Filter>Animation\State\ShotDragon</Filter>
+    </ClInclude>
+    <ClInclude Include="BombDragonAnimationState.h">
+      <Filter>Animation\State\BombDragon</Filter>
+    </ClInclude>
+    <ClInclude Include="BreathingShader.h">
+      <Filter>3.Shader\Breathing</Filter>
+    </ClInclude>
+    <ClInclude Include="Sector.h">
+      <Filter>Sector</Filter>
+    </ClInclude>
+    <ClInclude Include="StrongDragonAnimationState.h">
+      <Filter>Animation\State\StrongDragon</Filter>
+    </ClInclude>
+    <ClInclude Include="TestAnimationState.h">
+      <Filter>Animation\State\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="CutSceneRecorder.h">
+      <Filter>CutScene</Filter>
+    </ClInclude>
+    <ClInclude Include="CutSceneTrack.h">
+      <Filter>CutScene</Filter>
+    </ClInclude>
+    <ClInclude Include="UiMeshComponent.h">
+      <Filter>7.Component\Mesh\UiMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="SpawnerComponent.h">
+      <Filter>7.Component\Spawner</Filter>
+    </ClInclude>
+    <ClInclude Include="UiComponent.h">
+      <Filter>7.Component\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgressBarComponent.h">
+      <Filter>7.Component\UI\ProgressBar</Filter>
+    </ClInclude>
+    <ClInclude Include="TextFormat.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinnedShadowShader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleRenderer.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRenderer.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="TextComponent.h">
+      <Filter>7.Component\UI\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="GroundColliderComponent.h">
+      <Filter>7.Component\Collider</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleShader.h">
+      <Filter>3.Shader\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="WallColliderComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SandyHeroesClient.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework.cpp">
+      <Filter>0.GameFramework</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>6.Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>0.GameFramework\Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>2.Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>7.Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>3.Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>4.Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshComponent.cpp">
+      <Filter>7.Component\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="FrameResourceManager.cpp">
+      <Filter>1.Manager\FrameResourceManager</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorManager.cpp">
+      <Filter>1.Manager\DescriptorManager</Filter>
+    </ClCompile>
+    <ClCompile Include="CubeMesh.cpp">
+      <Filter>4.Mesh\Cube</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraComponent.cpp">
+      <Filter>7.Component\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="InputManager.cpp">
+      <Filter>1.Manager\InputManager</Filter>
+    </ClCompile>
+    <ClCompile Include="InputControllerComponent.cpp">
+      <Filter>7.Component\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelInfo.cpp">
+      <Filter>ModelInfo</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinnedMesh.cpp">
+      <Filter>4.Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinnedMeshComponent.cpp">
+      <Filter>7.Component\Mesh\SkinnedMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="DDSTextureLoader.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>5.Material</Filter>
+    </ClCompile>
+    <ClCompile Include="StandardMeshShader.cpp">
+      <Filter>3.Shader\Standard</Filter>
+    </ClCompile>
+    <ClCompile Include="StandardSkinnedMeshShader.cpp">
+      <Filter>3.Shader\Standard</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationSet.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationTrack.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimatorComponent.cpp">
+      <Filter>7.Component\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="GunComponent.cpp">
+      <Filter>7.Component\Gun</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyboxShader.cpp">
+      <Filter>3.Shader\Skybox</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseScene.cpp">
+      <Filter>2.Scene\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyboxMesh.cpp">
+      <Filter>4.Mesh\Skybox</Filter>
+    </ClCompile>
+    <ClCompile Include="TestControllerComponent.cpp">
+      <Filter>7.Component\Input\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="FPSControllerComponent.cpp">
+      <Filter>7.Component\Input\FPS</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugMeshComponent.cpp">
+      <Filter>7.Component\Mesh\DebugMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugShader.cpp">
+      <Filter>3.Shader\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshColliderComponent.cpp">
+      <Filter>7.Component\Collider</Filter>
+    </ClCompile>
+    <ClCompile Include="MonsterComponent.cpp">
+      <Filter>7.Component\Monster</Filter>
+    </ClCompile>
+    <ClCompile Include="UIMesh.cpp">
+      <Filter>4.Mesh\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIShader.cpp">
+      <Filter>3.Shader\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="MovementComponent.cpp">
+      <Filter>7.Component\Movement</Filter>
+    </ClCompile>
+    <ClCompile Include="BoxColliderComponent.cpp">
+      <Filter>7.Component\Collider</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationState.cpp">
+      <Filter>Animation\State</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerAnimationState.cpp">
+      <Filter>Animation\State\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="RecordingScene.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="RecorderScene.cpp">
+      <Filter>2.Scene\Recorder</Filter>
+    </ClCompile>
+    <ClCompile Include="TransparentShader.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowShader.cpp">
+      <Filter>3.Shader\ShadowShader</Filter>
+    </ClCompile>
+    <ClCompile Include="HitDragonAnimationState.cpp">
+      <Filter>Animation\State\HitDragon</Filter>
+    </ClCompile>
+    <ClCompile Include="ShotDragonAnimationState.cpp">
+      <Filter>Animation\State\ShotDragon</Filter>
+    </ClCompile>
+    <ClCompile Include="BombDragonAnimationState.cpp">
+      <Filter>Animation\State\BombDragon</Filter>
+    </ClCompile>
+    <ClCompile Include="BreathingShader.cpp">
+      <Filter>3.Shader\Breathing</Filter>
+    </ClCompile>
+    <ClCompile Include="Sector.cpp">
+      <Filter>Sector</Filter>
+    </ClCompile>
+    <ClCompile Include="StrongDragonAnimationState.cpp">
+      <Filter>Animation\State\StrongDragon</Filter>
+    </ClCompile>
+    <ClCompile Include="TestAnimationState.cpp">
+      <Filter>Animation\State\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="CutSceneTrack.cpp">
+      <Filter>CutScene</Filter>
+    </ClCompile>
+    <ClCompile Include="CutSceneRecorder.cpp">
+      <Filter>CutScene</Filter>
+    </ClCompile>
+    <ClCompile Include="UiMeshComponent.cpp">
+      <Filter>7.Component\Mesh\UiMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="SpawnerComponent.cpp">
+      <Filter>7.Component\Spawner</Filter>
+    </ClCompile>
+    <ClCompile Include="UiComponent.cpp">
+      <Filter>7.Component\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerComponent.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgressBarComponent.cpp">
+      <Filter>7.Component\UI\ProgressBar</Filter>
+    </ClCompile>
+    <ClCompile Include="TextFormat.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleComponent.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinnedShadowShader.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleRenderer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRenderer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TextComponent.cpp">
+      <Filter>7.Component\UI\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="GroundColliderComponent.cpp">
+      <Filter>7.Component\Collider</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleShader.cpp">
+      <Filter>3.Shader\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="WallColliderComponent.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SandyHeroesClient.rc">
+      <Filter>리소스 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="small.ico">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="SandyHeroesClient.ico">
+      <Filter>리소스 파일</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="GlobalValues.hlsl" />
+    <FxCompile Include="LightingUtil.hlsl" />
+    <FxCompile Include="StandardShader.hlsl" />
+    <FxCompile Include="SkyboxShader.hlsl" />
+    <FxCompile Include="DebugShader.hlsl" />
+    <FxCompile Include="UIShader.hlsl" />
+    <FxCompile Include="Transparent.hlsl" />
+    <FxCompile Include="Breathing.hlsl" />
+    <FxCompile Include="Shadow.hlsl" />
+    <FxCompile Include="ParticleShader.hlsl" />
+    <FxCompile Include="SkinnedShadow.hlsl" />
+  </ItemGroup>
+</Project>
