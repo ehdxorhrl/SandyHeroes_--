@@ -919,6 +919,7 @@ void GameFramework::ProcessPacket(char* p)
             {
                 player->set_position_vector(packet->position[0], packet->position[1], packet->position[2]);
                 player->set_id(packet->id);
+                std::cout << packet->id << std::endl;
             }
         }
     }
@@ -1085,6 +1086,19 @@ void GameFramework::ProcessPacket(char* p)
                 auto movement = Object::GetComponentInChildren<MovementComponent>(monster);
                 movement->set_velocity(XMFLOAT3(packet->speed, 0, 0));
             }
+        }
+    }
+    case S2C_P_GUN_CHANGE:
+    {
+        sc_packet_gun_change* packet = reinterpret_cast<sc_packet_gun_change*>(p);
+        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
+        if (base_scene)
+        {
+            Object* player = base_scene->FindObject(packet->id);
+            if (!player) break;
+
+            if (player == base_scene->player())
+                base_scene->change_gun(packet->gun_id, packet->gun_name, packet->upgrade_level, packet->element_type);          
         }
     }
         break;

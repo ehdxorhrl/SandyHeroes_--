@@ -620,17 +620,23 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	// 총기 부착
 	Object* weapon_frame = player->FindFrame("WeaponR_locator");
 	if (weapon_frame) {
-		weapon_frame->AddChild(model_infos_[1]->GetInstance());  // 총 모델
+		weapon_frame->AddChild(FindModelInfo("Classic")->GetInstance());  // 총 모델
 		weapon_frame = weapon_frame->child();  // 자식 프레임 가져옴
 
-		auto gun = new GunComponent(weapon_frame);
-		gun->LoadGunInfo("specter");
-		weapon_frame->AddComponent(gun);
-		weapon_frame->Rotate(0, 170, -17);
 	}
 	//else {
 	//	std::cerr << "[DEBUG] WeaponR_locator not found." << std::endl;
 	//}
+
+	auto mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(player);
+	for (auto& mesh_component : mesh_component_list)
+	{
+		auto mesh = mesh_component->GetMesh();
+		Object* object = mesh_component->owner();
+		MeshColliderComponent* mesh_collider = new MeshColliderComponent(object);
+		mesh_collider->set_mesh(mesh);
+		object->AddComponent(mesh_collider);
+	}
 
 	AddObject(player);
 
@@ -858,17 +864,10 @@ void BaseScene::PrepareGroundChecking()
 void BaseScene::CheckPlayerHitGun(Object* object)
 {
 	Session* session = SessionManager::getInstance().GetSessionByPlayerObject(object);
-	if (!session) return;
+	if (!session)
+		return;
 
-	CheckPlayerHitGun(session);  // 기존 세션 기반 함수 재사용
-}
-
-void BaseScene::CheckPlayerHitGun(Session* session)
-{
-	Object* player = session->get_player_object();
-	if (!player) return;
-
-	auto player_box = Object::GetComponentInChildren<MeshColliderComponent>(player);
+	auto player_box = Object::GetComponentInChildren<MeshColliderComponent>(object);
 	if (!player_box) return;
 
 	BoundingOrientedBox player_obb = player_box->GetWorldOBB();
@@ -888,17 +887,18 @@ void BaseScene::CheckPlayerHitGun(Session* session)
 			std::string dropped_name = gun->name(); // "Dropped_Classic"
 			std::string gun_name = dropped_name.substr(dropped_name.find('_') + 1); // "Classic"
 
+
 			int upgrade = gun_component->upgrade();
 			ElementType element = gun_component->element();
 
-			Object* player_gun_frame = player->FindFrame("WeaponR_locator");
+			Object* player_gun_frame = object->FindFrame("WeaponR_locator");
 			if (!player_gun_frame) { ++it; continue; }
 
 			std::vector<std::string> guns{ "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
 			for (const auto& name : guns)
 			{
 				if (name == gun_name) continue;
-				//player_gun_frame->ChangeChild(FindModelInfo(gun_name)->GetInstance(), name, false);
+				player_gun_frame->ChangeChild(FindModelInfo(gun_name)->GetInstance(), name, true);
 			}
 
 			Object* new_gun = player_gun_frame->FindFrame(gun_name);
@@ -907,6 +907,22 @@ void BaseScene::CheckPlayerHitGun(Session* session)
 			{
 				new_gun_component->set_upgrade(upgrade);
 				new_gun_component->set_element(element);
+			}
+
+			// 교체 패킷 전송
+			sc_packet_gun_change gc;
+			gc.size = sizeof(gc);
+			gc.type = S2C_P_GUN_CHANGE;
+			gc.id = session->get_id(); // 클라이언트에서 어떤 플레이어에 해당하는지 식별
+			gc.gun_id = gun_component->owner()->id();
+			std::cout << "교체 총 id: " << gun_component->owner()->id() << std::endl;
+			strcpy_s(gc.gun_name, gun_name.c_str());
+			gc.upgrade_level = gun_component->upgrade();
+			gc.element_type = static_cast<int>(gun_component->element());
+
+			const auto& users = SessionManager::getInstance().getAllSessions();
+			for (const auto& user : users) {
+				user.second->do_send(&gc);
 			}
 
 			gun->set_is_dead(true);
@@ -920,6 +936,7 @@ void BaseScene::CheckPlayerHitGun(Session* session)
 			++it;
 		}
 	}
+
 }
 
 //void BaseScene::CheckPlayerHitGun(Object* object)
@@ -1168,16 +1185,16 @@ void BaseScene::CheckObjectHitObject(Object* object)
 				constexpr float kMinSafeDistance = 1.5f; // 살짝 밀려도 충돌 안나도록 여유
 				if (distance > kMinSafeDistance) // 벽에 안 부딪힌다면 밀기
 				{
-					//object->set_position_vector(object_pos + dir * 0.1f);
+					object->set_position_vector(object_pos + dir * 0.1f);
 
 					// TODO : 몬스터 AI완성 이후 충돌시에 밀리는 기능 추가
 
-					//auto monster = Object::GetComponent<MonsterComponent>(object);
-					//if (monster)
-					//{
-					//	monster->set_is_pushed(true);
-					//	monster->set_push_timer(5.0f);
-					//}
+					auto monster = Object::GetComponent<MonsterComponent>(object);
+					if (monster)
+					{
+						monster->set_is_pushed(true);
+						monster->set_push_timer(5.0f);
+					}
 				}
 				return;
 			}
@@ -1286,18 +1303,6 @@ void BaseScene::CheckObjectHitBullet(Object* object)
 							AddObject(dropped_gun);
 							dropped_guns_.push_back(dropped_gun);
 
-							/*
-							struct sc_packet_drop_gun
-							{
-								uint8_t  size;           // 패킷 전체 크기
-								uint8_t  type;           // 패킷 타입 (예: S2C_P_DROP_GUN)
-								uint32_t id;             // 드랍된 총기의 고유 ID
-								uint8_t  gun_type;       // 총기 종류 (0=Classic, ..., 5=Flamethrower)
-								uint8_t  upgrade_level;  // 강화 수치 (0~3)
-								uint8_t  element_type;   // 속성 (0=Fire, 1=Electric, 2=Poison)
-								float    matrix[16];     // 드랍된 총기의 위치/회전을 포함한 변환 행렬
-							};*/
-
 							sc_packet_drop_gun dg;
 							dg.size = sizeof(sc_packet_drop_gun);
 							dg.type = S2C_P_DROP_GUN;
@@ -1310,6 +1315,7 @@ void BaseScene::CheckObjectHitBullet(Object* object)
 							XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
 							memcpy(dg.matrix, &xf, sizeof(float) * 16);
 
+							std::cout << "드랍 총 id: " << dg.id << std::endl;
 							for (const auto& player : users) {
 								player.second->do_send(&dg);
 							}

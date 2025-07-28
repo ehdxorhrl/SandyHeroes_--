@@ -65,8 +65,11 @@ public:
 	void send_player_position();
 	void process_packet(unsigned char* p, float elapsed_time);
 
+
 	void set_player_object(Object* obj);
 	void set_camera_object(Object* obj);
+
+	long long get_id() const;
 
 	Object* get_player_object() const { return player_object_; }
 	Object* get_camera_object() const { return camera_object_; }

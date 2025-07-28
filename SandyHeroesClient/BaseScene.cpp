@@ -723,7 +723,6 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 
 	Scene::UpdateObjectWorldMatrix();
 
-
 	device_ = device;
 }
 
@@ -1614,11 +1613,11 @@ bool BaseScene::ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time
 			ParticleComponent* particle = Object::GetComponentInChildren<ParticleComponent>(player_gun_frame);
 			particle->set_color({ 0.9f,0.9f,0.1f,0.5f });	//green
 		}
-		if (w_param == 'F')
-		{
-			f_key_ = true;
-			CheckPlayerHitGun(player_);
-		}
+		//if (w_param == 'F')
+		//{
+		//	f_key_ = true;
+		//	CheckPlayerHitGun(player_);
+		//}
 		// 카메라 전환 테스트
 		if (w_param == 'K')
 		{
@@ -1749,7 +1748,7 @@ void BaseScene::Update(float elapsed_time)
 	//
 	//UpdateObjectHitObject();
 	//
-	//DeleteDeadObjects();
+	DeleteDeadObjects();
 	//
 	//UpdateStageClear();
 	//
@@ -2003,16 +2002,16 @@ void BaseScene::CheckObjectHitObject(Object* object)
 				constexpr float kMinSafeDistance = 1.5f; // 살짝 밀려도 충돌 안나도록 여유
 				if (distance > kMinSafeDistance) // 벽에 안 부딪힌다면 밀기
 				{
-					//object->set_position_vector(object_pos + dir * 0.1f);
+					object->set_position_vector(object_pos + dir * 0.1f);
 
 					// TODO : 몬스터 AI완성 이후 충돌시에 밀리는 기능 추가
 
-					/*auto monster = Object::GetComponent<MonsterComponent>(object);
+					auto monster = Object::GetComponent<MonsterComponent>(object);
 					if (monster)
 					{
 						monster->set_is_pushed(true);
 						monster->set_push_timer(5.0f);
-					}*/
+					}
 				}
 				return;
 			}
@@ -2480,4 +2479,76 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 
 		AddObject(dropped_gun);
 		dropped_guns_.push_back(dropped_gun);
+}
+
+void BaseScene::change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t upgrade_level, uint8_t element_type)
+{
+	std::cout << "[change_gun] 시작 - gun_id: " << gun_id << ", gun_name: " << gun_name
+		<< ", upgrade: " << static_cast<int>(upgrade_level)
+		<< ", element: " << static_cast<int>(element_type) << std::endl;
+
+	auto it = std::find_if(dropped_guns_.begin(), dropped_guns_.end(),
+		[gun_id](Object* obj) { return obj->id() == gun_id; });
+
+	if (it == dropped_guns_.end())
+	{
+		std::cout << "[change_gun] 드랍된 총기 ID(" << gun_id << ")를 찾을 수 없음" << std::endl;
+		return;
+	}
+
+	Object* found_gun = *it;
+
+	GunComponent* gun_component = Object::GetComponent<GunComponent>(found_gun);
+	if (!gun_component)
+	{
+		std::cout << "[change_gun] 드랍된 총기에서 GunComponent 없음" << std::endl;
+		return;
+	}
+
+	Object* player_gun_frame = player_->FindFrame("WeaponR_locator");
+	if (!player_gun_frame)
+	{
+		std::cout << "[change_gun] WeaponR_locator 프레임을 찾을 수 없음" << std::endl;
+		return;
+	}
+
+	std::cout << "[change_gun] 총기 교체 준비 완료. 기존 총기 제거 후 새 총기 장착 시도..." << std::endl;
+
+	// 기존 총기 교체 처리
+	std::vector<std::string> guns{ "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
+	for (const auto& name : guns)
+	{
+		if (name == gun_name) continue;
+		std::cout << "[change_gun] 기존 무기 제거 시도: " << name << std::endl;
+		player_gun_frame->ChangeChild(FindModelInfo(gun_name)->GetInstance(), name, false);
+	}
+
+	Object* new_gun = player_gun_frame->FindFrame(gun_name);
+	if (!new_gun)
+	{
+		std::cout << "[change_gun] 새 총기 프레임(" << gun_name << ")을 찾을 수 없음" << std::endl;
+		return;
+	}
+	else
+	{
+		std::cout << "[change_gun] 새 총기 프레임(" << gun_name << ") 찾음: id=" << new_gun->id() << std::endl;
+	}
+
+	GunComponent* new_gun_component = Object::GetComponent<GunComponent>(new_gun);
+	if (!new_gun_component)
+	{
+		std::cout << "[change_gun] 새 총기에서 GunComponent 없음" << std::endl;
+	}
+	else
+	{
+		new_gun_component->set_upgrade(upgrade_level);
+		new_gun_component->set_element(static_cast<ElementType>(element_type));
+		std::cout << "[change_gun] 새 총기 능력치 설정 완료 (upgrade=" << static_cast<int>(upgrade_level)
+			<< ", element=" << static_cast<int>(element_type) << ")" << std::endl;
+	}
+
+	found_gun->set_is_dead(true);
+	it = dropped_guns_.erase(it);
+
+	std::cout << "[change_gun] 총기 교체 완료 및 드랍 총기 제거" << std::endl;
 }

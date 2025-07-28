@@ -421,3 +421,31 @@ void Object::OnDestroy(std::function<void(Object*)> func)
 {
 	on_destroy_func_ = func;
 }
+
+void Object::ChangeChild(Object* src, const std::string& dst_name, bool is_delete)
+{
+	if (!src)
+		return;
+	if (child_ && child_->name_ == dst_name)
+	{
+		if (is_delete)
+		{
+			delete child_;
+			child_ = src;
+		}
+		else
+		{
+			child_->set_is_dead(true);
+			child_->AddSibling(src);
+		}
+		return;
+	}
+	if (child_)
+	{
+		child_->ChangeChild(src, dst_name, is_delete);
+	}
+	if (sibling_)
+	{
+		sibling_->ChangeChild(src, dst_name, is_delete);
+	}
+}

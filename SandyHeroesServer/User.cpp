@@ -375,3 +375,8 @@ void Session::set_camera_object(Object* obj)
 	camera_object_ = obj;
 }
 
+long long Session::get_id() const
+{
+	return id_;
+}
+

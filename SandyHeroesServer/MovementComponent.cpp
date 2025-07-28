@@ -19,13 +19,6 @@ void MovementComponent::Update(float elapsed_time)
 {
     old_position_ = owner_->position_vector();
 
-    if (owner_->is_player() && velocity_.y > 0)
-    {
-        
-        std::cout << "[Session ID: " << "] "
-            << owner_->name() << "elapsed_time" << elapsed_time << std::endl;
-    }
-
     if (is_gravity_)
     {
         velocity_.y -= gravity_acceleration_ * elapsed_time;
@@ -91,7 +84,7 @@ void MovementComponent::Update(float elapsed_time)
         }
     }
 
-    owner_->set_position_vector(owner_->position_vector() + (velocity_ * (elapsed_time +0.00015)));
+    owner_->set_position_vector(owner_->position_vector() + (velocity_ * (elapsed_time +0.0002)));
 
     
 

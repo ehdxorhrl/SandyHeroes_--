@@ -119,6 +119,8 @@ public:
 
 	void OnDestroy(std::function<void(Object*)> func);
 
+	void ChangeChild(Object* src, const std::string& dst_name, bool is_delete);
+
 	static Object* DeepCopy(Object* value, Object* parent = nullptr);
 
 	void set_collide_type(bool ground_check, bool wall_check);
