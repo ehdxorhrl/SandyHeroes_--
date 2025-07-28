@@ -13,7 +13,8 @@ MonsterComponent::MonsterComponent(Object* owner) : Component(owner)
 }
 
 MonsterComponent::MonsterComponent(const MonsterComponent& other) : Component(other),
-shield_(other.shield_), hp_(other.hp_), attack_force_(other.attack_force_), target_(other.target_)
+shield_(other.shield_), hp_(other.hp_), attack_force_(other.attack_force_), 
+target_(other.target_), scene_(other.scene_)
 {
 }
 
@@ -135,6 +136,41 @@ void MonsterComponent::Update(float elapsed_time)
                 u.second->do_send(&mm);
             }
         }
+        for (auto& [type, effect] : status_effects_)
+        {
+            if (!effect.IsActive()) continue;
+
+            effect.elapsed += elapsed_time;
+
+            if (type == StatusEffectType::Fire)
+            {
+                float dps = effect.fire_damage * 0.9f;
+                HitDamage(dps * elapsed_time);
+            }
+            else if (type == StatusEffectType::Electric)
+            {
+                auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
+                if (movement)
+                {
+                    if (!electric_slow_applied_)
+                    {
+                        original_speed_ = movement->max_speed_xz();
+                        movement->set_max_speed_xz(original_speed_ * 0.70f);
+                        electric_slow_applied_ = true;
+                    }
+                }
+            }
+        }
+        auto& electric = status_effects_[StatusEffectType::Electric];
+        if (!electric.IsActive() && electric_slow_applied_)
+        {
+            auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
+            if (movement)
+            {
+                movement->set_max_speed_xz(original_speed_);
+                electric_slow_applied_ = false;
+            }
+        }
     }
 
     if (!target_)
@@ -222,7 +258,15 @@ void MonsterComponent::HitDamage(float damage)
         hp_ = 0;
 
     }
-    
+    if (scene_)
+    {
+        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_);
+        if (base_scene)
+        {
+            base_scene->add_catch_monster_num();
+        }
+    }
+
     sc_packet_monster_damaged md;
     md.size = sizeof(sc_packet_monster_damaged);
     md.type = S2C_P_MONSTER_DAMAGED;
@@ -234,6 +278,13 @@ void MonsterComponent::HitDamage(float damage)
     for (auto& u : users) {
         u.second->do_send(&md);
     }
+}
+
+void MonsterComponent::ApplyStatusEffect(StatusEffectType type, float duration, float damage, 
+    bool flame_frenzy, bool acid_frenzy, bool electric_frenzy)
+{
+    status_effects_[type] = { duration, 0.f, damage , flame_frenzy, acid_frenzy, electric_frenzy };
+
 }
 
 void MonsterComponent::set_shield(float value)
@@ -294,4 +345,9 @@ float MonsterComponent::attack_force() const
 bool MonsterComponent::IsDead() const
 {
     return hp_ <= 0;
+}
+
+void MonsterComponent::set_scene(Scene* value)
+{
+    scene_ = value;
 }

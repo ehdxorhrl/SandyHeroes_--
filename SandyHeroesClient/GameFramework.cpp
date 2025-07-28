@@ -583,7 +583,6 @@ void GameFramework::ProcessInput()
 
 void GameFramework::ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time)
 {
-    //���� Scene���� ��ǲ�� ó���ϴ��� Ȯ���Ѵ�
     if (scene_)
     {
         if (scene_->ProcessInput(id, w_param, l_param, time))

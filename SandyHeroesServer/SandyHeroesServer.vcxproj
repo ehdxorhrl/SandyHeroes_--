@@ -104,6 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -119,6 +120,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Create</PrecompiledHeader>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,9 +155,11 @@
     <ClInclude Include="Object.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PlayerAnimationState.h" />
+    <ClInclude Include="PlayerComponent.h" />
     <ClInclude Include="Scene.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="ScrollComponent.h" />
     <ClInclude Include="Sector.h" />
     <ClInclude Include="SessionManager.h" />
     <ClInclude Include="SkinnedMesh.h" />
@@ -194,10 +198,12 @@
     <ClCompile Include="MovementComponent.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="PlayerAnimationState.cpp" />
+    <ClCompile Include="PlayerComponent.cpp" />
     <ClCompile Include="SandyHeroesServer.cpp" />
     <ClCompile Include="Scene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ScrollComponent.cpp" />
     <ClCompile Include="Sector.cpp" />
     <ClCompile Include="SessionManager.cpp" />
     <ClCompile Include="SkinnedMesh.cpp" />

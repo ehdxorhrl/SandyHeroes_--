@@ -4,7 +4,6 @@
 
 enum class MonsterType { kNormal, kBoss, kMiniBoss };
 
-//TODO: 서버가 가진 몬스터 컴포넌트에 속성 관련 내용 추가
 enum class StatusEffectType { None, Fire, Poison, Electric };
 struct StatusEffect
 {
@@ -12,6 +11,10 @@ struct StatusEffect
 	float duration = 0.f;
 	float elapsed = 0.f;
 	float fire_damage = 0.0f;
+
+	bool flame_frenzy = false;
+	bool acid_frenzy = false;
+	bool electric_frenzy = false;
 
 	bool IsActive() const { return elapsed < duration; }
 };
@@ -31,7 +34,8 @@ public:
 
 	void HitDamage(float damage); //몬스터에 데미지를 입힘
 
-	void ApplyStatusEffect(StatusEffectType type, float duration, float base_damage);
+	void ApplyStatusEffect(StatusEffectType type, float duration, float damage,
+		bool flame_frenzy, bool acid_frenzy, bool electric_frenzy);
 
 	//setter
 	void set_shield(float value);

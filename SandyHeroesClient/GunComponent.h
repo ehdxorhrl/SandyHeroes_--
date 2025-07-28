@@ -6,6 +6,7 @@ class Scene;
 
 enum class GunFireType { kAuto, kSemiAuto, kBoltAction, kBurst };
 enum class BulletType { kNormal, kBig, kSpecial };
+constexpr int kElementCount = 3;
 enum class ElementType { kFire, kElectric, kPoison };
 
 struct GunInfo
@@ -64,6 +65,7 @@ public:
 
 private:
     static std::unordered_map<std::string, GunInfo> kGunInfos;
+    static const std::array<XMFLOAT4, kElementCount> kElementColors;
 
     std::list<Object*> fired_bullet_list_;
     int loaded_bullets_{};      //³²Àº ÃÑ¾Ë ¼ö

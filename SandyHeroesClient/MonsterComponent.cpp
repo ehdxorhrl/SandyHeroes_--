@@ -59,7 +59,6 @@ void MonsterComponent::Update(float elapsed_time)
         }
     }
 
-	//TODO: 서버에서 몬스터의 상태를 받아서 업데이트
 	//EX) ai->Update(owner_, elapsed_time);
     if (target_)
     {
@@ -106,60 +105,6 @@ void MonsterComponent::Update(float elapsed_time)
         }
 	}
 
-    //TODO: 서버로 상태이상 처리 옮기기
-    {
-        for (auto& [type, effect] : status_effects_)
-        {
-            if (!effect.IsActive()) continue;
-
-            effect.elapsed += elapsed_time;
-
-            if (type == StatusEffectType::Fire)
-            {
-                float dps = effect.fire_damage * 0.9f;
-                HitDamage(dps * elapsed_time);
-
-                if (hp_ <= 0)
-                {
-                    int a;
-                    if (scene_)
-                    {
-                        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_);
-                        if (base_scene)
-                        {
-                            base_scene->add_catch_monster_num();
-                        }
-                    }
-                }
-            }
-            else if (type == StatusEffectType::Electric)
-            {
-                auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
-                if (movement)
-                {
-                    if (!electric_slow_applied_)
-                    {
-                        original_speed_ = movement->max_speed_xz();
-                        movement->set_max_speed_xz(original_speed_ * 0.70f);    
-                        electric_slow_applied_ = true;
-                    }
-
-                    //movement->set_max_speed_xz(3.5f * 0.85f);
-                }
-            }
-        }
-
-        auto& electric = status_effects_[StatusEffectType::Electric];
-        if (!electric.IsActive() && electric_slow_applied_)
-        {
-            auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
-            if (movement)
-            {
-                movement->set_max_speed_xz(original_speed_);
-                electric_slow_applied_ = false;
-            }
-        }
-    }
 }
 
 void MonsterComponent::HitDamage(float damage)
@@ -183,8 +128,10 @@ void MonsterComponent::HitDamage(float damage)
 	}
 }
 
-void MonsterComponent::ApplyStatusEffect(StatusEffectType type, float duration, float base_damage)
+void MonsterComponent::ApplyStatusEffect(StatusEffectType type, float duration, float damage,
+    bool flame_frenzy, bool acid_frenzy, bool electric_frenzy)
 {
+    status_effects_[type] = { duration, 0.f, damage , flame_frenzy, acid_frenzy, electric_frenzy };
 
 }
 

@@ -13,6 +13,11 @@
 #include "SessionManager.h"
 
 std::unordered_map<std::string, GunInfo> GunComponent::kGunInfos{};
+const std::array<XMFLOAT4, kElementCount> GunComponent::kElementColors{
+    XMFLOAT4{ 1.0f, 0.0f, 0.0f, 0.5f },
+    XMFLOAT4{ 0.9f, 0.9f, 0.1f, 0.5f },
+    XMFLOAT4{ 0.1f, 0.9f, 0.1f, 0.5f }
+};
 
 GunComponent::GunComponent(Object* owner) : Component(owner)
 {
@@ -298,5 +303,10 @@ void GunComponent::LoadGunInfosFromFile(const std::string& file_name)
         }
         kGunInfos[name] = info;
     }
+}
+
+XMFLOAT4 GunComponent::GetGunElementColor(GunComponent* gun)
+{
+    return kElementColors[(int)gun->element_];
 }
 

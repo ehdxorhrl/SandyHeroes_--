@@ -167,6 +167,11 @@ XMFLOAT3 MovementComponent::velocity() const
     return velocity_;
 }
 
+float MovementComponent::max_speed_xz() const
+{
+    return max_speed_xz_;
+}
+
 void MovementComponent::BackupPosition()
 {
     old_position_ = owner_->position_vector();

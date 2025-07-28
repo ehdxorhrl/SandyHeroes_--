@@ -51,13 +51,13 @@ public:
 	void CheckObjectHitBullet(Object* object);
 	void CheckPlayerHitPyramid(Object* object);
 	void CheckSpawnBoxHitPlayers();
-
+	void CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray_direction);
 	std::list<MeshColliderComponent*> checking_maps_mesh_collider_list(int index);
 	int stage_clear_num();
 
 	void ActivateStageMonsterSpawner(int stage_num);
 
-	//void add_catch_monster_num();
+	void add_catch_monster_num();
 
 private:
 	//스테이지별 몬스터 스포너 리스트
