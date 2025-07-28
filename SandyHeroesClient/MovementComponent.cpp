@@ -163,3 +163,8 @@ XMFLOAT3 MovementComponent::velocity() const
 {
     return velocity_;
 }
+
+float MovementComponent::max_speed_xz() const
+{
+    return max_speed_xz_;
+}

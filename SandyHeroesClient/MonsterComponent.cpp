@@ -12,7 +12,9 @@ MonsterComponent::MonsterComponent(Object* owner) : Component(owner)
 }
 
 MonsterComponent::MonsterComponent(const MonsterComponent& other) : Component(other),
-shield_(other.shield_), hp_(other.hp_), attack_force_(other.attack_force_), monster_type_(other.monster_type_), target_(other.target_)
+shield_(other.shield_), hp_(other.hp_), 
+attack_force_(other.attack_force_), monster_type_(other.monster_type_), 
+target_(other.target_), scene_(other.scene_)
 {
 }
 
@@ -97,10 +99,67 @@ void MonsterComponent::Update(float elapsed_time)
             }
 
 			movement->MoveXZ(direction.x, direction.z, 5.f);
-            movement->set_max_speed_xz(3.5f);
-		}
+            if (!electric_slow_applied_)
+            {
+                movement->set_max_speed_xz(3.5f);
+            }
+        }
 	}
 
+    //TODO: 서버로 상태이상 처리 옮기기
+    {
+        for (auto& [type, effect] : status_effects_)
+        {
+            if (!effect.IsActive()) continue;
+
+            effect.elapsed += elapsed_time;
+
+            if (type == StatusEffectType::Fire)
+            {
+                float dps = effect.fire_damage * 0.9f;
+                HitDamage(dps * elapsed_time);
+
+                if (hp_ <= 0)
+                {
+                    int a;
+                    if (scene_)
+                    {
+                        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_);
+                        if (base_scene)
+                        {
+                            base_scene->add_catch_monster_num();
+                        }
+                    }
+                }
+            }
+            else if (type == StatusEffectType::Electric)
+            {
+                auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
+                if (movement)
+                {
+                    if (!electric_slow_applied_)
+                    {
+                        original_speed_ = movement->max_speed_xz();
+                        movement->set_max_speed_xz(original_speed_ * 0.70f);    
+                        electric_slow_applied_ = true;
+                    }
+
+                    //movement->set_max_speed_xz(3.5f * 0.85f);
+                }
+            }
+        }
+
+        auto& electric = status_effects_[StatusEffectType::Electric];
+        if (!electric.IsActive() && electric_slow_applied_)
+        {
+            auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
+            if (movement)
+            {
+                movement->set_max_speed_xz(original_speed_);
+                electric_slow_applied_ = false;
+            }
+        }
+    }
 }
 
 void MonsterComponent::HitDamage(float damage)
@@ -122,6 +181,11 @@ void MonsterComponent::HitDamage(float damage)
 	{
 		hp_ = 0;
 	}
+}
+
+void MonsterComponent::ApplyStatusEffect(StatusEffectType type, float duration, float base_damage)
+{
+
 }
 
 void MonsterComponent::set_shield(float value)
@@ -181,6 +245,7 @@ float MonsterComponent::attack_force() const
 
 void MonsterComponent::set_scene(Scene* value)
 {
+    scene_ = value;
 }
 
 bool MonsterComponent::IsDead() const

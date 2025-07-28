@@ -98,7 +98,6 @@ void BaseScene::BuildShader(ID3D12Device* device, ID3D12RootSignature* root_sign
 using namespace file_load_util;
 void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* command_list)
 {	
-	//������ �̸� �ε��Ǵ� �������� ������ �� �׽�Ʈ �������� �̸� �˼� ����
 	constexpr UINT kMeshCount{ 60 };
 	meshes_.reserve(kMeshCount);
 	meshes_.push_back(std::make_unique<CubeMesh>());

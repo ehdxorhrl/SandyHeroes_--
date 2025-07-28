@@ -39,6 +39,7 @@ public:
 
     //getter
     XMFLOAT3 velocity() const;
+    float max_speed_xz() const;
 
 private:
     bool is_gravity_{ true };
