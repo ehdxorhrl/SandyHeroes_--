@@ -66,6 +66,10 @@
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 
+//랜덤 머신
+static std::random_device kRandomDevice;
+static std::mt19937 kRandomGenerator(kRandomDevice());
+
 // 상수값
 //constexpr int kDefaultFrameBufferWidth = 1366;
 //constexpr int kDefaultFrameBufferHeight = 768;

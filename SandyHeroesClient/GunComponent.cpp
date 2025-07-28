@@ -11,6 +11,11 @@
 #include "ParticleComponent.h"
 
 std::unordered_map<std::string, GunInfo> GunComponent::kGunInfos{};
+const std::array<XMFLOAT4, kElementCount> GunComponent::kElementColors{
+    XMFLOAT4{ 1.0f, 0.0f, 0.0f, 0.5f },
+    XMFLOAT4{ 0.9f, 0.9f, 0.1f, 0.5f },
+    XMFLOAT4{ 0.1f, 0.9f, 0.1f, 0.5f }
+};
 
 GunComponent::GunComponent(Object* owner) : Component(owner)
 {

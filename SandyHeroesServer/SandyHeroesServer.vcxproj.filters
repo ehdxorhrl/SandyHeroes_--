@@ -91,6 +91,12 @@
     <Filter Include="5.Component\Monster">
       <UniqueIdentifier>{2b514a55-033e-4fde-a0f6-08428e9391bc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="5.Component\Player">
+      <UniqueIdentifier>{d595cd91-05cb-4eb3-b353-d33f7dac09f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5.Component\Scroll">
+      <UniqueIdentifier>{efa26d1b-d97e-49b3-a01e-5d4205dc6e8e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="targetver.h">
@@ -200,6 +206,12 @@
     <ClInclude Include="MonsterComponent.h">
       <Filter>5.Component\Monster</Filter>
     </ClInclude>
+    <ClInclude Include="PlayerComponent.h">
+      <Filter>5.Component\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollComponent.h">
+      <Filter>5.Component\Scroll</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandyHeroesServer.cpp">
@@ -294,6 +306,12 @@
     </ClCompile>
     <ClCompile Include="MonsterComponent.cpp">
       <Filter>5.Component\Monster</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerComponent.cpp">
+      <Filter>5.Component\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollComponent.cpp">
+      <Filter>5.Component\Scroll</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

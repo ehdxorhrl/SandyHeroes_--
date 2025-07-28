@@ -573,14 +573,14 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 		std::shuffle(scroll_index.begin(), scroll_index.end(), kRandomGenerator);
 	
 		//테스트용
-		/*scroll_index = {
+		scroll_index = {
 			(int)ScrollType::kNinja,
 			(int)ScrollType::kSprinter,
 			(int)ScrollType::kWeaponMaster,
 			(int)ScrollType::kFlameMaster,
 			(int)ScrollType::kAcidMaster,
 			(int)ScrollType::kElectricMaster
-		};*/
+		};
 	
 		for (int i = 0; i < kChestCount; ++i)
 		{
@@ -1748,7 +1748,7 @@ void BaseScene::Update(float elapsed_time)
 	//
 	//UpdateObjectHitObject();
 	//
-	//DeleteDeadObjects();
+	DeleteDeadObjects();
 	//
 	//UpdateStageClear();
 	//

@@ -17,6 +17,8 @@ public:
 
 	virtual Component* GetCopy() override;
 
+	virtual void Update(float elapsed_time) override;
+
 	void Heal(float amount);	//플레이어를 회복하는 함수
 	void HealHp(float heal_amount);	//플레이어의 체력을 회복하는 함수
 	void HealShield(float heal_amount);	//플레이어의 방패를 회복하는 함수
@@ -43,7 +45,7 @@ public:
 	void set_scene(Scene* scene) { scene_ = scene; }	//플레이어가 속한 씬 설정
 	void set_dash_gage(float gage) { dash_gage_ = gage; }
 
-private:	
+private:
 	Scene* scene_ = nullptr;	//플레이어가 속한 씬
 
 	float max_hp_ = 100.f;	//플레이어 최대 체력
@@ -64,6 +66,5 @@ private:
 
 	float dash_gage_ = 0.0f;	// 대쉬 게이지
 	float dash_max_gage_ = 5.0f;	// 대쉬 쿨타임 최대 시간
-
 };
 

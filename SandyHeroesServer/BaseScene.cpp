@@ -17,6 +17,7 @@
 #include "SessionManager.h"
 #include "MonsterComponent.h"
 #include "SpawnerComponent.h"
+#include "PlayerComponent.h"
 
 using namespace file_load_util;
 void BaseScene::BuildMesh()
@@ -206,7 +207,7 @@ void BaseScene::BuildModelInfo()
 	hit_dragon_spawner->set_model_name("Hit_Dragon_Spawner");
 	Object* spawner = new Object();
 	auto monster_component = new MonsterComponent(nullptr);
-	
+	monster_component->set_scene(this);
 	auto spawner_component = new SpawnerComponent(spawner, this, hit_dragon);
 	spawner_component->AddComponent(monster_component);
 	spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
@@ -570,6 +571,11 @@ void BaseScene::ActivateStageMonsterSpawner(int stage_num)
 	{
 		spawner->ActivateSpawn();
 	}
+}
+
+void BaseScene::add_catch_monster_num()
+{
+	++catch_monster_num_;
 }
 
 bool BaseScene::ProcessInput(void* p)
@@ -1232,7 +1238,6 @@ void BaseScene::CheckObjectHitBullet(Object* object)
 						monster->HitDamage(gun->damage() * (1 + gun->upgrade() * 0.2));
 
 						if (monster->IsDead()) {
-							catch_monster_num_++;
 							// 총기 이름 목록
 							std::vector<std::string> gun_names = { "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
 
@@ -1406,6 +1411,200 @@ void BaseScene::CheckSpawnBoxHitPlayers()
 			}
 		}
 	}
+}
+
+void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray_direction)
+{
+	XMVECTOR origin = XMLoadFloat3(&ray_origin);
+	XMVECTOR direction = XMVector3Normalize(XMLoadFloat3(&ray_direction));
+
+	float closest_t = FLT_MAX;
+	Object* closest_monster = nullptr;	// 광선에 부딪힌 가장 가까운 몬스터
+
+	//광선 충돌체크 코드
+	for (Object* object : ground_check_object_list_)
+	{
+		if (object->is_player() || object->is_dead()) continue;
+
+		auto box_list = Object::GetComponentsInChildren<BoxColliderComponent>(object);
+		if (box_list.empty()) continue;
+
+		for (auto& box_collider : box_list)
+		{
+			const BoundingOrientedBox& box = box_collider->animated_box();
+			float t = 0.f;
+			if (box.Intersects(origin, direction, t))
+			{
+				if (t < closest_t)
+				{
+					closest_t = t;
+					closest_monster = object;
+				}
+			}
+		}
+	}
+
+	if (closest_monster)
+	{
+		//TODO: hit 사운드를 출력하라고 패킷 송신
+		//FMODSoundManager::Instance().PlaySound("hit", false, 0.3f);
+
+		//TODO: 플레이어 찾아주세요
+		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_);
+		if (!gun) return;
+
+		MonsterComponent* monster = Object::GetComponent<MonsterComponent>(closest_monster);
+		if (!monster || monster->IsDead()) return;
+
+		float damage = gun->damage() * (1 + gun->upgrade() * 0.2);
+		// 플레이어 스크롤 효과 적용
+		PlayerComponent* player_comp = Object::GetComponent<PlayerComponent>(player_);
+		if (player_comp)
+		{
+			if (gun->element() == ElementType::kFire &&
+				player_comp->HasScroll(ScrollType::kFlameMaster))
+			{
+				damage *= 1.3f;
+			}
+			else if (gun->element() == ElementType::kPoison &&
+				player_comp->HasScroll(ScrollType::kAcidMaster))
+			{
+				damage *= 1.3f;
+			}
+			else if (gun->element() == ElementType::kElectric &&
+				player_comp->HasScroll(ScrollType::kElectricMaster))
+			{
+				damage *= 1.3f;
+			}
+		}
+		bool flame_frenzy = false;
+		bool acid_frenzy = false;
+		bool electric_frenzy = false;
+		if (player_comp)
+		{
+			if (player_comp->HasScroll(ScrollType::kFlameFrenzy))
+			{
+				flame_frenzy = true;
+			}
+			if (player_comp->HasScroll(ScrollType::kAcidFrenzy))
+			{
+				acid_frenzy = true;
+			}
+			if (player_comp->HasScroll(ScrollType::kElectricFrenzy))
+			{
+				electric_frenzy = true;
+			}
+		}
+
+		// 속성 효과
+		switch (gun->element())
+		{
+		case ElementType::kFire:
+			monster->ApplyStatusEffect(StatusEffectType::Fire, 3.0f, damage, flame_frenzy, acid_frenzy, electric_frenzy);
+			break;
+		case ElementType::kPoison:
+			monster->ApplyStatusEffect(StatusEffectType::Poison, 3.0f, 0.f, flame_frenzy, acid_frenzy, electric_frenzy);
+			break;
+		case ElementType::kElectric:
+			monster->ApplyStatusEffect(StatusEffectType::Electric, 3.0f, 0.f, flame_frenzy, acid_frenzy, electric_frenzy);
+			break;
+		}
+		monster->HitDamage(damage);
+
+		//TODO: 몬스터 피격 파티클 패킷을 보내주세요(내용: 1. 몬스터 피격 파티클인가, 2. 색상, 3. 위치)
+		//ParticleComponent* particle = Object::GetComponent<ParticleComponent>(monster_hit_particles_.front());
+		XMFLOAT3 hit_position = ray_origin + (ray_direction * closest_t);	//3. 위치
+		XMFLOAT4 particle_color = GunComponent::GetGunElementColor(gun);	//2. 색상
+		//particle->set_hit_position(hit_position);
+
+		//particle->Play(50);
+
+		if (monster->IsDead())
+		{
+			// 총기 이름 목록
+			std::vector<std::string> gun_names = { "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
+
+			std::vector<int> drop_weights = { 15, 10, 7, 5, 3, 1 }; // 전체 합 = 41
+
+			// 드랍할지 말지: 41% 확률로 총기 드랍, 나머지 59%는 아무것도 안 떨어짐
+			if (rand() % 100 >= 41) return; // 59% 확률로 드랍 안 함
+
+			// 랜덤 엔진 및 분포 생성
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::discrete_distribution<> dist(drop_weights.begin(), drop_weights.end());
+
+			int random_index = dist(gen);
+			std::string gun_name = gun_names[random_index];
+			Object* dropped_gun = FindModelInfo(gun_names[random_index])->GetInstance();
+
+			XMFLOAT3 drop_pos = monster->owner()->world_position_vector();
+			drop_pos.y += 0.1f;
+			dropped_gun->set_position_vector(drop_pos);
+			dropped_gun->set_is_movable(true);
+
+			BoundingBox gun_bb{ {0.f, 0.f, 0.f}, {0.5f, 0.3f, 1.0f} };
+			auto box_comp = new BoxColliderComponent(dropped_gun, gun_bb);
+			dropped_gun->AddComponent(box_comp);
+
+			// UI
+			/*Object* ui_texture = FindModelInfo("Gun_UI")->GetInstance();
+			ui_texture->set_local_position({ 0.0f, 0.5f, 0.1f });
+			dropped_gun->AddChild(ui_texture);*/
+
+			std::string dropped_name = dropped_gun->name();  // 예: "Dropped_Classic"
+
+			GunComponent* dropped_gun_component = Object::GetComponent<GunComponent>(dropped_gun);
+			std::string gun_ui_name = "Gun_UI_" + dropped_name.substr(dropped_name.find('_') + 1); // "Classic", "Sherif" 등
+
+			// 랜덤 강화, 속성
+			int upgrade = rand() % 4;
+			dropped_gun_component->set_upgrade(upgrade);
+
+			// [2] 속성 타입: 0 = Fire, 1 = Electric, 2 = Poison
+			int element_random = rand() % 3;
+			ElementType element = static_cast<ElementType>(element_random);
+			dropped_gun_component->set_element(element);
+
+			if (upgrade > 0)
+			{
+				gun_ui_name += "+" + std::to_string(upgrade);
+			}
+
+			AddObject(dropped_gun);
+			dropped_guns_.push_back(dropped_gun);
+
+			/*
+			struct sc_packet_drop_gun
+			{
+				uint8_t  size;           // 패킷 전체 크기
+				uint8_t  type;           // 패킷 타입 (예: S2C_P_DROP_GUN)
+				uint32_t id;             // 드랍된 총기의 고유 ID
+				uint8_t  gun_type;       // 총기 종류 (0=Classic, ..., 5=Flamethrower)
+				uint8_t  upgrade_level;  // 강화 수치 (0~3)
+				uint8_t  element_type;   // 속성 (0=Fire, 1=Electric, 2=Poison)
+				float    matrix[16];     // 드랍된 총기의 위치/회전을 포함한 변환 행렬
+			};*/
+
+			sc_packet_drop_gun dg;
+			dg.size = sizeof(sc_packet_drop_gun);
+			dg.type = S2C_P_DROP_GUN;
+			dg.id = dropped_gun->id();
+			dg.gun_type = random_index;
+			dg.upgrade_level = upgrade;
+			dg.element_type = element_random;
+			XMFLOAT4X4 xf;
+			XMFLOAT4X4 mat = dropped_gun->transform_matrix();
+			XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
+			memcpy(dg.matrix, &xf, sizeof(float) * 16);
+
+			//TODO: 유저 넣어주세요!
+			/*for (const auto& player : users) {
+				player.second->do_send(&dg);
+			}*/
+		}
+	}
+
 }
 
 std::list<MeshColliderComponent*> BaseScene::checking_maps_mesh_collider_list(int index)
