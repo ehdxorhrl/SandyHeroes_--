@@ -666,17 +666,50 @@ public class SceneExtract : MonoBehaviour
 
 		BoxCollider boxCollider = current.gameObject.GetComponent<BoxCollider>();
 
+		GroundCollider groundCollider = current.gameObject.GetComponent<GroundCollider>();
+		WallCollider wallCollider = current.gameObject.GetComponent<WallCollider>();
+
+		MapNode mapNode = current.gameObject.GetComponent<MapNode>();
+
 		if (boxCollider)
 		{
 			WriteBoundingBox("<BoxCollider>:", boxCollider.center, boxCollider.size);
 		}
-
+		if (mapNode)
+		{
+			if (mapNode.neighbors.Length > 0)
+			{
+				//노드의 위치
+				WriteVector("<MapNode>:", current.position);
+				//노드의 아이디
+				WriteInteger(mapNode.GetNodeId());
+				//이웃의 개수
+				WriteInteger(mapNode.neighbors.Length);
+				foreach (var neighbor in mapNode.neighbors)
+				{
+					MapNode neighborMapNode = neighbor.gameObject.GetComponent<MapNode>();
+					if (neighborMapNode) WriteInteger(neighborMapNode.GetNodeId());
+					else print("Not Find neighborMapNode");
+				}
+				return;
+			}
+		}
 		if (meshFilter && meshRenderer)
 		{
 			WriteMeshInfo(meshFilter.sharedMesh);
 
 			Material[] materials = meshRenderer.materials;
 			if (materials.Length > 0) WriteMaterials(materials);
+
+			if (groundCollider)
+			{
+				WriteString("<GroundCollider>:");
+			}
+			if (wallCollider)
+			{
+				WriteString("<WallCollider>:");
+			}
+
 		}
 		else
 		{
@@ -687,8 +720,10 @@ public class SceneExtract : MonoBehaviour
 
 				Material[] materials = skinMeshRenderer.materials;
 				if (materials.Length > 0) WriteMaterials(materials);
+
 			}
 		}
+
 	}
 
 	void WriteFrameHierarchyInfo(Transform child)
@@ -862,6 +897,7 @@ public class SceneExtract : MonoBehaviour
 				{
 					WriteBoundingBox(sceneWriter, "<SectorBounds>:", sector.sectorCollider.center, sector.sectorCollider.size);
 				}
+
 				WriteLocalMatrix(sceneWriter, "<Transform>", rootObject.transform);
 				
 				Vector3 position = rootObject.transform.position;
