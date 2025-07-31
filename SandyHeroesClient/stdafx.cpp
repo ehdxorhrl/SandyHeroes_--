@@ -1,5 +1,8 @@
 #include "stdafx.h"
 
+std::random_device kRandomDevice;
+std::mt19937 kRandomGenerator(kRandomDevice());
+
 ComPtr<ID3D12Resource> d3d_util::CreateDefaultBuffer(
 	ID3D12Device* device,
 	ID3D12GraphicsCommandList* command_list,

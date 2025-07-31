@@ -42,6 +42,8 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
+#include <queue>
+#include <unordered_set>
 
 // DirectX 관련 헤더 파일 및 선언문
 #include <wrl.h>
@@ -68,8 +70,8 @@ using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 
 //랜덤 머신
-static std::random_device kRandomDevice;
-static std::mt19937 kRandomGenerator(kRandomDevice());
+extern std::random_device kRandomDevice;
+extern std::mt19937 kRandomGenerator;
 
 // 상수값
 //constexpr int kDefaultFrameBufferWidth = 1366;

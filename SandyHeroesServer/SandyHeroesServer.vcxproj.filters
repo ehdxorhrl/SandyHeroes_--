@@ -212,6 +212,9 @@
     <ClInclude Include="ScrollComponent.h">
       <Filter>5.Component\Scroll</Filter>
     </ClInclude>
+    <ClInclude Include="AStar.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandyHeroesServer.cpp">
@@ -312,6 +315,12 @@
     </ClCompile>
     <ClCompile Include="ScrollComponent.cpp">
       <Filter>5.Component\Scroll</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="AStar.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

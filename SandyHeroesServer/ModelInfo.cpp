@@ -13,6 +13,7 @@
 #include "DebugMeshComponent.h"
 #include "GroundColliderComponent.h"
 #include "WallColliderComponent.h"
+#include "AStar.h"
 
 ModelInfo::ModelInfo(const std::string& file_name, std::vector<std::unique_ptr<Mesh>>& meshes,
 	std::vector<std::unique_ptr<Material>>& materials, std::vector<std::unique_ptr<Texture>>& textures)
@@ -127,6 +128,42 @@ Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::u
 
 		ReadStringFromFile(file, load_token);
 	}
+
+	if (load_token == "<MapNode>:")
+	{
+		const std::array<std::string, 8>
+			stage_names{ "BASE", "STAGE1", "STAGE2", "STAGE3", "STAGE4", "STAGE5", "STAGE6", "STAGE7" };
+		//어떤 맵의 노드인지
+		const auto& map_name = model_name_;
+		int map_idx{};
+		for (int i = 0; i < 8; ++i)
+		{
+			if (map_name == stage_names[i])
+			{
+				map_idx = i;
+				break;
+			}
+		}
+		XMFLOAT3 position = ReadFromFile<XMFLOAT3>(file);
+		int id = ReadFromFile<int>(file);
+		int neighbors_count = ReadFromFile<int>(file);
+		std::wstring str = L"Node's id: " + std::to_wstring(id) + L"\n";
+		OutputDebugString(str.c_str());
+
+		auto& node_buffer = kStageNodeBuffers[map_idx];
+		node_buffer.emplace_back(position, id);
+
+		auto& neighbors = node_buffer.back().neighbors;
+		neighbors.reserve(neighbors_count);
+
+		kNodeConnectors.emplace_back();
+		kNodeConnectors.back().node = &(node_buffer.back());
+		kNodeConnectors.back().neighbors_id.resize(neighbors_count);
+		ReadFromFile<int>(file, kNodeConnectors.back().neighbors_id.data(), neighbors_count);
+
+		ReadStringFromFile(file, load_token);
+	}
+
 
 	if (load_token == "<Mesh>:")
 	{
