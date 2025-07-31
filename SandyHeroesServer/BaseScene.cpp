@@ -160,6 +160,7 @@ void BaseScene::BuildMesh()
 
 	a_star::ConnectNodes(kNodeConnectors);
 
+	kNodeConnectors.clear();
 }
 void BaseScene::BuildModelInfo()
 {
