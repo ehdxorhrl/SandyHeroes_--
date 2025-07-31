@@ -2368,12 +2368,7 @@ void BaseScene::add_remote_player(int id, const std::string& name, const XMFLOAT
 	}
 
 	Object* remote_gun_frame = remote->FindFrame("WeaponR_locator");
-	remote_gun_frame->AddChild((model_infos_[1]->GetInstance()));
-	remote_gun_frame = remote_gun_frame->child();
-	GunComponent* remote_gun = new GunComponent(remote_gun_frame);
-	remote_gun->LoadGunInfo("specter");
-	remote_gun_frame->AddComponent(remote_gun);
-	remote_gun_frame->Rotate(0, 170, -17);
+	remote_gun_frame->AddChild(FindModelInfo("Classic")->GetInstance());
 
 	remote->set_id(id);
 	remote->set_name(name);
@@ -2492,7 +2487,7 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 void BaseScene::change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t upgrade_level, uint8_t element_type, uint32_t player_id)
 {
 	Object* player = FindObject(player_id);
-	if(!player) std::cout <<"[change_gun] 플레이어를 찾을 수 없음" << std::endl;
+	if(!player || !player->is_player()) std::cout <<"[change_gun] 플레이어를 찾을 수 없음" << std::endl;
 
 	std::cout << "[change_gun] 시작 - gun_id: " << gun_id << ", gun_name: " << gun_name
 		<< ", upgrade: " << static_cast<int>(upgrade_level)
