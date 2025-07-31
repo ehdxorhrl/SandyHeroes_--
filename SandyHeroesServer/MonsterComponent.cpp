@@ -253,19 +253,19 @@ void MonsterComponent::HitDamage(float damage)
     {
         hp_ -= damage;
     }
-    if (hp_ < 0)
+    if (hp_ <= 0)
     {
         hp_ = 0;
-
-    }
-    if (scene_)
-    {
-        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_);
-        if (base_scene)
+        if (scene_)
         {
-            base_scene->add_catch_monster_num();
+            BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_);
+            if (base_scene)
+            {
+                base_scene->add_catch_monster_num();
+            }
         }
     }
+    
 
     sc_packet_monster_damaged md;
     md.size = sizeof(sc_packet_monster_damaged);

@@ -376,8 +376,18 @@ void BaseScene::BuildObject()
 		//	std::cout << box_object->position_vector().y << std::endl;
 		//}
 		const auto& box = Object::GetComponent<BoxColliderComponent>(box_object);
+		
 		spawn_boxs_.push_back(box);
 	}
+	// 스테이지3 클리어 트리거 박스 생성
+	{
+		XMFLOAT3 box_pos = { 63.25f, 0.98f, -113.28f };
+		XMFLOAT3 box_scale = { 7.1f, 1.9f, 5.3f };
+		stage3_clear_box_.Center = box_pos;
+		stage3_clear_box_.Extents = box_scale;
+		stage3_clear_box_.Orientation = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
+	}
+
 
 	Mesh* debug_mesh = Scene::FindMesh("Debug_Mesh", meshes_);
 	const auto& const debug_material = Scene::FindMaterial("debug", materials_);
@@ -539,17 +549,17 @@ void BaseScene::CreateMonsterSpawner()
 		AddObject(spawner);
 		stage_monster_spawner_list_[1].push_back(spawner_component);
 	
-		//bomb 1
-		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 50.f, 0.47f, 24.14f }, 2, 14.f, 4.f);
-		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		AddObject(spawner);
-		stage_monster_spawner_list_[1].push_back(spawner_component);
-		
-		//bomb 2
-		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 49.43f, 0.47f, -15.51f }, 2, 14.f, 4.f);
-		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		AddObject(spawner);
-		stage_monster_spawner_list_[1].push_back(spawner_component);
+		////bomb 1
+		//spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 50.f, 0.47f, 24.14f }, 2, 14.f, 4.f);
+		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		//AddObject(spawner);
+		//stage_monster_spawner_list_[1].push_back(spawner_component);
+		//
+		////bomb 2
+		//spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 49.43f, 0.47f, -15.51f }, 2, 14.f, 4.f);
+		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		//AddObject(spawner);
+		//stage_monster_spawner_list_[1].push_back(spawner_component);
 	}
 	
 	//Stage 4
@@ -670,6 +680,12 @@ void BaseScene::AddObject(Object* object)
 		}
 
 	}
+
+	auto monster_component = Object::GetComponent<MonsterComponent>(object);
+	if (monster_component)
+	{
+		monster_list_.push_back(monster_component);
+	}
 }
 
 void BaseScene::DeleteObject(Object* object)
@@ -691,6 +707,10 @@ void BaseScene::DeleteObject(Object* object)
 
 void BaseScene::DeleteDeadObjects()
 {
+	monster_list_.remove_if([](const MonsterComponent* monster_component) {
+		return monster_component->owner()->is_dead();
+		});
+
 	ground_check_object_list_.remove_if([](const Object* object) {
 		return object->is_dead();
 		});
@@ -781,14 +801,22 @@ void BaseScene::UpdateStageClear()
 			return;
 		break;
 	case 2:
-		if (catch_monster_num_ < 14)
+		if (catch_monster_num_ < 10)
 			return;
 		break;
 	case 3:
-		if (catch_monster_num_ < 1)
+	{	for (auto& object : ground_check_object_list_){
+		if (!object->is_player()) return;
+		auto player_collider = Object::GetComponentInChildren<MeshColliderComponent>(object);
+		if (!player_collider) return;
+
+		BoundingOrientedBox player_box = player_collider->GetWorldOBB();
+		if (!stage3_clear_box_.Intersects(player_box))
 			return;
-		//TODO: 스테이지 3번은 투명발판을 밟아 다음 스테이지로 진행해야 클리어
-		return;
+	}
+	}
+	
+	break;
 	case 4:
 		if (catch_monster_num_ < 1)
 			return;
@@ -1419,7 +1447,7 @@ void BaseScene::CheckSpawnBoxHitPlayers()
 	}
 }
 
-void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray_direction)
+void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray_direction, int id)
 {
 	XMVECTOR origin = XMLoadFloat3(&ray_origin);
 	XMVECTOR direction = XMVector3Normalize(XMLoadFloat3(&ray_direction));
@@ -1454,8 +1482,8 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 	{
 		//TODO: hit 사운드를 출력하라고 패킷 송신
 		//FMODSoundManager::Instance().PlaySound("hit", false, 0.3f);
-
 		//TODO: 플레이어 찾아주세요
+		Object* player_ = SessionManager::getInstance().get(id)->get_player_object();
 		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_);
 		if (!gun) return;
 
@@ -1464,6 +1492,7 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 
 		float damage = gun->damage() * (1 + gun->upgrade() * 0.2);
 		// 플레이어 스크롤 효과 적용
+
 		PlayerComponent* player_comp = Object::GetComponent<PlayerComponent>(player_);
 		if (player_comp)
 		{
@@ -1605,9 +1634,10 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 			memcpy(dg.matrix, &xf, sizeof(float) * 16);
 
 			//TODO: 유저 넣어주세요!
-			/*for (const auto& player : users) {
+			const auto& users = SessionManager::getInstance().getAllSessions();
+			for (const auto& player : users) {
 				player.second->do_send(&dg);
-			}*/
+			}
 		}
 	}
 

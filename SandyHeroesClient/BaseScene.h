@@ -64,6 +64,7 @@ public:
 	//getter
 	std::list<MeshColliderComponent*> checking_maps_mesh_collider_list(int index);
 	int stage_clear_num();
+	void add_stage_clear_num();
 	void add_catch_monster_num();
 	void add_remote_player(int id, const std::string& name, const XMFLOAT4X4& value);
 	void add_monster(uint32_t id,
@@ -74,7 +75,7 @@ public:
 		int32_t monster_type_int);
 	void add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, uint8_t element_type, const XMFLOAT4X4& matrix);
 
-	void change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t upgrade_level, uint8_t element_type);
+	void change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t upgrade_level, uint8_t element_type, uint32_t player_id);
 
 private:
 	//static constexpr int kStageMaxCount{ 8 };	// 게임 스테이지 총 개수

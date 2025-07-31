@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include "User.h"
 
+class MonsterComponent;
 class MeshColliderComponent;
 class SpawnerComponent;
 class BoxColliderComponent;
@@ -51,7 +52,7 @@ public:
 	void CheckObjectHitBullet(Object* object);
 	void CheckPlayerHitPyramid(Object* object);
 	void CheckSpawnBoxHitPlayers();
-	void CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray_direction);
+	void CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray_direction, int id);
 	std::list<MeshColliderComponent*> checking_maps_mesh_collider_list(int index);
 	int stage_clear_num();
 
@@ -83,6 +84,7 @@ private:
 			: object(obj), movement(move) {
 		}
 	};
+	std::list<MonsterComponent*> monster_list_;
 
 	std::list<WallCheckObject> wall_check_object_list_;	//벽 체크가 필요한 객체들의 리스트(플레이어, monster, NPC)
 
@@ -92,6 +94,8 @@ private:
 	std::vector<Object*> dropped_guns_;
 
 	std::vector<BoxColliderComponent*> spawn_boxs_{}; // 스테이지 몬스터 생성 체크를 위한 박스들
+
+	BoundingOrientedBox stage3_clear_box_;
 
 	bool is_prepare_ground_checking_ = false;
 	//std::array<std::list<MeshColliderComponent*>, kStageMaxCount> checking_maps_mesh_collider_list_;	//맵 바닥체크를 위한 메쉬 콜라이더 리스트 배열

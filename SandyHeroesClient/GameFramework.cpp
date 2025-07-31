@@ -905,200 +905,150 @@ void GameFramework::send_keyboard_input_packet(WPARAM w_param, bool is_press)
 void GameFramework::ProcessPacket(char* p)
 {
     static bool first_time = true;
+    BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
+    if (!base_scene) return;
     switch (p[1])
     {
     case S2C_P_USER_INFO:
     {
         sc_packet_user_info* packet = reinterpret_cast<sc_packet_user_info*>(p);
-        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
-        if (base_scene)
+
+        Object* player = base_scene->player(); // BaseScene에 player_ 멤버가 존재함
+        if (player)
         {
-            Object* player = base_scene->player(); // BaseScene에 player_ 멤버가 존재함
-            if (player)
-            {
-                player->set_position_vector(packet->position[0], packet->position[1], packet->position[2]);
-                player->set_id(packet->id);
-                std::cout << packet->id << std::endl;
-            }
+            player->set_position_vector(packet->position[0], packet->position[1], packet->position[2]);
+            player->set_id(packet->id);
+            std::cout << packet->id << std::endl;
         }
     }
-    break;
+        break;
     case S2C_P_MOVE:
     {
         sc_packet_move* packet = reinterpret_cast<sc_packet_move*>(p);
-        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
-        if (base_scene)
-        {
-
-            Object* player = base_scene->FindObject(packet->id);
-            if (player && player->id() == packet->id)
-            {
-                XMFLOAT4X4 xf;
-                memcpy(&xf, packet->matrix, sizeof(float) * 16);
-                player->set_transform_matrix(xf);
-            }
-        }
-
-    }
-    break;
-    case S2C_P_ENTER:
-    {
-        sc_packet_enter* packet = reinterpret_cast<sc_packet_enter*>(p);
-        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
-        if (base_scene)
+        Object* player = base_scene->FindObject(packet->id);
+        if (player && player->id() == packet->id)
         {
             XMFLOAT4X4 xf;
             memcpy(&xf, packet->matrix, sizeof(float) * 16);
-            base_scene->add_remote_player(packet->id, packet->name, xf);
+            player->set_transform_matrix(xf);
         }
+
     }
-    break;
+        break;
+    case S2C_P_ENTER:
+    {
+        sc_packet_enter* packet = reinterpret_cast<sc_packet_enter*>(p);
+        XMFLOAT4X4 xf;
+        memcpy(&xf, packet->matrix, sizeof(float) * 16);
+        base_scene->add_remote_player(packet->id, packet->name, xf);
+    }
+        break;
     case S2C_P_LEAVE:
     {
         // 객체 삭제
-        break;
     }
+        break;
     case S2C_P_CREATE_BULLET:
     {
         sc_packet_create_bullet* packet = reinterpret_cast<sc_packet_create_bullet*>(p);
-        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
-        if (base_scene)
-        {
 
-            Object* player = base_scene->FindObject(packet->id);
-            if (player)
-            {
-                GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player);
-                if (!gun)
-                {
-                    break;
-                }
-                XMFLOAT3 bullet_dir{};
-                XMVECTOR dir = XMVectorSet(packet->dx, packet->dy, packet->dz, 0.0f);
-                XMStoreFloat3(&bullet_dir, XMVector3Normalize(dir));
-                auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
-                gun->FireBullet(bullet_dir, bullet_mesh, base_scene);
-                gun->set_loaded_bullets(packet->loaded_bullets);
-            }
-        }
-        break;
+        Object* player = base_scene->FindObject(packet->id);
+        if (!player) break;
+
+        GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player);
+        if (!gun) break;
+
+        XMFLOAT3 bullet_dir{};
+        XMVECTOR dir = XMVectorSet(packet->dx, packet->dy, packet->dz, 0.0f);
+        XMStoreFloat3(&bullet_dir, XMVector3Normalize(dir));
+        auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
+        gun->FireBullet(bullet_dir, bullet_mesh, base_scene);
+        gun->set_loaded_bullets(packet->loaded_bullets);
+        
     }
+        break;
     case S2C_P_LOADED_BULLET:
     {
         sc_packet_loaded_bullet* packet = reinterpret_cast<sc_packet_loaded_bullet*>(p);
-        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
-        if (base_scene)
-        {
 
-            Object* player = base_scene->FindObject(packet->id);
-            if (player)
-            {
-                GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player);
-                if (!gun)
-                {
-                    break;
-                }
-                gun->set_loaded_bullets(packet->loaded_bullets);
-            }
-        }
+        Object* player = base_scene->FindObject(packet->id);
+        if (!player) break;
+
+        GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player);
+        if (!gun) break;
+        gun->set_loaded_bullets(packet->loaded_bullets);
     }
         break;
     case S2C_P_DROP_GUN:
     {
         sc_packet_drop_gun* packet = reinterpret_cast<sc_packet_drop_gun*>(p);
-        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
-        if (base_scene)
-        {
-            XMFLOAT4X4 xf;
-            memcpy(&xf, packet->matrix, sizeof(float) * 16);
-            base_scene->add_drop_gun(packet->id, packet->gun_type, packet->upgrade_level, packet->element_type, xf);
-        }
+        XMFLOAT4X4 xf;
+        memcpy(&xf, packet->matrix, sizeof(float) * 16);
+        base_scene->add_drop_gun(packet->id, packet->gun_type, packet->upgrade_level, packet->element_type, xf);
     }
         break;
     case S2C_P_MONSTER_INFO:
     {
         sc_packet_monster_info* packet = reinterpret_cast<sc_packet_monster_info*>(p);
-        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
-        if (base_scene)
-        {
-            XMFLOAT4X4 xf;
-            memcpy(&xf, packet->matrix, sizeof(float) * 16);
-            base_scene->add_monster(packet->id, xf, packet->max_hp, packet->max_shield, packet->attack_force, packet->monster_type);
-        }
+        XMFLOAT4X4 xf;
+        memcpy(&xf, packet->matrix, sizeof(float) * 16);
+        base_scene->add_monster(packet->id, xf, packet->max_hp, packet->max_shield, packet->attack_force, packet->monster_type);
     }
         break;
     case S2C_P_MONSTER_DAMAGED:
     {
         sc_packet_monster_damaged* packet = reinterpret_cast<sc_packet_monster_damaged*>(p);
         BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
-        if (base_scene)
-        {
-            Object* monster = base_scene->FindObject(packet->id);
-            if (monster)
-            {
-                MonsterComponent* monster_component = Object::GetComponentInChildren<MonsterComponent>(monster);
-                if (!monster_component)
-                    break;
+        Object* monster = base_scene->FindObject(packet->id);
+        if (!monster) break;
+        MonsterComponent* monster_component = Object::GetComponentInChildren<MonsterComponent>(monster);
+        if (!monster_component)break;
 
-                monster_component->set_hp(packet->hp);
-                monster_component->set_shield(packet->shield);
-                if (monster_component->IsDead())
-                    break;
-                if (!monster_component->IsDead())
-                {
-
-                    //ParticleComponent* gun_particle = nullptr;
-                    //{
-                    //    Object* flame_tip = player_->FindFrame("gun_particle_pivot");
-                    //    if (flame_tip)
-                    //        gun_particle = Object::GetComponent<ParticleComponent>(flame_tip);
-                    //}
-                    //
-                    //// 몬스터 HIT 파티클 출력
-                    //ParticleComponent* particle_component = Object::GetComponent<ParticleComponent>(base_scene->monster_hit_particles_.front());
-                    //particle_component->set_hit_position(monster_component->owner()->world_position_vector());
-                    //particle_component->set_color(gun_particle->color());
-                    //particle_component->Play(50);
-                }
-            }
+        monster_component->set_hp(packet->hp);
+        monster_component->set_shield(packet->shield);
+        if (monster_component->IsDead()) break;
+        else {
+            //ParticleComponent* gun_particle = nullptr;
+            //{
+            //    Object* flame_tip = player_->FindFrame("gun_particle_pivot");
+            //    if (flame_tip)
+            //        gun_particle = Object::GetComponent<ParticleComponent>(flame_tip);
+            //}
+            //
+            //// 몬스터 HIT 파티클 출력
+            //ParticleComponent* particle_component = Object::GetComponent<ParticleComponent>(base_scene->monster_hit_particles_.front());
+            //particle_component->set_hit_position(monster_component->owner()->world_position_vector());
+            //particle_component->set_color(gun_particle->color());
+            //particle_component->Play(50);
         }
+
+            
     }
         break;
 
     case S2C_P_MONSTER_MOVE:
     {
         sc_packet_monster_move* packet = reinterpret_cast<sc_packet_monster_move*>(p);
-        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
-        if (base_scene)
-        {
-            Object* monster = base_scene->FindObject(packet->id);
-            if (monster)
-            {
-                MonsterComponent* monster_component = Object::GetComponentInChildren<MonsterComponent>(monster);
-                if (!monster_component)
-                {
-                    break;
-                }
-                XMFLOAT4X4 xf;
-                memcpy(&xf, packet->matrix, sizeof(float) * 16);
-                monster->set_transform_matrix(xf);
-                auto movement = Object::GetComponentInChildren<MovementComponent>(monster);
-                movement->set_velocity(XMFLOAT3(packet->speed, 0, 0));
-            }
-        }
+        Object* monster = base_scene->FindObject(packet->id);
+        if (!monster) break;
+        MonsterComponent* monster_component = Object::GetComponentInChildren<MonsterComponent>(monster);
+        if (!monster_component) break;
+        XMFLOAT4X4 xf;
+        memcpy(&xf, packet->matrix, sizeof(float) * 16);
+        monster->set_transform_matrix(xf);
+        auto movement = Object::GetComponentInChildren<MovementComponent>(monster);
+        movement->set_velocity(XMFLOAT3(packet->speed, 0, 0));
     }
+        break;
     case S2C_P_GUN_CHANGE:
     {
         sc_packet_gun_change* packet = reinterpret_cast<sc_packet_gun_change*>(p);
-        BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
-        if (base_scene)
-        {
-            Object* player = base_scene->FindObject(packet->id);
-            if (!player) break;
-
-            if (player == base_scene->player())
-                base_scene->change_gun(packet->gun_id, packet->gun_name, packet->upgrade_level, packet->element_type);          
-        }
+        base_scene->change_gun(packet->gun_id, packet->gun_name, packet->upgrade_level, packet->element_type, packet->id);
+    }
+        break;
+    case S2C_P_STAGE_CLEAR:
+    {
+        base_scene->add_stage_clear_num();
     }
         break;
     default:

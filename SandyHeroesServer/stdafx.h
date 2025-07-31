@@ -32,6 +32,7 @@
 #include <list>
 #include <array>
 #include <unordered_map>
+#include <unordered_set>
 #include <limits>
 #include <numeric>
 #include <memory>

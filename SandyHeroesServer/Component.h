@@ -7,8 +7,7 @@ class Object;
 class Component
 {
 public:
-	// 컴포넌트는 반드시 owner 즉, 주인 오브젝트가 있어야함
-	Component() = delete;
+	Component() = default;
 	Component(Object* owner);
 	Component(Component&& other) = default; //이동 생성자
 

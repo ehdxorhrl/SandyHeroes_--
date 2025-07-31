@@ -156,12 +156,15 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* s
             bullet->OnDestroy(on_destroy_func);
             fired_bullet_list_.push_back(bullet);
             
-
+            //auto base_scene = dynamic_cast<BaseScene*>(scene);
+            //base_scene->CheckRayHitEnemy(owner_->world_position_vector(), direction, id);
+            //
             //BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
             //if (base_scene)
             //{
             //    base_scene->CheckRayHitEnemy(owner_->world_position_vector(), direction);
             //}
+
         }
         // 총알 생성 패킷 브로드캐스트
         sc_packet_create_bullet bp;
