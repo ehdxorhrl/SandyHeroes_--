@@ -134,6 +134,7 @@
     <ClInclude Include="AnimationState.h" />
     <ClInclude Include="AnimationTrack.h" />
     <ClInclude Include="AnimatorComponent.h" />
+    <ClInclude Include="AStar.h" />
     <ClInclude Include="BaseScene.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
@@ -182,6 +183,7 @@
     <ClCompile Include="AnimationState.cpp" />
     <ClCompile Include="AnimationTrack.cpp" />
     <ClCompile Include="AnimatorComponent.cpp" />
+    <ClCompile Include="AStar.cpp" />
     <ClCompile Include="BaseScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
@@ -215,6 +217,9 @@
     <ClCompile Include="SkinnedMesh.cpp" />
     <ClCompile Include="SkinnedMeshComponent.cpp" />
     <ClCompile Include="SpawnerComponent.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="User.cpp" />
     <ClCompile Include="WallColliderComponent.cpp" />

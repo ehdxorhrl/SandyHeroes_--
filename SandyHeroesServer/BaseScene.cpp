@@ -18,6 +18,7 @@
 #include "MonsterComponent.h"
 #include "SpawnerComponent.h"
 #include "PlayerComponent.h"
+#include "AStar.h"
 
 using namespace file_load_util;
 void BaseScene::BuildMesh()
@@ -156,6 +157,8 @@ void BaseScene::BuildMesh()
 		}
 
 	}
+
+	a_star::ConnectNodes(kNodeConnectors);
 
 }
 void BaseScene::BuildModelInfo()

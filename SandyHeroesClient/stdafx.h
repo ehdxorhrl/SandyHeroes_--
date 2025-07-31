@@ -81,8 +81,8 @@ constexpr int kMaxBoneCount = 128; //skinned mesh의 본 최대 개수
 constexpr int kMaxLights = 16;		// 조명처리의 최대 개수
 
 //랜덤 머신
-static std::random_device kRandomDevice;
-static std::mt19937 kRandomGenerator(kRandomDevice());
+extern std::random_device kRandomDevice;
+extern std::mt19937 kRandomGenerator;
 
 
 enum class RootParameterIndex {
