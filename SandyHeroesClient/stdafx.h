@@ -68,10 +68,11 @@
 
 #include "d3dx12.h"
 
-#include "Packet.h"
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
+
+#include "Packet.h"
 
 // 상수값
 constexpr int kDefaultFrameBufferWidth = 1920;

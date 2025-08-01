@@ -140,11 +140,7 @@ void Scene::DeleteDeadObjects()
 	}
 
 	dead_object_list_.remove_if([](const std::unique_ptr<Object>& object) {
-		if (object->dead_frame_count() > FrameResourceManager::kFrameCount)
-		{
-			return true;
-		}
-		return false;
+			return (object->dead_frame_count() > FrameResourceManager::kFrameCount);
 		});	
 
 	for (const std::unique_ptr<Object>& object : dead_object_list_)
