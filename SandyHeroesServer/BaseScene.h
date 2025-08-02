@@ -45,13 +45,13 @@ public:
 	void PrepareGroundChecking();	//맵 바닥체크를 위한 사전 작업
 
 	void CheckPlayerHitGun(Object* object);
-	void CheckPlayerHitGun(Session* session);
 	void CheckObjectIsGround(Object* object);
 	void CheckPlayerHitWall(Object* object, MovementComponent* movement);
 	void CheckObjectHitObject(Object* object);
 	void CheckObjectHitBullet(Object* object);
 	void CheckPlayerHitPyramid(Object* object);
 	void CheckSpawnBoxHitPlayers();
+	void CheckPlayerHitChest();
 	void CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray_direction, int id);
 	std::list<MeshColliderComponent*> checking_maps_mesh_collider_list(int index);
 	int stage_clear_num();
@@ -92,6 +92,8 @@ private:
 	std::array<std::list<WallColliderComponent*>, 8> stage_wall_collider_list_;	//스테이지 벽 콜라이더 리스트
 
 	std::vector<Object*> dropped_guns_;
+
+	std::vector<Object*> chests_;
 
 	std::vector<BoxColliderComponent*> spawn_boxs_{}; // 스테이지 몬스터 생성 체크를 위한 박스들
 

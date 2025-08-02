@@ -1,6 +1,7 @@
 #pragma once
 #include "Component.h"
 #include "AnimationTrack.h"
+#include "AnimationState.h"
 
 class AnimationState;
 

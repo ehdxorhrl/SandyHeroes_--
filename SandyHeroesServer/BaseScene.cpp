@@ -12,6 +12,7 @@
 #include "GunComponent.h"
 #include "Object.h"
 #include "User.h"
+#include "ChestComponent.h"
 #include "GroundColliderComponent.h"
 #include "WallColliderComponent.h"
 #include "SessionManager.h"
@@ -80,6 +81,8 @@ void BaseScene::BuildMesh()
 	
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Object/Chest.bin", meshes_, materials_, textures_));	//12 상자
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Object/Scroll.bin", meshes_, materials_, textures_));	//13 스크롤
+
+	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Super_Dragon.bin", meshes_, materials_, textures_));
 
 	// 씬 배치 정보 로딩
 	std::ifstream scene_file{ "./Resource/Model/World/Scene.bin", std::ios::binary };
@@ -363,6 +366,42 @@ void BaseScene::BuildModelInfo()
 			model_infos_.back().reset(specter_model);
 		}
 	}
+
+
+	//Fix Scroll(Add Scroll UI)
+	{
+		const int scroll_model_index = 13;
+		const int scroll_num = 10;
+
+		for (int i = 0; i < scroll_num; ++i)
+		{
+			// 스크롤 오브젝트 생성
+			ModelInfo* scroll_model_info = new ModelInfo();
+			scroll_model_info->set_model_name("Scroll_" + std::to_string(i));
+			model_infos_.emplace_back();
+			model_infos_.back().reset(scroll_model_info);
+
+			Object* scroll = model_infos_[scroll_model_index]->GetInstance();
+			scroll_model_info->set_hierarchy_root(scroll);
+			scroll->set_name("Scroll_" + std::to_string(i));
+			scroll->set_tag("Scroll");
+			scroll->set_is_movable(true);
+
+			auto scroll_component = new ScrollComponent(scroll);
+			scroll_component->set_type(static_cast<ScrollType>(i));
+			scroll->AddComponent(scroll_component);
+
+			//scroll->set_local_rotation(scroll_rotations[0]);
+
+			Object* ui_bar = new Object();
+			ui_bar->set_tag("Scroll_UI");
+
+			// 메쉬 및 머티리얼 설정
+			Mesh* mesh = Scene::FindMesh("Scroll", meshes_);
+			std::string material_name = "scroll_material_" + std::to_string(i); // 인덱스별
+			Material* material = Scene::FindMaterial(material_name, materials_);
+		}
+	}
 }
 
 void BaseScene::BuildObject()
@@ -440,6 +479,71 @@ void BaseScene::BuildObject()
 
 	CreateMonsterSpawner();
 
+	// 보물상자
+	{
+		constexpr int kChestCount = 6;
+		XMFLOAT3 chest_positions[kChestCount] = {
+			{ 32.19f, 0.38f, 8.44f },
+			{ 101.82f, 0.38f, 16.34f },
+			{ 56.3f, 0.147f, -108.4f },
+			{ 65.9f, 0.351f, -183.7f },
+			{ 110.72f, 0.346f, -175.84f},
+			{ 141.55f, 0.35f, -164.17f }
+		};
+		XMFLOAT3 chest_rotations[kChestCount] = {
+		{ 0.0f, 171.0f, 0.0f },
+		{ 0.0f, 294.6f, 0.0f },
+		{ 0.0f, 383.8f, 0.0f },
+		{ 0.0f, 361.4f, 0.0f },
+		{ 0.0f, 299.42f, 0.0f },
+		{ 0.0f, 179.44f, 0.0f }
+		};
+
+		chests_.reserve(kChestCount);
+
+		// 스크롤 인덱스 무작위화
+		std::vector<int> scroll_index(10);
+		std::iota(scroll_index.begin(), scroll_index.end(), 0); // 0~9 채우기
+		std::shuffle(scroll_index.begin(), scroll_index.end(), kRandomGenerator);
+
+		//테스트용
+		/*scroll_index = {
+			(int)ScrollType::kNinja,
+			(int)ScrollType::kSprinter,
+			(int)ScrollType::kWeaponMaster,
+			(int)ScrollType::kFlameMaster,
+			(int)ScrollType::kAcidMaster,
+			(int)ScrollType::kElectricMaster
+		};*/
+
+		for (int i = 0; i < kChestCount; ++i)
+		{
+			Object* chest = model_infos_[12]->GetInstance();
+			chest->set_name("Chest" + std::to_string(i));
+			chest->set_position_vector(chest_positions[i]);
+			chest->set_local_rotation(chest_rotations[i]);
+			chest->set_is_movable(true);
+
+			//스크롤 추가
+			auto chest_component = new ChestComponent(chest, this);
+			//박스당 1개 사용
+			auto scroll_model = FindModelInfo("Scroll_" + std::to_string(scroll_index[i]));
+			if (!scroll_model) std::cout << "스크롤 모델을 찾기 못했습니다." << std::endl;
+			chest_component->set_scroll_model(scroll_model);
+			chest->AddComponent(chest_component);
+
+			// 충돌용 BoxColliderComponent 부착
+			BoundingBox box_bounds{ {0.0f, 0.0f, 0.0f}, {1.5f, 1.0f, 1.5f} };
+			auto collider = new BoxColliderComponent(chest, box_bounds);
+			chest->AddComponent(collider);
+
+
+			AddObject(chest);
+			chests_.push_back(chest);
+
+		}
+	}
+
 	catch_monster_num_ = 1;
 
 
@@ -489,30 +593,30 @@ void BaseScene::CreateMonsterSpawner()
 	SpawnerComponent* spawner_component;
 	//Stage 1
 	{
-		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
-		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		AddObject(spawner);
-		stage_monster_spawner_list_[0].push_back(spawner_component);
-	
-		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.f, 2.6f, 11.74f }, 3, 4.f, 4.f);
-		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		AddObject(spawner);
-		stage_monster_spawner_list_[0].push_back(spawner_component);
-	
-		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.84f, 1.24f, -9.07f }, 3, 5.f, 3.f);
-		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		AddObject(spawner);
-		stage_monster_spawner_list_[0].push_back(spawner_component);
-	
-		spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 27.85f, 6.73f, -8.07f }, 1, 9.f, 5.f);
-		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		AddObject(spawner);
-		stage_monster_spawner_list_[0].push_back(spawner_component);
-	
-		spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 24.53f, 5.31f, 10.05f }, 1, 11.f, 5.f);
-		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		AddObject(spawner);
-		stage_monster_spawner_list_[0].push_back(spawner_component);
+		//spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
+		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		//AddObject(spawner);
+		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		//
+		//spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.f, 2.6f, 11.74f }, 3, 4.f, 4.f);
+		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		//AddObject(spawner);
+		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		//
+		//spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.84f, 1.24f, -9.07f }, 3, 5.f, 3.f);
+		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		//AddObject(spawner);
+		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		//
+		//spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 27.85f, 6.73f, -8.07f }, 1, 9.f, 5.f);
+		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		//AddObject(spawner);
+		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		//
+		//spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 24.53f, 5.31f, 10.05f }, 1, 11.f, 5.f);
+		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		//AddObject(spawner);
+		//stage_monster_spawner_list_[0].push_back(spawner_component);
 	}
 	
 	//Stage 2
@@ -621,6 +725,8 @@ void BaseScene::Update(float elapsed_time)
 	UpdateStageClear();
 
 	CheckSpawnBoxHitPlayers();
+
+	CheckPlayerHitChest();
 }
 
 Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
@@ -1452,6 +1558,76 @@ void BaseScene::CheckSpawnBoxHitPlayers()
 	}
 }
 
+void BaseScene::CheckPlayerHitChest()
+{
+	if (!is_prepare_ground_checking_)
+	{
+		PrepareGroundChecking();
+	}
+	for (auto& object : ground_check_object_list_)
+	{
+		if (!(object->is_player() && !object->is_dead()))
+			return;
+
+		Session* session = SessionManager::getInstance().GetSessionByPlayerObject(object);
+		if (!session)
+			return;
+
+		auto player_mesh_collider = Object::GetComponentInChildren<MeshColliderComponent>(object);
+		if (!player_mesh_collider)
+		{
+			session->SetKeyDown('F', false);
+			return;
+		}
+
+		BoundingOrientedBox player_obb = player_mesh_collider->GetWorldOBB();
+
+		for (size_t i = 0; i < chests_.size(); ++i)
+		{
+			Object* chest = chests_[i];
+
+			// 트리거 판정용
+			auto box_colliders = Object::GetComponents<BoxColliderComponent>(chest);
+			if (box_colliders.empty()) continue;
+
+			for (auto& box_collider : box_colliders)
+			{
+				if (player_obb.Intersects(box_collider->animated_box()))
+				{
+					auto chest_component = Object::GetComponent<ChestComponent>(chest);
+					if (!chest_component)
+						continue;
+
+					chest_component->HendleCollision(object);
+
+					if (session->IsKeyDown('F'))
+					{
+						auto scroll_type = chest_component->TakeScroll();
+						PlayerComponent* player_comp = Object::GetComponent<PlayerComponent>(object);
+						if (player_comp && scroll_type != ScrollType::None)
+						{
+							player_comp->AddScroll(scroll_type);
+
+							if (scroll_type == ScrollType::kWeaponMaster)
+							{
+								Object* player_gun_frame = object->FindFrame("WeaponR_locator");
+								if (player_gun_frame)
+								{
+									GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_gun_frame);
+									if (gun)
+									{
+										gun->set_upgrade(4);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray_direction, int id)
 {
 	XMVECTOR origin = XMLoadFloat3(&ray_origin);
@@ -1618,18 +1794,6 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 
 			AddObject(dropped_gun);
 			dropped_guns_.push_back(dropped_gun);
-
-			/*
-			struct sc_packet_drop_gun
-			{
-				uint8_t  size;           // 패킷 전체 크기
-				uint8_t  type;           // 패킷 타입 (예: S2C_P_DROP_GUN)
-				uint32_t id;             // 드랍된 총기의 고유 ID
-				uint8_t  gun_type;       // 총기 종류 (0=Classic, ..., 5=Flamethrower)
-				uint8_t  upgrade_level;  // 강화 수치 (0~3)
-				uint8_t  element_type;   // 속성 (0=Fire, 1=Electric, 2=Poison)
-				float    matrix[16];     // 드랍된 총기의 위치/회전을 포함한 변환 행렬
-			};*/
 
 			sc_packet_drop_gun dg;
 			dg.size = sizeof(sc_packet_drop_gun);

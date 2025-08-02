@@ -108,6 +108,37 @@ XMFLOAT3 Object::old_position() const
 	return old_position_;
 }
 
+void Object::set_local_scale(const XMFLOAT3& value)
+{
+	local_scale_ = value;
+
+	XMVECTOR s, r, t;
+	XMMatrixDecompose(&s, &r, &t, XMLoadFloat4x4(&transform_matrix_));
+	s = XMLoadFloat3(&local_scale_);
+	XMStoreFloat4x4(&transform_matrix_, XMMatrixAffineTransformation(s, XMVectorZero(), r, t));
+}
+
+void Object::set_local_rotation(const XMFLOAT3& value)
+{
+	local_rotation_ = value;
+	XMVECTOR rotation_quet = XMQuaternionRotationRollPitchYaw(
+		XMConvertToRadians(value.x),
+		XMConvertToRadians(value.y),
+		XMConvertToRadians(value.z));
+	XMVECTOR s, r, t;
+	if (XMMatrixDecompose(&s, &r, &t, XMLoadFloat4x4(&transform_matrix_)))
+	{
+		XMStoreFloat4x4(&transform_matrix_, XMMatrixAffineTransformation(s, XMVectorZero(), rotation_quet, t));
+	}
+}
+
+void Object::set_local_position(const XMFLOAT3& value)
+{
+	local_position_ = value;
+
+	set_position_vector(value);
+}
+
 XMFLOAT3 Object::velocity() const
 {
 	return velocity_;

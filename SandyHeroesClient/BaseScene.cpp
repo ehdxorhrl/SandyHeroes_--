@@ -2469,79 +2469,80 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 void BaseScene::change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t upgrade_level, uint8_t element_type, uint32_t player_id)
 {
 	Object* player = FindObject(player_id);
-	if(!player || !player->is_player()) std::cout <<"[change_gun] 플레이어를 찾을 수 없음" << std::endl;
-
-	std::cout << "[change_gun] 시작 - gun_id: " << gun_id << ", gun_name: " << gun_name
-		<< ", upgrade: " << static_cast<int>(upgrade_level)
-		<< ", element: " << static_cast<int>(element_type) << ", 요청 id: " << player_id << std::endl;
+	//if(!player || !player->is_player()) std::cout <<"[change_gun] 플레이어를 찾을 수 없음" << std::endl;
+	//
+	//std::cout << "[change_gun] 시작 - gun_id: " << gun_id << ", gun_name: " << gun_name
+	//	<< ", upgrade: " << static_cast<int>(upgrade_level)
+	//	<< ", element: " << static_cast<int>(element_type) << ", 요청 id: " << player_id << std::endl;
 
 	auto it = std::find_if(dropped_guns_.begin(), dropped_guns_.end(),
 		[gun_id](Object* obj) { return obj->id() == gun_id; });
 
-	if (it == dropped_guns_.end())
-	{
-		std::cout << "[change_gun] 드랍된 총기 ID(" << gun_id << ")를 찾을 수 없음" << std::endl;
-		return;
-	}
+	//if (it == dropped_guns_.end())
+	//{
+	//	std::cout << "[change_gun] 드랍된 총기 ID(" << gun_id << ")를 찾을 수 없음" << std::endl;
+	//	return;
+	//}
 
 	Object* found_gun = *it;
 
 	GunComponent* gun_component = Object::GetComponent<GunComponent>(found_gun);
-	if (!gun_component)
-	{
-		std::cout << "[change_gun] 드랍된 총기에서 GunComponent 없음" << std::endl;
-		return;
-	}
+	if (!gun_component) return;
+	//{
+	//	std::cout << "[change_gun] 드랍된 총기에서 GunComponent 없음" << std::endl;
+	//	return;
+	//}
 
 	Object* player_gun_frame = player->FindFrame("WeaponR_locator");
-	if (!player_gun_frame)
-	{
-		std::cout << "[change_gun] WeaponR_locator 프레임을 찾을 수 없음" << std::endl;
-		return;
-	}
+	if (!player_gun_frame) return;
+	//{
+	//	std::cout << "[change_gun] WeaponR_locator 프레임을 찾을 수 없음" << std::endl;
+	//	return;
+	//}
 
-	std::cout << "[change_gun] 총기 교체 준비 완료. 기존 총기 제거 후 새 총기 장착 시도..." << std::endl;
+	//std::cout << "[change_gun] 총기 교체 준비 완료. 기존 총기 제거 후 새 총기 장착 시도..." << std::endl;
 
 	// 기존 총기 교체 처리
 	std::vector<std::string> guns{ "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
 	for (const auto& name : guns)
 	{
 		if (name == gun_name) continue;
-		std::cout << "[change_gun] 기존 무기 제거 시도: " << name << std::endl;
+		//std::cout << "[change_gun] 기존 무기 제거 시도: " << name << std::endl;
 		ModelInfo* model_info = FindModelInfo(gun_name);
-		if (!model_info) { 
-			std::cout << "[change_gun] 모델 인포가 없음 " << name << std::endl;
-			continue; 
-		}
+		if (!model_info) return;
+		// { 
+		//	std::cout << "[change_gun] 모델 인포가 없음 " << name << std::endl;
+		//	continue; 
+		//}
 		player_gun_frame->ChangeChild(model_info->GetInstance(), name, false);
 	}
 
 	Object* new_gun = player_gun_frame->FindFrame(gun_name);
-	if (!new_gun)
-	{
-		std::cout << "[change_gun] 새 총기 프레임(" << gun_name << ")을 찾을 수 없음" << std::endl;
-		return;
-	}
-	else
-	{
-		std::cout << "[change_gun] 새 총기 프레임(" << gun_name << ") 찾음: id=" << new_gun->id() << std::endl;
-	}
+	if (!new_gun) return;
+	//{
+	//	std::cout << "[change_gun] 새 총기 프레임(" << gun_name << ")을 찾을 수 없음" << std::endl;
+	//	return;
+	//}
+	//else
+	//{
+	//	std::cout << "[change_gun] 새 총기 프레임(" << gun_name << ") 찾음: id=" << new_gun->id() << std::endl;
+	//}
 
 	GunComponent* new_gun_component = Object::GetComponent<GunComponent>(new_gun);
-	if (!new_gun_component)
-	{
-		std::cout << "[change_gun] 새 총기에서 GunComponent 없음" << std::endl;
-	}
-	else
-	{
-		new_gun_component->set_upgrade(upgrade_level);
-		new_gun_component->set_element(static_cast<ElementType>(element_type));
-		std::cout << "[change_gun] 새 총기 능력치 설정 완료 (upgrade=" << static_cast<int>(upgrade_level)
-			<< ", element=" << static_cast<int>(element_type) << ")" << std::endl;
-	}
+	if (!new_gun_component) return;
+	//{
+	//	std::cout << "[change_gun] 새 총기에서 GunComponent 없음" << std::endl;
+	//}
+	//else
+	//{
+	//	new_gun_component->set_upgrade(upgrade_level);
+	//	new_gun_component->set_element(static_cast<ElementType>(element_type));
+	//	std::cout << "[change_gun] 새 총기 능력치 설정 완료 (upgrade=" << static_cast<int>(upgrade_level)
+	//		<< ", element=" << static_cast<int>(element_type) << ")" << std::endl;
+	//}
 
 	found_gun->set_is_dead(true);
 	it = dropped_guns_.erase(it);
 
-	std::cout << "[change_gun] 총기 교체 완료 및 드랍 총기 제거" << std::endl;
+	//std::cout << "[change_gun] 총기 교체 완료 및 드랍 총기 제거" << std::endl;
 }

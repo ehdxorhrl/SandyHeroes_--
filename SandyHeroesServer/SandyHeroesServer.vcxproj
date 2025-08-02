@@ -139,6 +139,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="BoxColliderComponent.h" />
+    <ClInclude Include="ChestComponent.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="CubeMesh.h" />
     <ClInclude Include="d3dx12.h" />
@@ -188,6 +189,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="BoxColliderComponent.cpp" />
+    <ClCompile Include="ChestComponent.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="CubeMesh.cpp" />
     <ClCompile Include="DebugMeshComponent.cpp" />

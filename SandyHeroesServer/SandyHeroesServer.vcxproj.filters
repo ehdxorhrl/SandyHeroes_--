@@ -97,6 +97,9 @@
     <Filter Include="5.Component\Scroll">
       <UniqueIdentifier>{efa26d1b-d97e-49b3-a01e-5d4205dc6e8e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="5.Component\Chest">
+      <UniqueIdentifier>{d5d10f32-eba6-4bb6-8e81-2833755680f3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="targetver.h">
@@ -215,6 +218,9 @@
     <ClInclude Include="AStar.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="ChestComponent.h">
+      <Filter>5.Component\Chest</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandyHeroesServer.cpp">
@@ -321,6 +327,9 @@
     </ClCompile>
     <ClCompile Include="AStar.cpp">
       <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ChestComponent.cpp">
+      <Filter>5.Component\Chest</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
