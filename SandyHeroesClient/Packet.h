@@ -1,5 +1,5 @@
 #pragma once
-#include "stdafx.h"
+//#include "stdafx.h"
 //version 0.1   버전은 항상 바꿔줄 것
 
 // 서버 주소와 포트는 나중에 입력받는식으로 수정
@@ -23,6 +23,7 @@ constexpr char S2C_P_MONSTER_INFO = 21;		// 몬스터 생성
 constexpr char S2C_P_MONSTER_MOVE = 22;     // 몬스터 무브
 constexpr char S2C_P_MONSTER_DAMAGED = 23;  // 몬스터가 입은 데미지
 constexpr char S2C_P_MONSTER_DEATH = 24;
+constexpr char S2C_P_MONSTER_DAMAGED_PATICLE = 25;
 
 constexpr char S2C_P_STAGE_CLEAR = 55;
 
@@ -95,6 +96,14 @@ struct sc_packet_monster_info {
     int32_t max_shield;
     int32_t attack_force;
     int32_t monster_type;
+};
+
+struct sc_packet_monster_damaged_particle
+{
+    uint8_t size = sizeof(sc_packet_monster_damaged_particle);
+    uint8_t type = S2C_P_MONSTER_DAMAGED_PATICLE;
+    XMFLOAT4 color;
+    XMFLOAT3 position;
 };
 
 struct sc_packet_stage_clear {

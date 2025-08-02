@@ -61,6 +61,8 @@ public:
 	void CheckPlayerHitPyramid(Object* object);
 	void CheckSpawnBoxHitPlayer();
 
+	void SpawnMonsterDamagedParticle(const XMFLOAT3& position, const XMFLOAT4& color);
+
 	//getter
 	std::list<MeshColliderComponent*> checking_maps_mesh_collider_list(int index);
 	int stage_clear_num();

@@ -770,7 +770,8 @@ void BaseScene::UpdateObjectHitBullet()
 			CheckPlayerHitGun(object);
 			continue;
 		}
-		CheckObjectHitBullet(object);
+		//25.08.01 수정 OBB 총알 충돌에서 Ray 충돌 체크로 변경
+		//CheckObjectHitBullet(object);
 	}
 }
 
@@ -1460,9 +1461,10 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 	Object* closest_monster = nullptr;	// 광선에 부딪힌 가장 가까운 몬스터
 
 	//광선 충돌체크 코드
-	for (Object* object : ground_check_object_list_)
+	for (const auto& monster : monster_list_)
 	{
-		if (object->is_player() || object->is_dead()) continue;
+		if (monster->IsDead()) continue;
+		const auto& object = monster->owner();
 
 		auto box_list = Object::GetComponentsInChildren<BoxColliderComponent>(object);
 		if (box_list.empty()) continue;
@@ -1496,7 +1498,6 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 
 		float damage = gun->damage() * (1 + gun->upgrade() * 0.2);
 		// 플레이어 스크롤 효과 적용
-
 		PlayerComponent* player_comp = Object::GetComponent<PlayerComponent>(player_);
 		if (player_comp)
 		{
@@ -1550,13 +1551,18 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 		}
 		monster->HitDamage(damage);
 
-		//TODO: 몬스터 피격 파티클 패킷을 보내주세요(내용: 1. 몬스터 피격 파티클인가, 2. 색상, 3. 위치)
-		//ParticleComponent* particle = Object::GetComponent<ParticleComponent>(monster_hit_particles_.front());
-		XMFLOAT3 hit_position = ray_origin + (ray_direction * closest_t);	//3. 위치
-		XMFLOAT4 particle_color = GunComponent::GetGunElementColor(gun);	//2. 색상
-		//particle->set_hit_position(hit_position);
+		XMFLOAT3 hit_position = ray_origin + (ray_direction * closest_t);
+		XMFLOAT4 particle_color = GunComponent::GetGunElementColor(gun);
 
-		//particle->Play(50);
+		sc_packet_monster_damaged_particle particle_packet{};
+		particle_packet.color = particle_color;
+		particle_packet.position = hit_position;
+
+		const auto& users = SessionManager::getInstance().getAllSessions();
+		for (const auto& player : users) {
+			player.second->do_send(&particle_packet);
+		}
+
 
 		if (monster->IsDead())
 		{
@@ -1637,7 +1643,6 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 			XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
 			memcpy(dg.matrix, &xf, sizeof(float) * 16);
 
-			//TODO: 유저 넣어주세요!
 			const auto& users = SessionManager::getInstance().getAllSessions();
 			for (const auto& player : users) {
 				player.second->do_send(&dg);

@@ -45,7 +45,7 @@ private:
 
 	std::vector<XMFLOAT4X4> animated_tramsforms_; //애니메이션이 적용된 뼈대의 transform 행렬들
     float change_time_ = 0.f;       // 애니메이션이 변경시작하고 지난 시간(초)
-	float max_change_time_ = 0.5f;  // 애니메이션이 변경되는데 걸리는 시간(초)
+	float max_change_time_ = 0.001f;  // 애니메이션이 변경되는데 걸리는 시간(초)
 
 
     //애니메이션이 적용되는 뼈대

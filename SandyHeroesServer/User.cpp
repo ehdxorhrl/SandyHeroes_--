@@ -356,6 +356,8 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 			auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
 			gun->FireBullet(bullet_dir, bullet_mesh, base_scene, id_);
 		}
+
+
 		break;
 	}
 

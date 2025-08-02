@@ -11,6 +11,7 @@ public:
     UiMeshComponent(Object* owner, Mesh* mesh, Material* material, Scene* scene);
     UiMeshComponent(const UiMeshComponent& other);
     UiMeshComponent& operator=(const UiMeshComponent& rhs);
+    ~UiMeshComponent() {}
 
     virtual Component* GetCopy() override;
 

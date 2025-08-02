@@ -16,7 +16,7 @@ public:
     MeshComponent(const MeshComponent& other);
     MeshComponent& operator=(const MeshComponent& rhs);
 
-    virtual ~MeshComponent();
+    virtual ~MeshComponent() override;
 
     virtual Component* GetCopy() override;
 

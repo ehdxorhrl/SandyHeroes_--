@@ -57,7 +57,6 @@ void GameFramework::Initialize(HINSTANCE hinstance, HWND hwnd)
     descriptor_manager_ = std::make_unique<DescriptorManager>();
     input_manager_ = std::make_unique<InputManager>();
 
-    //�� ���� �� �ʱ�ȭ
     scene_ = std::make_unique<BaseScene>();
     scene_->Initialize(d3d_device_.Get(), d3d_command_list_.Get(), d3d_root_signature_.Get(), 
         this, d2d_device_context_.Get(), dwrite_factory_.Get());
@@ -630,7 +629,6 @@ void GameFramework::FrameAdvance()
 
     ProcessInput();
 
-
     scene_->Update(client_timer_->ElapsedTime());
     scene_->UpdateObjectWorldMatrix();
 
@@ -1025,7 +1023,6 @@ void GameFramework::ProcessPacket(char* p)
             
     }
         break;
-
     case S2C_P_MONSTER_MOVE:
     {
         sc_packet_monster_move* packet = reinterpret_cast<sc_packet_monster_move*>(p);
@@ -1049,6 +1046,12 @@ void GameFramework::ProcessPacket(char* p)
     case S2C_P_STAGE_CLEAR:
     {
         base_scene->add_stage_clear_num();
+    }
+        break;
+    case S2C_P_MONSTER_DAMAGED_PATICLE:
+    {
+        auto packet = reinterpret_cast<sc_packet_monster_damaged_particle*>(p);
+        base_scene->SpawnMonsterDamagedParticle(packet->position, packet->color);
     }
         break;
     default:

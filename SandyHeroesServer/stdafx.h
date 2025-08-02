@@ -62,12 +62,13 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "dxguid.lib")
 
-#include "Packet.h"
 
 #include "d3dx12.h"
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
+
+#include "Packet.h"
 
 //·£´ý ¸Ó½Å
 extern std::random_device kRandomDevice;

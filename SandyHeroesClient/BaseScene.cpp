@@ -448,15 +448,6 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	
 	ShowCursor(false);
 
-	////SuperDragon Model Test
-	//{
-	//	auto dragon = model_infos_[14]->GetInstance();
-	//	dragon->set_is_movable(true);
-	//	auto animator = Object::GetComponent<AnimatorComponent>(dragon);
-	//	animator->set_animation_state(new SuperDragonAnimationState());
-	//	AddObject(dragon);
-	//}
-
 	//플레이어 생성
 	Object* player = model_infos_[0]->GetInstance();
 	player->set_name("Player");
@@ -1723,6 +1714,7 @@ bool BaseScene::ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time
 		return false;
 		break;
 	}
+	return false;
 }
 
 void BaseScene::Update(float elapsed_time)
@@ -1734,25 +1726,7 @@ void BaseScene::Update(float elapsed_time)
 
 	Scene::Update(elapsed_time);
 
-	//particle_system_->Update(elapsed_time);
-	//particle_->Update(elapsed_time);
-
-	//UpdateObjectHitWall();
-	//
-	//UpdateObjectWorldMatrix();
-	//
-	//UpdateObjectIsGround();
-	//
-	//UpdateObjectHitBullet();
-	//
-	//UpdateObjectHitObject();
-	//
 	DeleteDeadObjects();
-	//
-	//UpdateStageClear();
-	//
-	//CheckSpawnBoxHitPlayer();
-
 }
 
 void BaseScene::RenderText(ID2D1DeviceContext2* d2d_device_context)
@@ -2323,6 +2297,14 @@ void BaseScene::CheckSpawnBoxHitPlayer()
 			is_activate_spawner_ = true;
 		}
 	}
+}
+
+void BaseScene::SpawnMonsterDamagedParticle(const XMFLOAT3& position, const XMFLOAT4& color)
+{
+	ParticleComponent* particle_component = Object::GetComponent<ParticleComponent>(monster_hit_particles_.front());
+	particle_component->set_hit_position(position);
+	particle_component->set_color(color);
+	particle_component->Play(50);
 }
 
 std::list<MeshColliderComponent*> BaseScene::checking_maps_mesh_collider_list(int index)
