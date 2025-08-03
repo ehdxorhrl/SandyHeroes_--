@@ -46,9 +46,9 @@ public:
 	{ 
 		type_ = type; 
 	}
-	void set_is_active(bool is_active) 
-	{ 
-		is_active_ = is_active; 
+	void set_is_active(bool is_active)
+	{
+		is_active_ = is_active;
 	}
 
 private:

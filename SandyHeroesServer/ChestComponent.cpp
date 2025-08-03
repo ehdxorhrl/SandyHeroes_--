@@ -5,6 +5,8 @@
 #include "MovementComponent.h"
 #include "ScrollComponent.h"
 #include "Scene.h"
+#include "SessionManager.h"
+#include "User.h"
 //#include "FMODSoundManager.h"
 
 ChestComponent::ChestComponent(Object* owner, Scene* scene)
@@ -22,7 +24,7 @@ void ChestComponent::Update(float elapsed_time)
 }
 
 //상자는 플레이어와 충돌할 때 열리고 스크롤을 생성한다.
-void ChestComponent::HendleCollision(Object* other_object)
+void ChestComponent::HendleCollision(Object* other_object, int chest_num)
 {
 	if (is_open_)
 	{
@@ -46,17 +48,23 @@ void ChestComponent::HendleCollision(Object* other_object)
 	scene_->AddObject(scroll);
 
 	// 플레이어에게 스크롤 전송
+	sc_packet_scroll_info si;
+	si.type = S2C_P_SCROLL_INFO;
+	si.size = sizeof(sc_packet_scroll_info);
+	si.scroll_type = static_cast<int>(scroll_comp->type());
+	si.chest_num = chest_num;
 
-	std::cout << "박스 충돌 완료" << std::endl;
+	std::cout << "chest_num: " << si.chest_num << std::endl;
+	std::cout << "scroll_type: " << si.scroll_type << std::endl;
 
-	//auto scroll_comp = Object::GetComponent<ScrollComponent>(scroll);
-	//scroll_comp->set_direction(XMFLOAT3(0.000f, 0.0007f, 0.f));
-	//scroll_comp->set_type(ScrollType::)
-	//scroll->AddComponent(scroll_comp);
+	const auto& users = SessionManager::getInstance().getAllSessions();
+	for (auto& u : users) {
+		u.second->do_send(&si);
+	}
 
 }
 
-ScrollType ChestComponent::TakeScroll()
+ScrollType ChestComponent::TakeScroll(int chest_num)
 {
 	if (!scroll_object_)
 	{
@@ -71,6 +79,16 @@ ScrollType ChestComponent::TakeScroll()
 
 	//animator_->animation_state()->ChangeAnimationTrack(
 	//	(int)ChestAnimationTrack::kOpenToClose, owner_, animator_);
+
+	sc_packet_take_scroll tc;
+	tc.type = S2C_P_TAKE_SCROLL;
+	tc.size = sizeof(sc_packet_take_scroll);
+	tc.chest_num = chest_num;
+
+	const auto& users = SessionManager::getInstance().getAllSessions();
+	for (auto& u : users) {
+		u.second->do_send(&tc);
+	}
 
 	return type;
 }

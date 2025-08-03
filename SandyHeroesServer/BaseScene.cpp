@@ -1598,11 +1598,11 @@ void BaseScene::CheckPlayerHitChest()
 					if (!chest_component)
 						continue;
 
-					chest_component->HendleCollision(object);
+					chest_component->HendleCollision(object, i);
 
 					if (session->IsKeyDown('F'))
 					{
-						auto scroll_type = chest_component->TakeScroll();
+						auto scroll_type = chest_component->TakeScroll(i);
 						PlayerComponent* player_comp = Object::GetComponent<PlayerComponent>(object);
 						if (player_comp && scroll_type != ScrollType::None)
 						{

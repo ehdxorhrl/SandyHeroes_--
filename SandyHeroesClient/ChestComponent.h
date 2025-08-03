@@ -19,6 +19,8 @@ public:
 
     virtual void HendleCollision(Object* other_object) override;
 
+    void OpenChest(ScrollType scroll_type);
+
     ScrollType TakeScroll();
 
     void set_scroll_model(ModelInfo* scroll_model)

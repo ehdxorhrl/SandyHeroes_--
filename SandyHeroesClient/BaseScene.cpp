@@ -2546,3 +2546,20 @@ void BaseScene::change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t
 
 	//std::cout << "[change_gun] 총기 교체 완료 및 드랍 총기 제거" << std::endl;
 }
+
+void BaseScene::OpenScrollChest(uint8_t scroll_type, uint8_t chest_num)
+{
+	Object* chest = chests_[chest_num];
+	auto chest_component = Object::GetComponent<ChestComponent>(chest);
+	if (!chest_component) return;
+
+	chest_component->OpenChest(static_cast<ScrollType>(scroll_type));
+}
+
+void BaseScene::TakeScroll(uint8_t chest_num)
+{
+	Object* chest = chests_[chest_num];
+	auto chest_component = Object::GetComponent<ChestComponent>(chest);
+	if (!chest_component) return;
+	chest_component->TakeScroll();
+}

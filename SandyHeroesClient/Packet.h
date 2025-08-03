@@ -1,5 +1,5 @@
 #pragma once
-//#include "stdafx.h"
+#include "stdafx.h"
 //version 0.1   버전은 항상 바꿔줄 것
 
 // 서버 주소와 포트는 나중에 입력받는식으로 수정
@@ -18,6 +18,8 @@ constexpr char S2C_P_PLAYER_DAMAGED = 8;    // 플레이어가 입은 데미지
 constexpr char S2C_P_PLAYER_DEATH = 9;		// 플레이어 사망
 constexpr char S2C_P_DROP_GUN = 10;
 constexpr char S2C_P_GUN_CHANGE = 11;
+constexpr char S2C_P_SCROLL_INFO = 12;
+constexpr char S2C_P_TAKE_SCROLL = 13;
 
 constexpr char S2C_P_MONSTER_INFO = 21;		// 몬스터 생성
 constexpr char S2C_P_MONSTER_MOVE = 22;     // 몬스터 무브
@@ -40,6 +42,19 @@ constexpr char PRESS_ON = 1;
 
 #pragma pack (push,1)
 
+struct sc_packet_take_scroll {
+    uint8_t size;
+    uint8_t type;  // S2C_P_TAKE_SCROLL
+    uint8_t chest_num;
+};
+
+struct sc_packet_scroll_info {
+    uint8_t size;
+    uint8_t type;  // S2C_P_SCROLL_INFO
+    uint8_t scroll_type;
+    uint8_t chest_num;
+};
+
 
 struct sc_packet_gun_change {
     uint8_t size;
@@ -50,6 +65,7 @@ struct sc_packet_gun_change {
     uint8_t upgrade_level;
     uint8_t element_type;
 };
+
 
 struct sc_packet_drop_gun
 {

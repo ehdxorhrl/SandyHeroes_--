@@ -16,9 +16,9 @@ public:
 
     virtual void Update(float elapsed_time) override;
 
-    void HendleCollision(Object* other_object);
+    void HendleCollision(Object* other_object, int chest_num);
 
-    ScrollType TakeScroll();
+    ScrollType TakeScroll(int chest_num);
 
     void set_scroll_model(ModelInfo* scroll_model)
     {

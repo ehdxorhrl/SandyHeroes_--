@@ -1054,6 +1054,18 @@ void GameFramework::ProcessPacket(char* p)
         base_scene->SpawnMonsterDamagedParticle(packet->position, packet->color);
     }
         break;
+    case S2C_P_SCROLL_INFO:
+    {
+        auto packet = reinterpret_cast<sc_packet_scroll_info*>(p);
+        base_scene->OpenScrollChest(packet->scroll_type, packet->chest_num);
+    }
+        break;
+    case S2C_P_TAKE_SCROLL:
+    {
+        auto packet = reinterpret_cast<sc_packet_take_scroll*>(p);
+        base_scene->TakeScroll(packet->chest_num);
+    }
+        break;
     default:
         break;
     }
