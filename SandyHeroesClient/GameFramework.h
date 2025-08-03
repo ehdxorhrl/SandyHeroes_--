@@ -70,6 +70,7 @@ public:
 	//패킷 전송
 	void send_login_packet();
 	void send_mouse_click_packet();
+	void send_mouse_unclick_packet();
 	void send_mouse_move_packet(int x1, int x2);
 	void send_keyboard_input_packet(WPARAM w_param, bool is_press);
 	void ProcessPacket(char* p);

@@ -32,6 +32,7 @@ constexpr char C2S_P_LOGIN = 101;
 constexpr char C2S_P_KEYBOARD_INPUT = 102;
 constexpr char C2S_P_MOUSE_MOVE = 103;
 constexpr char C2S_P_MOUSE_CLICK = 104;
+constexpr char C2S_P_MOUSE_UNCLICK = 105;
 
 constexpr char MAX_ID_LENGTH = 20;
 
@@ -182,5 +183,9 @@ struct cs_packet_mouse_click {
     float camera_lx, camera_ly, camera_lz;  //look
 };
 
+struct cs_packet_mouse_unclick {
+    uint8_t size = sizeof(cs_packet_mouse_unclick);
+    uint8_t type = C2S_P_MOUSE_UNCLICK;
+};
 
 #pragma pack (pop)

@@ -509,7 +509,7 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 
 	//Set player's gun
 	Object* player_gun_frame = player->FindFrame("WeaponR_locator");
-	player_gun_frame->AddChild(FindModelInfo("Classic")->GetInstance());
+	player_gun_frame->AddChild(FindModelInfo("Flamethrower")->GetInstance());
 	//GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player);
 
 	//if (gun)
@@ -760,7 +760,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		auto ui_background_component = new UiMeshComponent(progress_bar_background,
 			Scene::FindMesh("ProgressBarBackground", meshes_), ui_background_material, this);
 		// ModelInfo를 수정할 때 MeshComponent를 추가하였다면 material에서 delete 해야함.(씬 렌더에 포함되기 때문)
-		ui_background_material->DeleteMeshComponent(ui_background_component); 
+		ui_background_material->DeleteMeshComponent(ui_background_component);
 		progress_bar_background->AddComponent(ui_background_component);
 		ui_background_component->set_ui_layer(UiLayer::kOne);
 
@@ -808,97 +808,100 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			});
 	}
 
-	//Hit Dragon Fix(Add Hp UI, Set CollisionType)
-	ModelInfo* hit_dragon = FindModelInfo("Hit_Dragon");
-	hit_dragon->hierarchy_root()->set_collide_type(true, true);
-	hit_dragon->hierarchy_root()->set_is_movable(true);
-	hit_dragon->hierarchy_root()->set_tag("Hit_Dragon");
-	auto ui_head_socket = hit_dragon->hierarchy_root()->FindFrame("Ui_Head");
-	auto monster_hp_ui = FindModelInfo("Monster_Hp_UI");
-	ui_head_socket->AddChild(monster_hp_ui->GetInstance());
+	//Fix Monster(Add Hp UI, Set CollisionType), Create Spawner Models
+	{
+		//Hit Dragon Fix(Add Hp UI, Set CollisionType)
+		ModelInfo* hit_dragon = FindModelInfo("Hit_Dragon");
+		hit_dragon->hierarchy_root()->set_collide_type(true, true);
+		hit_dragon->hierarchy_root()->set_is_movable(true);
+		hit_dragon->hierarchy_root()->set_tag("Hit_Dragon");
+		auto ui_head_socket = hit_dragon->hierarchy_root()->FindFrame("Ui_Head");
+		auto monster_hp_ui = FindModelInfo("Monster_Hp_UI");
+		ui_head_socket->AddChild(monster_hp_ui->GetInstance());
 
-	auto animator = Object::GetComponentInChildren<AnimatorComponent>(hit_dragon->hierarchy_root());
-	animator->set_animation_state(new HitDragonAnimationState);
+		auto animator = Object::GetComponentInChildren<AnimatorComponent>(hit_dragon->hierarchy_root());
+		animator->set_animation_state(new HitDragonAnimationState);
 
-	//Shot Dragon Fix(Add Hp UI, Set CollisionType)
-	ModelInfo* shot_dragon = FindModelInfo("Shot_Dragon");
-	shot_dragon->hierarchy_root()->set_collide_type(true, true);
-	shot_dragon->hierarchy_root()->set_is_movable(true);
-	shot_dragon->hierarchy_root()->set_tag("Shot_Dragon");
-	ui_head_socket = shot_dragon->hierarchy_root()->FindFrame("Ui_Head");
-	ui_head_socket->AddChild(monster_hp_ui->GetInstance());
+		//Shot Dragon Fix(Add Hp UI, Set CollisionType)
+		ModelInfo* shot_dragon = FindModelInfo("Shot_Dragon");
+		shot_dragon->hierarchy_root()->set_collide_type(true, true);
+		shot_dragon->hierarchy_root()->set_is_movable(true);
+		shot_dragon->hierarchy_root()->set_tag("Shot_Dragon");
+		ui_head_socket = shot_dragon->hierarchy_root()->FindFrame("Ui_Head");
+		ui_head_socket->AddChild(monster_hp_ui->GetInstance());
 
-	animator = Object::GetComponentInChildren<AnimatorComponent>(shot_dragon->hierarchy_root());
-	animator->set_animation_state(new ShotDragonAnimationState);
+		animator = Object::GetComponentInChildren<AnimatorComponent>(shot_dragon->hierarchy_root());
+		animator->set_animation_state(new ShotDragonAnimationState);
 
-	//Bomb Dragon Fix(Add Hp UI, Set CollisionType)
-	ModelInfo* bomb_dragon = FindModelInfo("Bomb_Dragon");
-	bomb_dragon->hierarchy_root()->set_collide_type(true, true);
-	bomb_dragon->hierarchy_root()->set_is_movable(true);
-	bomb_dragon->hierarchy_root()->set_tag("Bomb_Dragon");
-	ui_head_socket = bomb_dragon->hierarchy_root()->FindFrame("Ui_Head");
-	ui_head_socket->AddChild(monster_hp_ui->GetInstance());
+		//Bomb Dragon Fix(Add Hp UI, Set CollisionType)
+		ModelInfo* bomb_dragon = FindModelInfo("Bomb_Dragon");
+		bomb_dragon->hierarchy_root()->set_collide_type(true, true);
+		bomb_dragon->hierarchy_root()->set_is_movable(true);
+		bomb_dragon->hierarchy_root()->set_tag("Bomb_Dragon");
+		ui_head_socket = bomb_dragon->hierarchy_root()->FindFrame("Ui_Head");
+		ui_head_socket->AddChild(monster_hp_ui->GetInstance());
 
-	animator = Object::GetComponentInChildren<AnimatorComponent>(bomb_dragon->hierarchy_root());
-	animator->set_animation_state(new BombDragonAnimationState);
+		animator = Object::GetComponentInChildren<AnimatorComponent>(bomb_dragon->hierarchy_root());
+		animator->set_animation_state(new BombDragonAnimationState);
 
-	//Strong Dragon Fix(Set CollisionType)
-	ModelInfo* strong_dragon = FindModelInfo("Strong_Dragon");
-	strong_dragon->hierarchy_root()->set_collide_type(true, true);
-	strong_dragon->hierarchy_root()->set_is_movable(true);
-	strong_dragon->hierarchy_root()->set_tag("Strong_Dragon");
-	animator = Object::GetComponentInChildren<AnimatorComponent>(strong_dragon->hierarchy_root());
-	animator->set_animation_state(new StrongDragonAnimationState);
+		//Strong Dragon Fix(Set CollisionType)
+		ModelInfo* strong_dragon = FindModelInfo("Strong_Dragon");
+		strong_dragon->hierarchy_root()->set_collide_type(true, true);
+		strong_dragon->hierarchy_root()->set_is_movable(true);
+		strong_dragon->hierarchy_root()->set_tag("Strong_Dragon");
+		animator = Object::GetComponentInChildren<AnimatorComponent>(strong_dragon->hierarchy_root());
+		animator->set_animation_state(new StrongDragonAnimationState);
 
-	//Create Hit Dragon Spawner
-	ModelInfo* hit_dragon_spawner = new ModelInfo();
-	hit_dragon_spawner->set_model_name("Hit_Dragon_Spawner");
-	Object* spawner = new Object();
-	auto monster_component = new MonsterComponent(nullptr);
-	monster_component->set_target(player_);
-	auto spawner_component = new SpawnerComponent(spawner, this, hit_dragon);
-	spawner_component->AddComponent(monster_component);
-	spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
-	spawner->AddComponent(spawner_component);
-	hit_dragon_spawner->set_hierarchy_root(spawner);
-	model_infos_.emplace_back();
-	model_infos_.back().reset(hit_dragon_spawner);	
-	
-	//Create Shot Dragon Spawner
-	ModelInfo* shot_dragon_spawner = new ModelInfo();
-	shot_dragon_spawner->set_model_name("Shot_Dragon_Spawner");
-	spawner = new Object();
-	spawner_component = new SpawnerComponent(spawner, this, shot_dragon);
-	spawner_component->AddComponent(monster_component->GetCopy());
-	spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
-	spawner->AddComponent(spawner_component);
-	shot_dragon_spawner->set_hierarchy_root(spawner);
-	model_infos_.emplace_back();
-	model_infos_.back().reset(shot_dragon_spawner);
+		//Create Hit Dragon Spawner
+		ModelInfo* hit_dragon_spawner = new ModelInfo();
+		hit_dragon_spawner->set_model_name("Hit_Dragon_Spawner");
+		Object* spawner = new Object();
+		auto monster_component = new MonsterComponent(nullptr);
+		monster_component->set_target(player_);
+		auto spawner_component = new SpawnerComponent(spawner, this, hit_dragon);
+		spawner_component->AddComponent(monster_component);
+		spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
+		spawner->AddComponent(spawner_component);
+		hit_dragon_spawner->set_hierarchy_root(spawner);
+		model_infos_.emplace_back();
+		model_infos_.back().reset(hit_dragon_spawner);
 
-	//Create Bomb Dragon Spawner
-	ModelInfo* bomb_dragon_spawner = new ModelInfo();
-	bomb_dragon_spawner->set_model_name("Bomb_Dragon_Spawner");
-	spawner = new Object();
-	spawner_component = new SpawnerComponent(spawner, this, bomb_dragon);
-	spawner_component->AddComponent(monster_component->GetCopy());
-	spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
-	spawner->AddComponent(spawner_component);
-	bomb_dragon_spawner->set_hierarchy_root(spawner);
-	model_infos_.emplace_back();
-	model_infos_.back().reset(bomb_dragon_spawner);
+		//Create Shot Dragon Spawner
+		ModelInfo* shot_dragon_spawner = new ModelInfo();
+		shot_dragon_spawner->set_model_name("Shot_Dragon_Spawner");
+		spawner = new Object();
+		spawner_component = new SpawnerComponent(spawner, this, shot_dragon);
+		spawner_component->AddComponent(monster_component->GetCopy());
+		spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
+		spawner->AddComponent(spawner_component);
+		shot_dragon_spawner->set_hierarchy_root(spawner);
+		model_infos_.emplace_back();
+		model_infos_.back().reset(shot_dragon_spawner);
 
-	//Create Strong Dragon Spawner
-	ModelInfo* strong_dragon_spawner = new ModelInfo();
-	strong_dragon_spawner->set_model_name("Strong_Dragon_Spawner");
-	spawner = new Object();
-	spawner_component = new SpawnerComponent(spawner, this, strong_dragon);
-	spawner_component->AddComponent(monster_component->GetCopy());
-	spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
-	spawner->AddComponent(spawner_component);
-	strong_dragon_spawner->set_hierarchy_root(spawner);
-	model_infos_.emplace_back();
-	model_infos_.back().reset(strong_dragon_spawner);
+		//Create Bomb Dragon Spawner
+		ModelInfo* bomb_dragon_spawner = new ModelInfo();
+		bomb_dragon_spawner->set_model_name("Bomb_Dragon_Spawner");
+		spawner = new Object();
+		spawner_component = new SpawnerComponent(spawner, this, bomb_dragon);
+		spawner_component->AddComponent(monster_component->GetCopy());
+		spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
+		spawner->AddComponent(spawner_component);
+		bomb_dragon_spawner->set_hierarchy_root(spawner);
+		model_infos_.emplace_back();
+		model_infos_.back().reset(bomb_dragon_spawner);
+
+		//Create Strong Dragon Spawner
+		ModelInfo* strong_dragon_spawner = new ModelInfo();
+		strong_dragon_spawner->set_model_name("Strong_Dragon_Spawner");
+		spawner = new Object();
+		spawner_component = new SpawnerComponent(spawner, this, strong_dragon);
+		spawner_component->AddComponent(monster_component->GetCopy());
+		spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
+		spawner->AddComponent(spawner_component);
+		strong_dragon_spawner->set_hierarchy_root(spawner);
+		model_infos_.emplace_back();
+		model_infos_.back().reset(strong_dragon_spawner);
+	}
 
 	//Create Gun Models
 	{
@@ -2350,7 +2353,7 @@ void BaseScene::add_remote_player(int id, const std::string& name, const XMFLOAT
 	}
 
 	Object* remote_gun_frame = remote->FindFrame("WeaponR_locator");
-	remote_gun_frame->AddChild(FindModelInfo("Classic")->GetInstance());
+	remote_gun_frame->AddChild(FindModelInfo("Flamethrower")->GetInstance());
 
 	remote->set_id(id);
 	remote->set_name(name);

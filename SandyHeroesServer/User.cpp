@@ -7,6 +7,7 @@
 #include "MovementComponent.h"
 #include "Scene.h"
 #include "BaseScene.h"
+#include "MonsterComponent.h"
 
 Session::Session() {
 	std::cout << "DEFAULT SESSION CONSTRUCTOR CALLED!!\n";
@@ -336,7 +337,7 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 	}
 	case C2S_P_MOUSE_CLICK: {
 		cs_packet_mouse_click* packet = reinterpret_cast<cs_packet_mouse_click*>(p);
-
+		is_firekey_down_ = true;
 		std::cout << "진입완료" << std::endl;
 		// 카메라 방향을 받는다
 		XMFLOAT3 cam_pos{ packet->camera_px, packet->camera_py, packet->camera_pz };
@@ -346,21 +347,31 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 		// 카메라 방향으로 총알 생성
 		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_object_);
 		if (gun) {
+			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
+
+			if (gun->gun_name() == "flamethrower")
+			{
+				for (const auto& monster : base_scene->monster_list())
+				{
+					base_scene->CheckObjectHitFlamethrow(monster->owner(), id_);
+				}
+			}
 			XMFLOAT3 gun_shoting_point{ gun->owner()->world_position_vector() };
-			XMFLOAT3 target_pos = cam_pos + (cam_look * 100.f);
+			XMFLOAT3 target_pos = cam_pos + (cam_look * 25.f);
 			XMVECTOR picking_point_w = XMLoadFloat3(&target_pos);
 			XMFLOAT3 bullet_dir{};
 			XMStoreFloat3(&bullet_dir, XMVector3Normalize(picking_point_w - XMLoadFloat3(&gun_shoting_point)));
 
-			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
 			auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
 			gun->FireBullet(bullet_dir, bullet_mesh, base_scene, id_);
 		}
-
-
 		break;
 	}
-
+	case C2S_P_MOUSE_UNCLICK:
+	{
+		is_firekey_down_ = false;
+	}
+		break;
 	default:
 		std::cout << "Error Invalid Packet Type\n";
 		exit(-1);

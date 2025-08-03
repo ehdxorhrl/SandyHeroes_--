@@ -76,7 +76,7 @@ public:
 
 	bool IsKeyDown(int key_code) const;
 	void SetKeyDown(int key_code, bool is_down);
-
+	bool is_firekey_down() const { return is_firekey_down_; }
 public:
 	unsigned char	remained_;
 };

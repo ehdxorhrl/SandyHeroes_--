@@ -10,6 +10,12 @@ Object::Object()
 	++kObjectNextId;
 }
 
+Object::Object(const std::string& name) : name_(name)
+{
+	id_ = kObjectNextId;
+	++kObjectNextId;
+}
+
 Object::~Object()
 {
 	if (sibling_)

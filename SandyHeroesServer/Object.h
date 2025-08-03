@@ -27,6 +27,7 @@ class Object
 {
 public:
 	Object();
+	Object(const std::string& name);
 	virtual ~Object();
 
 	//복사 생성자(child, sibling도 복사하는 깊은복사)
