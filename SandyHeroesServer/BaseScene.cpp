@@ -866,6 +866,12 @@ void BaseScene::UpdateObjectHitBullet()
 		const auto& player_object = player.second->get_player_object();
 		CheckPlayerHitGun(player_object);
 		if (!player.second->is_firekey_down()) continue;
+		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_object);
+		if (gun && gun->gun_name() == "flamethrower")
+		{
+			auto bullet_mesh = FindModelInfo("SM_Bullet_01")->GetInstance();
+			gun->FireBullet(XMFLOAT3{}, bullet_mesh, this, player.second->get_id());
+		}
 		for (const auto& monster : monster_list_)
 		{
 			CheckObjectHitFlamethrow(monster->owner(), player.second->get_id());

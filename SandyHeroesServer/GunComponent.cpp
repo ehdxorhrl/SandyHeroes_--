@@ -127,6 +127,21 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* s
 
             --loaded_bullets_;
 
+            // 총알 생성 패킷 브로드캐스트
+            sc_packet_create_bullet bp;
+            bp.size = sizeof(bp);
+            bp.type = S2C_P_CREATE_BULLET;
+            bp.id = id;
+            bp.dx = direction.x;
+            bp.dy = direction.y;
+            bp.dz = direction.z;
+            bp.loaded_bullets = loaded_bullets_;
+
+            const auto& users = SessionManager::getInstance().getAllSessions();
+            for (auto& u : users) {
+                u.second->do_send(&bp);
+            }
+
             if (gun_name_ == "flamethrower")
                 return true;
 
@@ -158,20 +173,6 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* s
             
             auto base_scene = dynamic_cast<BaseScene*>(scene);
             base_scene->CheckRayHitEnemy(owner_->world_position_vector(), direction, id);
-        }
-        // 총알 생성 패킷 브로드캐스트
-        sc_packet_create_bullet bp;
-        bp.size = sizeof(bp);
-        bp.type = S2C_P_CREATE_BULLET;
-        bp.id = id;
-        bp.dx = direction.x;
-        bp.dy = direction.y;
-        bp.dz = direction.z;
-        bp.loaded_bullets = loaded_bullets_;
-
-        const auto& users = SessionManager::getInstance().getAllSessions();
-        for (auto& u : users) {
-            u.second->do_send(&bp);
         }
     }
     else
