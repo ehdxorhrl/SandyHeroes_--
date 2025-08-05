@@ -174,6 +174,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
     case WM_SIZE:
     case WM_LBUTTONUP:
+    {
+        game_framework.send_mouse_unclick_packet();
+        break;
+    }
+
     case WM_RBUTTONDOWN:
     case WM_RBUTTONUP:
         game_framework.ProcessWindowMessage(hWnd, message, wParam, lParam);

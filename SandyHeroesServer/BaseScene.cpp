@@ -172,42 +172,24 @@ void BaseScene::BuildModelInfo()
 	hit_dragon->hierarchy_root()->set_collide_type(true, true);
 	hit_dragon->hierarchy_root()->set_is_movable(true);
 	hit_dragon->hierarchy_root()->set_tag("Hit_Dragon");
-	//auto ui_head_socket = hit_dragon->hierarchy_root()->FindFrame("Ui_Head");
-	//auto monster_hp_ui = FindModelInfo("Monster_Hp_UI");
-	//ui_head_socket->AddChild(monster_hp_ui->GetInstance());
-	//
-	//auto animator = Object::GetComponentInChildren<AnimatorComponent>(hit_dragon->hierarchy_root());
-	//animator->set_animation_state(new HitDragonAnimationState);
 
 	//Shot Dragon Fix(Add Hp UI, Set CollisionType)
 	ModelInfo* shot_dragon = FindModelInfo("Shot_Dragon");
 	shot_dragon->hierarchy_root()->set_collide_type(true, true);
 	shot_dragon->hierarchy_root()->set_is_movable(true);
 	shot_dragon->hierarchy_root()->set_tag("Shot_Dragon");
-	//ui_head_socket = shot_dragon->hierarchy_root()->FindFrame("Ui_Head");
-	//ui_head_socket->AddChild(monster_hp_ui->GetInstance());
-	//
-	//animator = Object::GetComponentInChildren<AnimatorComponent>(shot_dragon->hierarchy_root());
-	//animator->set_animation_state(new ShotDragonAnimationState);
 
 	//Bomb Dragon Fix(Add Hp UI, Set CollisionType)
 	ModelInfo* bomb_dragon = FindModelInfo("Bomb_Dragon");
 	bomb_dragon->hierarchy_root()->set_collide_type(true, true);
 	bomb_dragon->hierarchy_root()->set_is_movable(true);
 	bomb_dragon->hierarchy_root()->set_tag("Bomb_Dragon");
-	//ui_head_socket = bomb_dragon->hierarchy_root()->FindFrame("Ui_Head");
-	//ui_head_socket->AddChild(monster_hp_ui->GetInstance());
-	//
-	//animator = Object::GetComponentInChildren<AnimatorComponent>(bomb_dragon->hierarchy_root());
-	//animator->set_animation_state(new BombDragonAnimationState);
 
 	//Strong Dragon Fix(Set CollisionType)
 	ModelInfo* strong_dragon = FindModelInfo("Strong_Dragon");
 	strong_dragon->hierarchy_root()->set_collide_type(true, true);
 	strong_dragon->hierarchy_root()->set_is_movable(true);
 	strong_dragon->hierarchy_root()->set_tag("Strong_Dragon");
-	//animator = Object::GetComponentInChildren<AnimatorComponent>(strong_dragon->hierarchy_root());
-	//animator->set_animation_state(new StrongDragonAnimationState);
 
 	//Create Hit Dragon Spawner
 	ModelInfo* hit_dragon_spawner = new ModelInfo();
@@ -326,9 +308,13 @@ void BaseScene::BuildModelInfo()
 			flamethrower_object->AddComponent(gun_component);
 			flamethrower_object->Rotate(0, 170, -17);
 
+			Object* player_gun_particle_pivot = new Object("gun_particle_pivot");
+			flamethrower_object->AddChild(player_gun_particle_pivot);
+			player_gun_particle_pivot->set_local_position(XMFLOAT3(0.0f, 0.143f, 1.24f));
+
 			//// 화염방사기에 충돌 박스 달기
-			//auto flamethrow_box_component = new BoxColliderComponent(player_gun_particle_pivot, gun_component->flamethrow_box());
-			//player_gun_particle_pivot->AddComponent(flamethrow_box_component);
+			auto flamethrow_box_component = new BoxColliderComponent(player_gun_particle_pivot, gun_component->flamethrow_box());
+			player_gun_particle_pivot->AddComponent(flamethrow_box_component);
 
 			model_infos_.emplace_back();
 			model_infos_.back().reset(flamethrower_model);
@@ -593,30 +579,30 @@ void BaseScene::CreateMonsterSpawner()
 	SpawnerComponent* spawner_component;
 	//Stage 1
 	{
-		//spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
-		//
-		//spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.f, 2.6f, 11.74f }, 3, 4.f, 4.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
-		//
-		//spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.84f, 1.24f, -9.07f }, 3, 5.f, 3.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
-		//
-		//spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 27.85f, 6.73f, -8.07f }, 1, 9.f, 5.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
-		//
-		//spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 24.53f, 5.31f, 10.05f }, 1, 11.f, 5.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
+		
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.f, 2.6f, 11.74f }, 3, 4.f, 4.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
+		
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.84f, 1.24f, -9.07f }, 3, 5.f, 3.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
+		
+		spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 27.85f, 6.73f, -8.07f }, 1, 9.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
+		
+		spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 24.53f, 5.31f, 10.05f }, 1, 11.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
 	}
 	
 	//Stage 2
@@ -696,6 +682,11 @@ void BaseScene::add_catch_monster_num()
 	++catch_monster_num_;
 }
 
+const std::list<MonsterComponent*>& BaseScene::monster_list() const
+{
+	return monster_list_;
+}
+
 bool BaseScene::ProcessInput(void* p)
 {
 	//if (main_input_controller_)
@@ -746,7 +737,7 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	// 총기 부착
 	Object* weapon_frame = player->FindFrame("WeaponR_locator");
 	if (weapon_frame) {
-		weapon_frame->AddChild(FindModelInfo("Classic")->GetInstance());  // 총 모델
+		weapon_frame->AddChild(FindModelInfo("Flamethrower")->GetInstance());  // 총 모델
 		weapon_frame = weapon_frame->child();  // 자식 프레임 가져옴
 
 	}
@@ -869,15 +860,16 @@ void BaseScene::UpdateObjectHitBullet()
 	{
 		PrepareGroundChecking();
 	}
-	for (auto& object : ground_check_object_list_)
+	const auto& users = SessionManager::getInstance().getAllSessions();
+	for (const auto& player : users)
 	{
-		if (object->is_player())
+		const auto& player_object = player.second->get_player_object();
+		CheckPlayerHitGun(player_object);
+		if (!player.second->is_firekey_down()) continue;
+		for (const auto& monster : monster_list_)
 		{
-			CheckPlayerHitGun(object);
-			continue;
+			CheckObjectHitFlamethrow(monster->owner(), player.second->get_id());
 		}
-		//25.08.01 수정 OBB 총알 충돌에서 Ray 충돌 체크로 변경
-		//CheckObjectHitBullet(object);
 	}
 }
 
@@ -1751,11 +1743,9 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 			if (rand() % 100 >= 41) return; // 59% 확률로 드랍 안 함
 
 			// 랜덤 엔진 및 분포 생성
-			std::random_device rd;
-			std::mt19937 gen(rd());
 			std::discrete_distribution<> dist(drop_weights.begin(), drop_weights.end());
 
-			int random_index = dist(gen);
+			int random_index = dist(kRandomGenerator);
 			std::string gun_name = gun_names[random_index];
 			Object* dropped_gun = FindModelInfo(gun_names[random_index])->GetInstance();
 
@@ -1814,6 +1804,116 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 		}
 	}
 
+}
+
+void BaseScene::CheckObjectHitFlamethrow(Object* object, int id)
+{
+	Object* player_ = SessionManager::getInstance().get(id)->get_player_object();
+
+	GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_);
+	if (gun->gun_name() != "flamethrower") return;
+
+	auto& bullet_list = gun->fired_bullet_list();
+
+	auto& box_collider_list = Object::GetComponentsInChildren<BoxColliderComponent>(object);
+	if (!box_collider_list.size())
+		return;
+
+	Object* flame_tip = player_->FindFrame("gun_particle_pivot");
+	auto flame_collider = Object::GetComponent<BoxColliderComponent>(flame_tip);
+	if (!flame_collider) return;
+
+	for (auto& monster_box : Object::GetComponentsInChildren<BoxColliderComponent>(object))
+	{
+		if (flame_collider->animated_box().Intersects(monster_box->animated_box()))
+		{
+			// 데미지 적용
+			MonsterComponent* monster = Object::GetComponent<MonsterComponent>(object);
+			if (monster && !monster->IsDead())
+			{
+				XMFLOAT3 hit_position = monster->owner()->world_position_vector();
+				XMFLOAT4 particle_color = GunComponent::GetGunElementColor(gun);
+
+				sc_packet_monster_damaged_particle particle_packet{};
+				particle_packet.color = particle_color;
+				particle_packet.position = hit_position;
+
+				monster->HitDamage(gun->damage() * (1 + gun->upgrade() * 0.2));
+
+				if (monster->IsDead())
+				{
+					// 총기 이름 목록
+					std::vector<std::string> gun_names = { "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
+
+					std::vector<int> drop_weights = { 15, 10, 7, 5, 3, 1 }; // 전체 합 = 41
+
+					// 드랍할지 말지: 41% 확률로 총기 드랍, 나머지 59%는 아무것도 안 떨어짐
+					if (rand() % 100 >= 41) return; // 59% 확률로 드랍 안 함
+
+					// 랜덤 엔진 및 분포 생성
+					std::discrete_distribution<> dist(drop_weights.begin(), drop_weights.end());
+
+					int random_index = dist(kRandomGenerator);
+					std::string gun_name = gun_names[random_index];
+					Object* dropped_gun = FindModelInfo(gun_names[random_index])->GetInstance();
+
+					XMFLOAT3 drop_pos = monster->owner()->world_position_vector();
+					drop_pos.y += 0.1f;
+					dropped_gun->set_position_vector(drop_pos);
+					dropped_gun->set_is_movable(true);
+
+					BoundingBox gun_bb{ {0.f, 0.f, 0.f}, {0.5f, 0.3f, 1.0f} };
+					auto box_comp = new BoxColliderComponent(dropped_gun, gun_bb);
+					dropped_gun->AddComponent(box_comp);
+
+					// UI
+					/*Object* ui_texture = FindModelInfo("Gun_UI")->GetInstance();
+					ui_texture->set_local_position({ 0.0f, 0.5f, 0.1f });
+					dropped_gun->AddChild(ui_texture);*/
+
+					std::string dropped_name = dropped_gun->name();  // 예: "Dropped_Classic"
+
+					GunComponent* dropped_gun_component = Object::GetComponent<GunComponent>(dropped_gun);
+					std::string gun_ui_name = "Gun_UI_" + dropped_name.substr(dropped_name.find('_') + 1); // "Classic", "Sherif" 등
+
+					// 랜덤 강화, 속성
+					int upgrade = rand() % 4;
+					dropped_gun_component->set_upgrade(upgrade);
+
+					// [2] 속성 타입: 0 = Fire, 1 = Electric, 2 = Poison
+					int element_random = rand() % 3;
+					ElementType element = static_cast<ElementType>(element_random);
+					dropped_gun_component->set_element(element);
+
+					if (upgrade > 0)
+					{
+						gun_ui_name += "+" + std::to_string(upgrade);
+					}
+
+					AddObject(dropped_gun);
+					dropped_guns_.push_back(dropped_gun);
+
+					sc_packet_drop_gun dg;
+					dg.size = sizeof(sc_packet_drop_gun);
+					dg.type = S2C_P_DROP_GUN;
+					dg.id = dropped_gun->id();
+					dg.gun_type = random_index;
+					dg.upgrade_level = upgrade;
+					dg.element_type = element_random;
+					XMFLOAT4X4 xf;
+					XMFLOAT4X4 mat = dropped_gun->transform_matrix();
+					XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
+					memcpy(dg.matrix, &xf, sizeof(float) * 16);
+
+					const auto& users = SessionManager::getInstance().getAllSessions();
+					for (const auto& player : users) {
+						player.second->do_send(&dg);
+					}
+				}
+			}
+		}
+		return;
+	}
 }
 
 std::list<MeshColliderComponent*> BaseScene::checking_maps_mesh_collider_list(int index)

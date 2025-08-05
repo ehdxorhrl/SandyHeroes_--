@@ -875,6 +875,26 @@ void GameFramework::send_mouse_click_packet()
     do_send(&mc);
 }
 
+void GameFramework::send_mouse_unclick_packet()
+{
+    if (!scene_) return;
+
+    BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
+    if (!base_scene) return;
+
+    Object* player = base_scene->player(); // BaseScene에 player_ 멤버가 존재함
+    if (!player) return;
+
+    FPSControllerComponent* controller = Object::GetComponent<FPSControllerComponent>(player);
+    if (!controller) return;
+
+    Object* camera = controller->camera_object();
+    if (!camera) return;
+
+    cs_packet_mouse_unclick packet{};
+    do_send(&packet);
+}
+
 void GameFramework::send_mouse_move_packet(int x1, int x2)
 {
     auto now = std::chrono::steady_clock::now();
