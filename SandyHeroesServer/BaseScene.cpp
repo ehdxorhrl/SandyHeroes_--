@@ -1945,6 +1945,18 @@ void BaseScene::CheckRazerHitEnemy(RazerComponent* razer_component, MonsterCompo
 			monster_component->HitDamage(razer_component->damage());
 			razer_component->set_is_collided(true);
 
+			XMFLOAT3 hit_position;
+			XMStoreFloat3(&hit_position, ray_origin + (ray_direction * t));
+
+			sc_packet_monster_damaged_particle packet{};
+			packet.color = XMFLOAT4{ 1.f, 0.f, 0.f, 1.f }; // 레이저 색상
+			packet.position = hit_position;
+
+			const auto& users = SessionManager::getInstance().getAllSessions();
+			for (const auto& player : users) {
+				player.second->do_send(&packet);
+			}
+
 		}
 	}
 }
