@@ -81,7 +81,7 @@ void BaseScene::BuildShader(ID3D12Device* device, ID3D12RootSignature* root_sign
 	shaders_[(int)ShaderType::kStandardMesh] = std::make_unique<StandardMeshShader>();
 	shaders_[(int)ShaderType::kStandardSkinnedMesh] = std::make_unique<StandardSkinnedMeshShader>();
 	shaders_[(int)ShaderType::kSkybox] = std::make_unique<SkyboxShader>();
-	shaders_[(int)ShaderType::kDebug] = std::make_unique<DebugShader>();
+	//shaders_[(int)ShaderType::kDebug] = std::make_unique<DebugShader>();
 	shaders_[(int)ShaderType::kUI] = std::make_unique<UIShader>();
 	shaders_[(int)ShaderType::kBreathing] = std::make_unique<BreathingShader>();
 	shaders_[(int)ShaderType::kShadow] = std::make_unique<ShadowShader>();
@@ -328,10 +328,6 @@ void BaseScene::BuildMaterial(ID3D12Device* device, ID3D12GraphicsCommandList* c
 	textures_.back()->name = "Skybox_Cube2";
 	textures_.back()->type = TextureType::kCubeMap;
 	material->AddTexture(textures_.back().get());
-	materials_.emplace_back();
-	materials_.back().reset(material);
-
-	material = new Material{ "debug", (int)ShaderType::kDebug };
 	materials_.emplace_back();
 	materials_.back().reset(material);
 
@@ -673,10 +669,7 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	AddObject(camera_object);
 
 	//모든 메쉬 있는 객체에 메쉬 콜라이더 추가(주의사항: 새롭게 만들어지는 메쉬있는 객체는 메쉬콜라이더가 없음)
-	//+ 디버그용 메쉬 추가
-	Mesh* debug_mesh = Scene::FindMesh("Debug_Mesh", meshes_);
-	const auto& const debug_material = Scene::FindMaterial("debug", materials_);
-
+	//25.08.08 수정: 디버그 메쉬 삭제(사용하지 않고 에러가 발생함)
 	for (auto& object : object_list_)
 	{
 		auto& mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(object.get());
@@ -687,12 +680,6 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 			MeshColliderComponent* mesh_collider = new MeshColliderComponent(object);
 			mesh_collider->set_mesh(mesh);
 			object->AddComponent(mesh_collider);
-			if (mesh->name() != "Debug_Mesh")
-			{
-				auto debug_mesh_component = new DebugMeshComponent(object, debug_mesh, mesh->bounds());
-				debug_mesh_component->AddMaterial(debug_material);
-				object->AddComponent(debug_mesh_component);
-			}
 		}
 	}
 	PrepareGroundChecking();
