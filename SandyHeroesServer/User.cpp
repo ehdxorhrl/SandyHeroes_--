@@ -375,13 +375,6 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 		if (gun) {
 			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
 
-			if (gun->gun_name() == "flamethrower")
-			{
-				for (const auto& monster : base_scene->monster_list())
-				{
-					base_scene->CheckObjectHitFlamethrow(monster->owner(), id_);
-				}
-			}
 			XMFLOAT3 gun_shoting_point{ gun->owner()->world_position_vector() };
 			XMFLOAT3 target_pos = cam_pos + (cam_look * 25.f);
 			XMVECTOR picking_point_w = XMLoadFloat3(&target_pos);
@@ -390,6 +383,13 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 
 			auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
 			gun->FireBullet(bullet_dir, bullet_mesh, base_scene, id_);
+			if (gun->gun_name() == "flamethrower")
+			{
+				for (const auto& monster : base_scene->monster_list())
+				{
+					base_scene->CheckObjectHitFlamethrow(monster->owner(), id_);
+				}
+			}
 		}
 		break;
 	}

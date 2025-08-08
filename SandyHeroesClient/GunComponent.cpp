@@ -97,7 +97,6 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* s
             particle->Play(25);
         }
 
-        //--loaded_bullets_;
 
         if (gun_name_ == "flamethrower")
             return true;
