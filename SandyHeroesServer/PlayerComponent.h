@@ -28,7 +28,7 @@ public:
 	void AddScroll(ScrollType type);
 	bool HasScroll(ScrollType type) const;
 
-	void ActivateMainSkill();	//플레이어 메인 스킬 활성화 함수
+	bool ActivateMainSkill();	//플레이어 메인 스킬 활성화 함수
 
 	//getter
 	float max_hp() const { return max_hp_; }	//플레이어 최대 체력

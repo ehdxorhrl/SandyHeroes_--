@@ -3,6 +3,8 @@
 cbuffer ObjectInfo : register(b0)
 {
     matrix g_world_matrix;
+    float g_object_time;
+    float3 o_padding;
 }
 
 #define SKINNED_ANIMATION_BONES 128

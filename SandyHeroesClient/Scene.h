@@ -7,6 +7,7 @@
 #include "Sector.h"
 #include "ParticleRenderer.h"
 
+class WallColliderComponent;
 class FrameResourceManager;
 class DescriptorManager;
 class CameraComponent;
@@ -50,6 +51,8 @@ public:
 	virtual void UpdateRenderPassConstantBuffer(ID3D12GraphicsCommandList* command_list);
 	virtual void UpdateRenderPassShadowBuffer(ID3D12GraphicsCommandList* command_list);
 
+	virtual const std::list<MeshComponent*>& GetShadowMeshList(int index = 0);
+
 	void UpdateObjectConstantBuffer(FrameResource* curr_frame_resource);
 
 	virtual void Render(ID3D12GraphicsCommandList* command_list);
@@ -87,6 +90,7 @@ public:
 	XMFLOAT2 screen_size() const;
 	bool is_play_cutscene() const;
 	Object* player() const;
+	std::list<WallColliderComponent*> stage_wall_collider_list(int index) const { return stage_wall_collider_list_[index]; }
 
 	//setter
 	void set_main_camera(CameraComponent* value);
@@ -126,7 +130,7 @@ protected:
 	//그림자를 위해 일부 base scene 멤버 변수들 scene으로 옮김
 	bool is_prepare_ground_checking_ = false;
 	//맵 바닥체크를 위한 메쉬 콜라이더 리스트 배열
-	std::array<std::list<MeshColliderComponent*>, 8> checking_maps_mesh_collider_list_;
+	std::array<std::list<WallColliderComponent*>, 8> stage_wall_collider_list_;
 	std::list<Object*> ground_check_object_list_;	//지면 체크가 필요한 객체들의 리스트(플레이어, monster, NPC)
 
 	// 플레이어의 스테이지 진행도

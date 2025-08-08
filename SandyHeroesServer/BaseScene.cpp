@@ -19,7 +19,9 @@
 #include "MonsterComponent.h"
 #include "SpawnerComponent.h"
 #include "PlayerComponent.h"
+#include "RazerMesh.h"
 #include "AStar.h"
+#include "BillboardMeshComponent.h"
 
 using namespace file_load_util;
 void BaseScene::BuildMesh()
@@ -61,6 +63,9 @@ void BaseScene::BuildMesh()
 	debug_mesh->set_name("Debug_Mesh");
 	meshes_.emplace_back();
 	meshes_.back().reset(debug_mesh);
+
+	//RazerMesh
+	meshes_.push_back(std::make_unique<RazerMesh>(0.08f, 50.f));
 
 	// 외부 모델 로딩
 	constexpr UINT kModelInfoCount{ 40 };
@@ -530,6 +535,45 @@ void BaseScene::BuildObject()
 		}
 	}
 
+	////Create Razer Model
+	//{
+	//	ModelInfo* razer_model = new ModelInfo();
+	//	auto razer_object = new Object("Razer");
+	//	auto razer_component = new RazerComponent(razer_object);
+	//	auto mesh_component = new BillboardMeshComponent(razer_object,
+	//		FindMesh("RazerMesh", meshes_), FindMaterial("Razer", materials_), this);
+	//	FindMaterial("Razer", materials_)->DeleteMeshComponent(mesh_component);
+	//	razer_object->AddComponent(mesh_component);
+	//	razer_object->AddComponent(razer_component);
+	//	razer_object->set_is_movable(true);
+	//	razer_model->set_hierarchy_root(razer_object);
+	//	razer_model->set_model_name("Razer");
+	//	model_infos_.emplace_back();
+	//	model_infos_.back().reset(razer_model);
+	//}
+
+	{
+		ModelInfo* razer_model = new ModelInfo();
+		auto razer_object = new Object("Razer");
+		auto razer_component = new RazerComponent(razer_object);
+		auto mesh_component = new BillboardMeshComponent(
+			razer_object,
+			FindMesh("RazerMesh", meshes_),
+			nullptr, // 재질 제거됨
+			this
+		);
+		// 재질 관련 코드 제거됨:
+		//FindMaterial("Razer", materials_)->DeleteMeshComponent(mesh_component);
+
+		razer_object->AddComponent(mesh_component);
+		razer_object->AddComponent(razer_component);
+		razer_object->set_is_movable(true);
+		razer_model->set_hierarchy_root(razer_object);
+		razer_model->set_model_name("Razer");
+		model_infos_.emplace_back();
+		model_infos_.back().reset(razer_model);
+	}
+
 	catch_monster_num_ = 1;
 
 
@@ -711,6 +755,8 @@ void BaseScene::Update(float elapsed_time)
 
 	UpdateObjectHitObject();
 
+	UpdateRazerHitEnemy();
+
 	DeleteDeadObjects();
 
 	UpdateStageClear();
@@ -755,6 +801,10 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 		object->AddComponent(mesh_collider);
 	}
 
+	auto player_component = new PlayerComponent(player);
+	player_component->set_scene(this);
+	player->AddComponent(player_component);
+
 	AddObject(player);
 
 	return player;
@@ -786,6 +836,12 @@ void BaseScene::AddObject(Object* object)
 	if (monster_component)
 	{
 		monster_list_.push_back(monster_component);
+	}
+
+	auto razer_component = Object::GetComponent<RazerComponent>(object);
+	if (razer_component)
+	{
+		razer_list_.push_back(razer_component);
 	}
 }
 
@@ -1076,67 +1132,16 @@ void BaseScene::CheckPlayerHitGun(Object* object)
 
 }
 
-//void BaseScene::CheckPlayerHitGun(Object* object)
-//{
-//	auto player_box = Object::GetComponentInChildren<MeshColliderComponent>(object);
-//	if (!player_box)
-//	{
-//		f_key_ = false;
-//		return;
-//	}
-//
-//	BoundingOrientedBox player_obb = player_box->GetWorldOBB();
-//
-//	for (auto it = dropped_guns_.begin(); it != dropped_guns_.end(); )
-//	{
-//		Object* gun = *it;
-//		auto gun_box = Object::GetComponent<BoxColliderComponent>(gun);
-//		if (!gun_box) { ++it; continue; }
-//
-//		if (player_obb.Intersects(gun_box->animated_box()) && f_key_)
-//		{
-//			GunComponent* gun_component = Object::GetComponent<GunComponent>(gun);
-//			if (!gun_component) { ++it; continue; }
-//
-//			// 드랍된 총기 정보 저장
-//			std::string dropped_name = gun->name(); // "Dropped_Classic"
-//			std::string gun_name = dropped_name.substr(dropped_name.find('_') + 1); // "Classic"
-//
-//			int upgrade = gun_component->upgrade();
-//			ElementType element = gun_component->element();
-//
-//			// 플레이어 무기 위치
-//			Object* player_gun_frame = player_->FindFrame("WeaponR_locator");
-//			if (!player_gun_frame) { ++it; continue; }
-//
-//			// 기존 총기들 중 일치하지 않는 이름에 교체 수행 (기존 방식 유지)
-//			std::vector<std::string> guns{ "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
-//			for (const auto& name : guns)
-//			{
-//				if (name == gun_name) continue;
-//				player_gun_frame->ChangeChild(FindModelInfo(gun_name)->GetInstance(), name, false);
-//			}
-//
-//			// 새로 장착된 총기에서 GunComponent에 능력치 적용
-//			Object* new_gun = player_gun_frame->FindFrame(gun_name);
-//			GunComponent* new_gun_component = Object::GetComponent<GunComponent>(new_gun);
-//			if (new_gun_component)
-//			{
-//				new_gun_component->set_upgrade(upgrade);
-//				new_gun_component->set_element(element);
-//			}
-//
-//			// 드랍 총기 제거
-//			gun->set_is_dead(true);
-//			it = dropped_guns_.erase(it);
-//			f_key_ = false;
-//		}
-//		else
-//		{
-//			++it;
-//		}
-//	}
-//}
+void BaseScene::UpdateRazerHitEnemy()
+{
+	for (auto& razer : razer_list_)
+	{
+		for (auto& monster : monster_list_)
+		{
+			CheckRazerHitEnemy(razer, monster);
+		}
+	}
+}
 
 void BaseScene::CheckObjectIsGround(Object* object)
 {
@@ -1656,7 +1661,6 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 	{
 		//TODO: hit 사운드를 출력하라고 패킷 송신
 		//FMODSoundManager::Instance().PlaySound("hit", false, 0.3f);
-		//TODO: 플레이어 찾아주세요
 		Object* player_ = SessionManager::getInstance().get(id)->get_player_object();
 		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_);
 		if (!gun) return;
@@ -1913,6 +1917,29 @@ void BaseScene::CheckObjectHitFlamethrow(Object* object, int id)
 			}
 		}
 		return;
+	}
+}
+
+void BaseScene::CheckRazerHitEnemy(RazerComponent* razer_component, MonsterComponent* monster_component)
+{
+	if (!razer_component || !monster_component ||
+		monster_component->IsDead() || !razer_component->is_collision_active() || razer_component->is_collided())
+		return;
+
+	XMVECTOR ray_origin = XMLoadFloat3(&razer_component->end_position());
+	XMVECTOR ray_direction = XMLoadFloat3(&xmath_util_float3::Normalize(razer_component->start_position() - razer_component->end_position()));
+
+	// 레이저가 몬스터와 충돌했는지 확인
+	auto monster_box_list = Object::GetComponentsInChildren<BoxColliderComponent>(monster_component->owner());
+	for (auto& monster_box : monster_box_list)
+	{		
+		float t{};
+		if (monster_box->animated_box().Intersects(ray_origin, ray_direction, t))
+		{
+			monster_component->HitDamage(razer_component->damage());
+			razer_component->set_is_collided(true);
+
+		}
 	}
 }
 

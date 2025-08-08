@@ -17,6 +17,8 @@ public:
 
 	virtual Component* GetCopy() override;
 
+	virtual void Update(float elapsed_time) override;
+
 	void Heal(float amount);	//플레이어를 회복하는 함수
 	void HealHp(float heal_amount);	//플레이어의 체력을 회복하는 함수
 	void HealShield(float heal_amount);	//플레이어의 방패를 회복하는 함수
@@ -42,6 +44,7 @@ public:
 	//setter
 	void set_scene(Scene* scene) { scene_ = scene; }	//플레이어가 속한 씬 설정
 	void set_dash_gage(float gage) { dash_gage_ = gage; }
+	void set_main_skill_gage(float gage) { main_skill_gage_ = gage; }
 
 private:	
 	Scene* scene_ = nullptr;	//플레이어가 속한 씬

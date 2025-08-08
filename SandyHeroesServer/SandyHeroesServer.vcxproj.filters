@@ -100,6 +100,15 @@
     <Filter Include="5.Component\Chest">
       <UniqueIdentifier>{d5d10f32-eba6-4bb6-8e81-2833755680f3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="5.Component\Razer">
+      <UniqueIdentifier>{a1a75619-f899-45c6-9a28-a08944317bd2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4.Mesh\Razer">
+      <UniqueIdentifier>{23568234-b23a-46ea-87db-efca9859128c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5.Component\Mesh\BillboardMesh">
+      <UniqueIdentifier>{7c2e60d2-0561-4266-b450-a0ce337e69fc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="targetver.h">
@@ -221,6 +230,15 @@
     <ClInclude Include="ChestComponent.h">
       <Filter>5.Component\Chest</Filter>
     </ClInclude>
+    <ClInclude Include="RazerComponent.h">
+      <Filter>5.Component\Razer</Filter>
+    </ClInclude>
+    <ClInclude Include="RazerMesh.h">
+      <Filter>4.Mesh\Razer</Filter>
+    </ClInclude>
+    <ClInclude Include="BillboardMeshComponent.h">
+      <Filter>5.Component\Mesh\BillboardMesh</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandyHeroesServer.cpp">
@@ -330,6 +348,15 @@
     </ClCompile>
     <ClCompile Include="ChestComponent.cpp">
       <Filter>5.Component\Chest</Filter>
+    </ClCompile>
+    <ClCompile Include="RazerComponent.cpp">
+      <Filter>5.Component\Razer</Filter>
+    </ClCompile>
+    <ClCompile Include="RazerMesh.cpp">
+      <Filter>4.Mesh\Razer</Filter>
+    </ClCompile>
+    <ClCompile Include="BillboardMeshComponent.cpp">
+      <Filter>5.Component\Mesh\BillboardMesh</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

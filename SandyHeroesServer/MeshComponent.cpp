@@ -20,7 +20,8 @@ MeshComponent::MeshComponent(Object* owner, Mesh* mesh) : Component(owner), mesh
 MeshComponent::MeshComponent(Object* owner, Mesh* mesh, Material* material) : Component(owner), mesh_(mesh)
 {
     mesh->AddMeshComponent(this);
-    AddMaterial(material);
+    if(material)
+        AddMaterial(material);
 
     //if (!mesh) {
     //    OutputDebugStringA("MeshComponent 생성 실패: mesh == nullptr\n");

@@ -1,6 +1,7 @@
 #pragma once
 #include "Scene.h"
 #include "User.h"
+#include "RazerComponent.h"
 
 class MonsterComponent;
 class MeshColliderComponent;
@@ -41,6 +42,7 @@ public:
 	void UpdateObjectHitBullet();
 	void UpdateObjectHitObject();
 	void UpdateStageClear();
+	void UpdateRazerHitEnemy();
 
 	void PrepareGroundChecking();	//맵 바닥체크를 위한 사전 작업
 
@@ -54,6 +56,8 @@ public:
 	void CheckPlayerHitChest();
 	void CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray_direction, int id);
 	void CheckObjectHitFlamethrow(Object* object, int id);
+
+	void CheckRazerHitEnemy(RazerComponent* razer_component, MonsterComponent* monster_component);
 
 
 	std::list<MeshColliderComponent*> checking_maps_mesh_collider_list(int index);
@@ -88,6 +92,8 @@ private:
 		}
 	};
 	std::list<MonsterComponent*> monster_list_;
+
+	std::list<RazerComponent*> razer_list_;	//레이저 리스트
 
 	std::list<WallCheckObject> wall_check_object_list_;	//벽 체크가 필요한 객체들의 리스트(플레이어, monster, NPC)
 

@@ -20,6 +20,7 @@ constexpr char S2C_P_DROP_GUN = 10;
 constexpr char S2C_P_GUN_CHANGE = 11;
 constexpr char S2C_P_SCROLL_INFO = 12;
 constexpr char S2C_P_TAKE_SCROLL = 13;
+constexpr char S2C_P_PLAY_MAINSKILL = 14;
 
 constexpr char S2C_P_MONSTER_INFO = 21;		// 몬스터 생성
 constexpr char S2C_P_MONSTER_MOVE = 22;     // 몬스터 무브
@@ -42,6 +43,12 @@ constexpr char PRESS_OFF = 0;
 constexpr char PRESS_ON = 1;
 
 #pragma pack (push,1)
+
+struct sc_packet_play_mainskill {
+    uint8_t size;
+    uint8_t type;  // S2C_P_TAKE_SCROLL
+    uint32_t id;
+};
 
 struct sc_packet_take_scroll {
     uint8_t size;
@@ -142,6 +149,7 @@ struct sc_packet_move {
     uint8_t type;
     uint32_t id;
     float matrix[16]; // 그대로 유지 (최적화 여지 있음)
+    float main_skill_gage;
 };
 
 struct sc_packet_rotate {

@@ -38,6 +38,8 @@ public:
 
     Mesh* GetMesh() const;
 
+    Material* GetMaterial(int index = 0) const;
+
     void set_mesh(Mesh* mesh);
 
     UINT constant_buffer_index() const;

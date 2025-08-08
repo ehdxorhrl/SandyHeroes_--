@@ -12,14 +12,15 @@ enum class ShaderType
 	kSkinnedMesh,
 	kStandardMesh,
 	kStandardSkinnedMesh,
-	kSkybox, 
+	kSkybox,
 	kDebug,
-	kUI, 
+	kUI,
 	kTransparent,
-	kBreathing, 
-	kShadow, 
+	kBreathing,
+	kShadow,
 	kSkinnedShadow,
-	kParticle
+	kParticle,
+	kRazer
 };
 
 class Shader

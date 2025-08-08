@@ -13,6 +13,7 @@
 #include "InputControllerComponent.h"
 #include "MonsterComponent.h"
 #include "MovementComponent.h"
+#include "PlayerComponent.h"
 #include "ModelInfo.h"
 #include "Material.h"
 #include "AnimationSet.h"
@@ -949,8 +950,11 @@ void GameFramework::ProcessPacket(char* p)
             XMFLOAT4X4 xf;
             memcpy(&xf, packet->matrix, sizeof(float) * 16);
             player->set_transform_matrix(xf);
+            PlayerComponent* player_component = Object::GetComponentInChildren<PlayerComponent>(player);
+            if(player_component)
+                player_component->set_main_skill_gage(packet->main_skill_gage);
         }
-
+        
     }
         break;
     case S2C_P_ENTER:
@@ -1084,6 +1088,18 @@ void GameFramework::ProcessPacket(char* p)
     {
         auto packet = reinterpret_cast<sc_packet_take_scroll*>(p);
         base_scene->TakeScroll(packet->chest_num);
+    }
+        break;
+    case S2C_P_PLAY_MAINSKILL:
+    {
+        auto packet = reinterpret_cast<sc_packet_play_mainskill*>(p);
+        Object* player = base_scene->FindObject(packet->id);
+        if (player && player->id() == packet->id)
+        {
+            PlayerComponent* player_component = Object::GetComponentInChildren<PlayerComponent>(player);
+            if (player_component)
+                player_component->ActivateMainSkill();
+        }
     }
         break;
     default:

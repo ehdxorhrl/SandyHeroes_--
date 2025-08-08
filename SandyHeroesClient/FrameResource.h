@@ -24,7 +24,7 @@ struct CBPass
 	XMFLOAT3 camera_position;
 	float total_time;
 	XMFLOAT4 ambient_light;
-	LightInfo lights[kMaxLights];    
+	LightInfo lights[kMaxLights];
 	XMFLOAT2 screen_size;
 	XMFLOAT2 pad_2;
 	XMFLOAT3 camera_up_axis;
@@ -45,6 +45,8 @@ struct CBShadow
 struct CBObject
 {
 	XMFLOAT4X4 world_matrix;
+	float time;
+	float padding[3]; // padding to make it 16 bytes aligned
 };
 
 // 스킨 메쉬를 사용하는 오브젝트의 bone transform 행렬
@@ -69,7 +71,7 @@ struct CBUi
 	float height_ratio;
 	XMFLOAT2 texture_offset; // ui 텍스쳐 오프셋 (0.0 ~ 1.0)
 	float ui_layer;			// ui 레이어 
-	float padding;	// padding to make it 16 bytes aligned
+	float alpha;	// padding to make it 16 bytes aligned
 	XMFLOAT2 gage_value; // ui 가젯 값 (0.0 ~ 1.0)
 };
 

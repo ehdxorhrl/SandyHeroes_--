@@ -146,6 +146,7 @@
     <ClInclude Include="AnimationTrack.h" />
     <ClInclude Include="AnimatorComponent.h" />
     <ClInclude Include="BaseScene.h" />
+    <ClInclude Include="BillboardMeshComponent.h" />
     <ClInclude Include="BombDragonAnimationState.h" />
     <ClInclude Include="BoxColliderComponent.h" />
     <ClInclude Include="BreathingShader.h" />
@@ -188,6 +189,9 @@
     <ClInclude Include="PlayerAnimationState.h" />
     <ClInclude Include="PlayerComponent.h" />
     <ClInclude Include="ProgressBarComponent.h" />
+    <ClInclude Include="RazerComponent.h" />
+    <ClInclude Include="RazerMesh.h" />
+    <ClInclude Include="RazerShader.h" />
     <ClInclude Include="RecorderScene.h" />
     <ClInclude Include="RecordingScene.h" />
     <ClInclude Include="ScrollComponent.h" />
@@ -229,6 +233,7 @@
     <ClCompile Include="AnimationTrack.cpp" />
     <ClCompile Include="AnimatorComponent.cpp" />
     <ClCompile Include="BaseScene.cpp" />
+    <ClCompile Include="BillboardMeshComponent.cpp" />
     <ClCompile Include="BombDragonAnimationState.cpp" />
     <ClCompile Include="BoxColliderComponent.cpp" />
     <ClCompile Include="BreathingShader.cpp" />
@@ -268,6 +273,9 @@
     <ClCompile Include="PlayerAnimationState.cpp" />
     <ClCompile Include="PlayerComponent.cpp" />
     <ClCompile Include="ProgressBarComponent.cpp" />
+    <ClCompile Include="RazerComponent.cpp" />
+    <ClCompile Include="RazerMesh.cpp" />
+    <ClCompile Include="RazerShader.cpp" />
     <ClCompile Include="RecorderScene.cpp" />
     <ClCompile Include="RecordingScene.cpp" />
     <ClCompile Include="ScrollComponent.cpp" />
@@ -341,6 +349,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="ParticleShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="RazerShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>

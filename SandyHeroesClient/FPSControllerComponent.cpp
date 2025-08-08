@@ -15,7 +15,9 @@
 #include "MovementComponent.h"
 #include "BaseScene.h"
 #include "MeshColliderComponent.h"
-#include"GameFramework.h"
+#include "GameFramework.h"
+#include "PlayerComponent.h"
+#include "WallColliderComponent.h"
 
 FPSControllerComponent::FPSControllerComponent(Object* owner) : InputControllerComponent(owner)
 {

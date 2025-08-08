@@ -8,6 +8,7 @@
 #include "Scene.h"
 #include "BaseScene.h"
 #include "MonsterComponent.h"
+#include "PlayerComponent.h"
 
 Session::Session() {
 	std::cout << "DEFAULT SESSION CONSTRUCTOR CALLED!!\n";
@@ -195,6 +196,8 @@ void Session::send_player_position()
 	XMFLOAT4X4 mat = player_object_->transform_matrix();
 	XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
 	memcpy(mp.matrix, &xf, sizeof(float) * 16);
+	auto player_component = Object::GetComponent<PlayerComponent>(player_object_);
+	mp.main_skill_gage = player_component->main_skill_gage();
 	do_send(&mp);
 	//std::cout << "x: " << player_object_->position_vector().x << std::endl;
 	//std::cout << "y: " << player_object_->position_vector().y << std::endl;
@@ -235,13 +238,16 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 
 		//std::cout << "[DEBUG] AddObject BaseScene addr: " << scene << std::endl;
 		const auto& users = SessionManager::getInstance().getAllSessions();
-		for (auto& u : users) {
+		for (auto& u : users) 
+		{
 			if (u.first != id_)
 				u.second->do_send(&ep);
 		}
 
-		for (auto& u : users) {
-			if (u.first != id_) {
+		for (auto& u : users) 
+		{
+			if (u.first != id_) 
+			{
 				sc_packet_enter ep;
 				ep.size = sizeof(ep);
 				ep.type = S2C_P_ENTER;
@@ -260,7 +266,8 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 		cs_packet_keyboard_input* packet = reinterpret_cast<cs_packet_keyboard_input*>(p);	
 		is_key_down_[packet->key] = packet->is_down;
 
-		if (is_key_down_[VK_SPACE]) {
+		if (is_key_down_[VK_SPACE]) 
+		{
 			constexpr float kFallCheckVelocity = -0.5;
 			if (player_object_->is_ground())
 			{
@@ -304,6 +311,23 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 			}
 		}
 
+		if (is_key_down_['E']) 
+		{
+			auto player_component = Object::GetComponent<PlayerComponent>(player_object_);
+			if (player_component)
+				if (player_component->ActivateMainSkill())
+				{
+					sc_packet_play_mainskill pm;
+					pm.size = sizeof(pm);
+					pm.type = S2C_P_PLAY_MAINSKILL;
+					pm.id = id_;
+					const auto& users = SessionManager::getInstance().getAllSessions();
+					for (auto& u : users) {
+						u.second->do_send(&pm);
+					}
+				}
+		}
+
 		//std::cout << "key ÄÚµå: " << static_cast<int>(packet->key) <<
 		//	" is_down: " << (packet->is_down ? "true" : "false") << std::endl;
 
@@ -324,6 +348,8 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 			XMFLOAT4X4 mat = player_object_->transform_matrix();
 			XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
 			memcpy(mp.matrix, &xf, sizeof(float) * 16);
+			auto player_component = Object::GetComponent<PlayerComponent>(player_object_);
+			mp.main_skill_gage = player_component->main_skill_gage();
 			
 			const auto& users = SessionManager::getInstance().getAllSessions();
 			for (auto& u : users) {

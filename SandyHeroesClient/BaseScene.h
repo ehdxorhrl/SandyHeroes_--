@@ -4,6 +4,7 @@
 #include "CutSceneTrack.h"
 #include "TextRenderer.h"
 #include "TextFormat.h"
+#include "RazerComponent.h"
 
 class MeshColliderComponent;
 class SpawnerComponent;
@@ -11,6 +12,7 @@ class BoxColliderComponent;
 class GroundColliderComponent;
 class WallColliderComponent;
 class MovementComponent;
+class MonsterComponent;
 
 class BaseScene :
     public Scene
@@ -35,6 +37,7 @@ public:
 	void ActivateStageMonsterSpawner(int stage_num);
 
 	virtual bool ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time) override;
+	virtual const std::list<MeshComponent*>& GetShadowMeshList(int index) override;
 
 	virtual void Update(float elapsed_time) override;
 
@@ -64,7 +67,7 @@ public:
 	void SpawnMonsterDamagedParticle(const XMFLOAT3& position, const XMFLOAT4& color);
 
 	//getter
-	std::list<MeshColliderComponent*> checking_maps_mesh_collider_list(int index);
+	std::list<MonsterComponent*> monster_list() const;
 	int stage_clear_num();
 	void add_stage_clear_num();
 	void add_catch_monster_num();
@@ -110,10 +113,15 @@ private:
 		}
 	};
 
+	std::list<RazerComponent*> razer_list_;	//레이저 리스트
+
 	std::list<WallCheckObject> wall_check_object_list_;	//벽 체크가 필요한 객체들의 리스트(플레이어, monster, NPC)
 
 	std::array<std::list<GroundColliderComponent*>, 8> stage_ground_collider_list_;	//스테이지 바닥 콜라이더 리스트
-	std::array<std::list<WallColliderComponent*>, 8> stage_wall_collider_list_;	//스테이지 벽 콜라이더 리스트
+
+	std::array<std::list<MeshComponent*>, 8> stage_mesh_list_;
+
+	std::list<MonsterComponent*> monster_list_;	//몬스터 리스트
 
 	std::unique_ptr<ParticleSystem> particle_system_{ nullptr };	//파티클 시스템
 

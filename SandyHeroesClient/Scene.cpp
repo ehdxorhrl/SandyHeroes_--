@@ -14,6 +14,7 @@
 #include "DDSTextureLoader.h"
 #include "UIMesh.h"
 #include "Sector.h"
+#include "WallColliderComponent.h"
 
 
 XMVECTOR Scene::GetPickingPointAtWorld(float sx, float sy, Object* picked_object)
@@ -537,11 +538,9 @@ void Scene::ShadowRender(ID3D12GraphicsCommandList* command_list)
 	for (int i = -1; i <= 1; ++i)
 	{
 		int idx = std::clamp(stage_clear_num_ + i, 0, 7);
-		for (auto& object : checking_maps_mesh_collider_list_[idx])
+		const auto& mesh_list_ = GetShadowMeshList(idx);
+		for (auto& mesh_component : mesh_list_)
 		{
-			if (object->mesh()->name() == "Cube") continue;
-
-			const auto& mesh_component = Object::GetComponent<MeshComponent>(object->owner());
 			mesh_component->UpdateConstantBufferForShadow(curr_frame_resource, -1);
 
 			auto gpu_address = curr_frame_resource->cb_object->Resource()->GetGPUVirtualAddress();
@@ -747,4 +746,9 @@ void Scene::InitializeSectorObjectlist()
 				break;
 		}
 	}
+}
+
+const std::list<MeshComponent*>& Scene::GetShadowMeshList(int index)
+{
+	return std::list<MeshComponent*>();
 }

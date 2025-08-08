@@ -178,6 +178,21 @@
     <Filter Include="1.Manager\FMODSound">
       <UniqueIdentifier>{1c738490-afd0-44a3-a187-834dce71e566}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3.Shader\Razer">
+      <UniqueIdentifier>{ba24024c-3e81-430c-a315-a9d6fab92cc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4.Mesh\Razer">
+      <UniqueIdentifier>{8bc40314-05fa-40da-bab4-13a38447ff43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Razer">
+      <UniqueIdentifier>{4c81ebca-342a-48b7-9529-e9218a8eaa01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Mesh\BillboardMesh">
+      <UniqueIdentifier>{e984477a-82e6-4090-af84-0f370ace6d9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7.Component\Player">
+      <UniqueIdentifier>{269b9c97-22f7-44f6-a014-fe4aee50a66d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -372,9 +387,6 @@
     <ClInclude Include="UiComponent.h">
       <Filter>7.Component\UI</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerComponent.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="ProgressBarComponent.h">
       <Filter>7.Component\UI\ProgressBar</Filter>
     </ClInclude>
@@ -422,6 +434,21 @@
     </ClInclude>
     <ClInclude Include="FMODSoundManager.h">
       <Filter>1.Manager\FMODSound</Filter>
+    </ClInclude>
+    <ClInclude Include="RazerShader.h">
+      <Filter>3.Shader\Razer</Filter>
+    </ClInclude>
+    <ClInclude Include="RazerMesh.h">
+      <Filter>4.Mesh\Razer</Filter>
+    </ClInclude>
+    <ClInclude Include="RazerComponent.h">
+      <Filter>7.Component\Razer</Filter>
+    </ClInclude>
+    <ClInclude Include="BillboardMeshComponent.h">
+      <Filter>7.Component\Mesh\BillboardMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerComponent.h">
+      <Filter>7.Component\Player</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -602,9 +629,6 @@
     <ClCompile Include="UiComponent.cpp">
       <Filter>7.Component\UI</Filter>
     </ClCompile>
-    <ClCompile Include="PlayerComponent.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="ProgressBarComponent.cpp">
       <Filter>7.Component\UI\ProgressBar</Filter>
     </ClCompile>
@@ -650,6 +674,21 @@
     <ClCompile Include="FMODSoundManager.cpp">
       <Filter>1.Manager\FMODSound</Filter>
     </ClCompile>
+    <ClCompile Include="RazerShader.cpp">
+      <Filter>3.Shader\Razer</Filter>
+    </ClCompile>
+    <ClCompile Include="RazerMesh.cpp">
+      <Filter>4.Mesh\Razer</Filter>
+    </ClCompile>
+    <ClCompile Include="RazerComponent.cpp">
+      <Filter>7.Component\Razer</Filter>
+    </ClCompile>
+    <ClCompile Include="BillboardMeshComponent.cpp">
+      <Filter>7.Component\Mesh\BillboardMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerComponent.cpp">
+      <Filter>7.Component\Player</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SandyHeroesClient.rc">
@@ -676,5 +715,8 @@
     <FxCompile Include="Shadow.hlsl" />
     <FxCompile Include="ParticleShader.hlsl" />
     <FxCompile Include="SkinnedShadow.hlsl" />
+    <FxCompile Include="RazerShader.hlsl">
+      <Filter>헤더 파일</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

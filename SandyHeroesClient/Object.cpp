@@ -439,6 +439,9 @@ void Object::Update(float elapsed_time)
 {
 	if (is_dead_)
 		return;
+
+	life_time_ += elapsed_time;
+
 	for (const std::unique_ptr<Component>& component : component_list_)
 	{
 		component->Update(elapsed_time);

@@ -138,6 +138,7 @@
     <ClInclude Include="BaseScene.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="BillboardMeshComponent.h" />
     <ClInclude Include="BoxColliderComponent.h" />
     <ClInclude Include="ChestComponent.h" />
     <ClInclude Include="Component.h" />
@@ -161,6 +162,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="RazerComponent.h" />
+    <ClInclude Include="RazerMesh.h" />
     <ClInclude Include="Scene.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
@@ -188,6 +191,7 @@
     <ClCompile Include="BaseScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="BillboardMeshComponent.cpp" />
     <ClCompile Include="BoxColliderComponent.cpp" />
     <ClCompile Include="ChestComponent.cpp" />
     <ClCompile Include="Component.cpp" />
@@ -209,6 +213,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="RazerComponent.cpp" />
+    <ClCompile Include="RazerMesh.cpp" />
     <ClCompile Include="SandyHeroesServer.cpp" />
     <ClCompile Include="Scene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>

@@ -56,6 +56,8 @@ public:
 	bool is_movable() const { return is_movable_; }
 	bool is_in_view_sector() const { return is_in_view_sector_; } // 카메라 절두체 컬링을 통과한 섹터에 있는가?
 
+	float life_time() const { return life_time_; } // 오브젝트의 생존 시간
+
 	//setter
 	void set_transform_matrix(const XMFLOAT4X4& value);
 	void set_position_vector(const XMFLOAT3& value);
@@ -206,6 +208,8 @@ protected:
 	bool is_dead_ = false;	//죽은 오브젝트인가?	
 	bool is_player_ = false;
 	UINT dead_frame_count_ = 0;	//오브젝트가 죽은 후 프레임 카운트
+
+	float life_time_ = 0.f;	//오브젝트의 생존 시간
 
 	//물리 관련 변수들
 	bool is_ground_ = false;	//지면에 닿아있는가?

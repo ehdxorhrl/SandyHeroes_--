@@ -67,6 +67,8 @@ void MeshComponent::UpdateConstantBuffer(FrameResource* current_frame_resource, 
 	XMStoreFloat4x4(&object_buffer.world_matrix,
 		XMMatrixTranspose(XMLoadFloat4x4(&owner_->world_matrix())));
 
+	object_buffer.time = owner_->life_time();
+
 	UploadBuffer<CBObject>* object_cb = current_frame_resource->cb_object.get();
 	object_cb->CopyData(cb_index, object_buffer);
 }
@@ -152,6 +154,12 @@ Mesh* MeshComponent::GetMesh() const
 {
 	return mesh_;
 }
+
+Material* MeshComponent::GetMaterial(int index) const
+{
+	return materials_[index];
+}
+
 
 void MeshComponent::set_mesh(Mesh* mesh)
 {
