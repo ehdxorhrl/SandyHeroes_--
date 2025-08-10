@@ -193,6 +193,9 @@
     <Filter Include="7.Component\Player">
       <UniqueIdentifier>{269b9c97-22f7-44f6-a014-fe4aee50a66d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sound">
+      <UniqueIdentifier>{ba80ce85-1f01-4341-af0b-e89fc23fe18c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -450,6 +453,9 @@
     <ClInclude Include="PlayerComponent.h">
       <Filter>7.Component\Player</Filter>
     </ClInclude>
+    <ClInclude Include="SoundComponent.h">
+      <Filter>Sound</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandyHeroesClient.cpp">
@@ -688,6 +694,9 @@
     </ClCompile>
     <ClCompile Include="PlayerComponent.cpp">
       <Filter>7.Component\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundComponent.cpp">
+      <Filter>Sound</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

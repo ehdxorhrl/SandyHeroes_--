@@ -202,8 +202,7 @@ struct cs_packet_mouse_move {
 struct cs_packet_mouse_click {
     uint8_t size;
     uint8_t type;
-    float camera_px, camera_py, camera_pz;  //position
-    float camera_lx, camera_ly, camera_lz;  //look
+    XMFLOAT3 pick_dir;  
 };
 
 struct cs_packet_mouse_unclick {

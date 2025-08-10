@@ -19,6 +19,7 @@
 #include "AnimationSet.h"
 #include "BaseScene.h"
 #include "RecorderScene.h"
+#include "CameraComponent.h"
 
 GameFramework* GameFramework::kGameFramework = nullptr;
 
@@ -862,16 +863,29 @@ void GameFramework::send_mouse_click_packet()
     Object* camera = controller->camera_object();
     if (!camera) return;
 
-    cs_packet_mouse_click mc;
+    GunComponent* gun = Object::GetComponentInChildren<GunComponent>(scene_->player());
+    if (!gun) return;
+
+    // 1. 스크린 중앙 픽셀 좌표
+    float screen_x = client_width_ / 2.0f;
+    float screen_y = client_height_ / 2.0f;
+
+    // 2. 카메라에서 월드로 레이 변환
+    XMFLOAT3 ray_origin, ray_dir;
+    scene_->main_camera()->GetPickingRay(screen_x, screen_y, ray_origin, ray_dir);
+
+    // 3. 레이로 충돌 지점 계산 (맵, 오브젝트 등)
+    float hit_distance = 15.0f; // 레이가 닿을 거리
+    XMFLOAT3 hit_point = ray_origin + (ray_dir * hit_distance); // 충돌 로직에 따라 수정
+
+    // 4. 총구 방향 계산
+    XMFLOAT3 gun_shoting_point{ gun->owner()->world_position_vector() };
+    XMFLOAT3 bullet_dir = xmath_util_float3::Normalize(hit_point - gun_shoting_point);
+
+    cs_packet_mouse_click mc{};
     mc.size = sizeof(mc);
     mc.type = C2S_P_MOUSE_CLICK;
-    mc.camera_px = camera->world_position_vector().x;       // 카메라 위치 기준
-    mc.camera_py = camera->world_position_vector().y;
-    mc.camera_pz = camera->world_position_vector().z;
-
-    mc.camera_lx = camera->world_look_vector().x;       // 카메라 forward 벡터
-    mc.camera_ly = camera->world_look_vector().y;
-    mc.camera_lz = camera->world_look_vector().z;
+    mc.pick_dir = bullet_dir;       // bull_dir
 
     do_send(&mc);
 }

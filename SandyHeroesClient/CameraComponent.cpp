@@ -47,6 +47,25 @@ bool CameraComponent::CollisionCheckByMeshComponent(MeshComponent* mesh_componen
 	return world_frustum_.Intersects(obb);
 }
 
+void CameraComponent::GetPickingRay(int screen_x, int screen_y, XMFLOAT3& ray_origin, XMFLOAT3& ray_direction)
+{
+	XMMATRIX inv_view = XMMatrixInverse(nullptr, XMLoadFloat4x4(&view_matrix_));
+	XMMATRIX inv_proj = XMMatrixInverse(nullptr, XMLoadFloat4x4(&projection_matrix_));
+
+	float x = (((2.0f * screen_x) / kDefaultFrameBufferWidth) - 1) /
+		projection_matrix_._11;
+	float y = -(((2.0f * screen_y) / kDefaultFrameBufferHeight) - 1) /
+		projection_matrix_._22;
+
+	XMVECTOR ray_view = XMVectorSet(x, y, 1.0f, 1.0f);
+
+	// 월드 공간에서 최종 레이 방향 계산
+	XMFLOAT3 ray_world;
+	XMStoreFloat3(&ray_world, XMVector3TransformCoord(ray_view, inv_view));
+	ray_origin = owner_->world_position_vector();
+	ray_direction = xmath_util_float3::Normalize(ray_world - ray_origin);
+}
+
 using namespace xmath_util_float3;
 void CameraComponent::UpdateCameraInfo()
 {

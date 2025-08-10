@@ -49,8 +49,8 @@
 #include "ScrollComponent.h"
 #include "ChestComponent.h"
 #include "ChestAnimationState.h"
-//#include "SoundComponent.h"
-//#include "FMODSoundManager.h"
+#include "SoundComponent.h"
+#include "FMODSoundManager.h"
 #include "RazerShader.h"
 #include "RazerMesh.h"
 #include "BillboardMeshComponent.h"
@@ -496,7 +496,7 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 		monster_hit_particles_.emplace_back(new Object("monster_hit_particle"));
 		Object* monster_particle = monster_hit_particles_.back();
 		object_list_.emplace_back(monster_particle);
-		monster_particle->set_local_position({ 0, 1, 0 });
+		monster_particle->set_local_position({ 0, 0, 0 });
 		Material* monster_particle_material = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
 			return material->name() == "Trail_1";
 			})->get();
@@ -611,26 +611,26 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	}
 
 	// 사운드
-	//{
-	//	FMODSoundManager::Instance().Initialize();
-	//	Object* sound_object = new Object();
-	//	auto sound_comp = new SoundComponent(sound_object);
-	//	sound_comp->Load("gun_fire", "Resource/Fmod/sound/gun_fire.wav", false);
-	//	sound_comp->Load("flamethrower", "Resource/Fmod/sound/flamethrower.wav", true);
-	//	sound_comp->Load("chest", "Resource/Fmod/sound/chest.wav", false);
-	//	sound_comp->Load("get_drop_gun", "Resource/Fmod/sound/get_drop_gun.wav", false);
-	//	sound_comp->Load("scroll_pickup", "Resource/Fmod/sound/scroll_pickup.wav", false);
-	//	sound_comp->Load("bgm", "Resource/Fmod/sound/bgm.wav", true);
-	//	sound_comp->Load("reload", "Resource/Fmod/sound/reload.wav", false);
-	//	sound_comp->Load("grunt", "Resource/Fmod/sound/grunt.wav", false);
-	//	sound_comp->Load("hit", "Resource/Fmod/sound/hit.wav", false);
-	//	sound_comp->Load("lazer", "Resource/Fmod/sound/lazer.wav", false);
-	//	sound_object->AddComponent(sound_comp);
-	//	sounds_.push_back(sound_object);
-	//	AddObject(sound_object);
-	//
-	//	FMODSoundManager::Instance().PlaySound("bgm", true, 0.3f); // loop=true, volume 조절 가능
-	//}
+	{
+		FMODSoundManager::Instance().Initialize();
+		Object* sound_object = new Object();
+		auto sound_comp = new SoundComponent(sound_object);
+		sound_comp->Load("gun_fire", "Resource/Fmod/sound/gun_fire.wav", false);
+		sound_comp->Load("flamethrower", "Resource/Fmod/sound/flamethrower.wav", true);
+		sound_comp->Load("chest", "Resource/Fmod/sound/chest.wav", false);
+		sound_comp->Load("get_drop_gun", "Resource/Fmod/sound/get_drop_gun.wav", false);
+		sound_comp->Load("scroll_pickup", "Resource/Fmod/sound/scroll_pickup.wav", false);
+		sound_comp->Load("bgm", "Resource/Fmod/sound/bgm.wav", true);
+		sound_comp->Load("reload", "Resource/Fmod/sound/reload.wav", false);
+		sound_comp->Load("grunt", "Resource/Fmod/sound/grunt.wav", false);
+		sound_comp->Load("hit", "Resource/Fmod/sound/hit.wav", false);
+		sound_comp->Load("lazer", "Resource/Fmod/sound/lazer.wav", false);
+		sound_object->AddComponent(sound_comp);
+		sounds_.push_back(sound_object);
+		AddObject(sound_object);
+	
+		FMODSoundManager::Instance().PlaySound("bgm", true, 0.3f); // loop=true, volume 조절 가능
+	}
 
 	//Create Skybox
 	Object* skybox = new Object();
@@ -1713,6 +1713,17 @@ bool BaseScene::ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time
 			}
 			return true;
 		}
+		if (w_param == VK_F1)
+		{
+			ShowCursor(true);
+			return true;
+		}
+		if (w_param == VK_F2)
+		{
+			ShowCursor(false);
+			return true;
+		}
+
 	}
 		break;
 	default:

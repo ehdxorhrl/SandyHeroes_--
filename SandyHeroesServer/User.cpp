@@ -365,24 +365,14 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 		cs_packet_mouse_click* packet = reinterpret_cast<cs_packet_mouse_click*>(p);
 		is_firekey_down_ = true;
 		std::cout << "진입완료" << std::endl;
-		// 카메라 방향을 받는다
-		XMFLOAT3 cam_pos{ packet->camera_px, packet->camera_py, packet->camera_pz };
-		XMFLOAT3 cam_look{ packet->camera_lx, packet->camera_ly, packet->camera_lz };
-		cam_look = xmath_util_float3::Normalize(cam_look);
 
-		// 카메라 방향으로 총알 생성
+		// 피킹 방향으로 총알 생성
 		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_object_);
 		if (gun) {
 			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
 
-			XMFLOAT3 gun_shoting_point{ gun->owner()->world_position_vector() };
-			XMFLOAT3 target_pos = cam_pos + (cam_look * 25.f);
-			XMVECTOR picking_point_w = XMLoadFloat3(&target_pos);
-			XMFLOAT3 bullet_dir{};
-			XMStoreFloat3(&bullet_dir, XMVector3Normalize(picking_point_w - XMLoadFloat3(&gun_shoting_point)));
-
 			auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
-			gun->FireBullet(bullet_dir, bullet_mesh, base_scene, id_);
+			gun->FireBullet(packet->pick_dir, bullet_mesh, base_scene, id_);
 			if (gun->gun_name() == "flamethrower")
 			{
 				for (const auto& monster : base_scene->monster_list())
