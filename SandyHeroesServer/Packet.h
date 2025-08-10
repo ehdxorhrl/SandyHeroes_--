@@ -181,6 +181,7 @@ struct sc_packet_create_bullet {
     uint8_t loaded_bullets;  // ³²Àº ÃÑ¾Ë
 };
 
+
 struct cs_packet_login {
     uint8_t size;
     uint8_t type;

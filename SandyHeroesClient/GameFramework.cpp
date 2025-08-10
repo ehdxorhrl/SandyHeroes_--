@@ -20,6 +20,7 @@
 #include "BaseScene.h"
 #include "RecorderScene.h"
 #include "CameraComponent.h"
+#include "FMODSoundManager.h"
 
 GameFramework* GameFramework::kGameFramework = nullptr;
 
@@ -882,6 +883,11 @@ void GameFramework::send_mouse_click_packet()
     XMFLOAT3 gun_shoting_point{ gun->owner()->world_position_vector() };
     XMFLOAT3 bullet_dir = xmath_util_float3::Normalize(hit_point - gun_shoting_point);
 
+    if (gun && gun->gun_name() == "flamethrower")
+    {
+        FMODSoundManager::Instance().PlaySound("flamethrower", true, 0.3f);
+    }
+
     cs_packet_mouse_click mc{};
     mc.size = sizeof(mc);
     mc.type = C2S_P_MOUSE_CLICK;
@@ -905,6 +911,12 @@ void GameFramework::send_mouse_unclick_packet()
 
     Object* camera = controller->camera_object();
     if (!camera) return;
+
+    GunComponent* gun = Object::GetComponentInChildren<GunComponent>(scene_->player());
+    if (gun && gun->gun_name() == "flamethrower")
+    {
+        FMODSoundManager::Instance().StopSound("flamethrower");
+    }
 
     cs_packet_mouse_unclick packet{};
     do_send(&packet);
@@ -1000,7 +1012,13 @@ void GameFramework::ProcessPacket(char* p)
         auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
         gun->FireBullet(bullet_dir, bullet_mesh, base_scene);
         gun->set_loaded_bullets(packet->loaded_bullets);
-        
+        if (packet->loaded_bullets <= 0)
+        {
+            if (!(gun->bullet_type() == BulletType::kSpecial))
+            {
+                FMODSoundManager::Instance().PlaySound("reload", false, 0.3f);
+            }
+        }
     }
         break;
     case S2C_P_LOADED_BULLET:
@@ -1012,6 +1030,8 @@ void GameFramework::ProcessPacket(char* p)
 
         GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player);
         if (!gun) break;
+
+
         gun->set_loaded_bullets(packet->loaded_bullets);
     }
         break;

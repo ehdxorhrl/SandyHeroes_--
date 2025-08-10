@@ -9,6 +9,8 @@
 #include "MeshColliderComponent.h"
 #include "Scene.h"
 #include "ParticleComponent.h"
+#include "FMODSoundManager.h"
+#include "SoundComponent.h"
 
 std::unordered_map<std::string, GunInfo> GunComponent::kGunInfos{};
 const std::array<XMFLOAT4, kElementCount> GunComponent::kElementColors{
@@ -80,6 +82,7 @@ void GunComponent::ReloadBullets()
         //loading_time_ = reload_time_;
         is_reload_ = true;
 
+
     }
 }
 
@@ -97,9 +100,15 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* s
             particle->Play(25);
         }
 
-
         if (gun_name_ == "flamethrower")
+        {
             return true;
+        }
+
+        if (!(bullet_type_ == BulletType::kSpecial))
+        {
+            FMODSoundManager::Instance().PlaySound("gun_fire", false, 0.3f);
+        }
 
         Object* bullet = bullet_model;
         bullet->set_is_movable(true);
@@ -126,8 +135,6 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* s
         };
         bullet->OnDestroy(on_destroy_func);
         fired_bullet_list_.push_back(bullet);
-
-        //TODO: 서버에서 총알 충돌 체크 수행 함수이름: BaseScene::CheckRayHitEnemy
 
     }
 

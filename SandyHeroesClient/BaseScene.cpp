@@ -628,7 +628,7 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 		sound_object->AddComponent(sound_comp);
 		sounds_.push_back(sound_object);
 		AddObject(sound_object);
-	
+
 		FMODSoundManager::Instance().PlaySound("bgm", true, 0.3f); // loop=true, volume 조절 가능
 	}
 
@@ -1748,7 +1748,10 @@ void BaseScene::Update(float elapsed_time)
 
 	Scene::Update(elapsed_time);
 
+	FMODSoundManager::Instance().system()->update();
+
 	DeleteDeadObjects();
+
 }
 
 void BaseScene::RenderText(ID2D1DeviceContext2* d2d_device_context)
@@ -2515,6 +2518,9 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 
 		AddObject(dropped_gun);
 		dropped_guns_.push_back(dropped_gun);
+
+		FMODSoundManager::Instance().PlaySound("get_drop_gun", false, 0.3f);
+
 }
 
 void BaseScene::change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t upgrade_level, uint8_t element_type, uint32_t player_id)

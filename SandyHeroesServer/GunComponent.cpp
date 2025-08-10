@@ -102,7 +102,6 @@ void GunComponent::Update(float elapsed_time)
 
 void GunComponent::ReloadBullets()
 {
-    //TODO: 재장전 애니메이션 수행
     if (!is_reload_)
     {
         loading_time_ = reload_time_;
@@ -141,6 +140,11 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* s
             for (auto& u : users) {
                 u.second->do_send(&bp);
             }
+
+            if(loaded_bullets_ <= 0)
+            {
+                ReloadBullets();
+			}
 
             if (gun_name_ == "flamethrower")
                 return true;
