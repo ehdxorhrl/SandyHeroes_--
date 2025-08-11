@@ -1,14 +1,16 @@
 #pragma once
 #include "AnimationState.h"
 
-enum class ShotDragonAnimationTrack { kIdle, kRun, kDie, kAttack, kTurnLeft, kTurnRight };
+enum class SuperDragonAnimationTrack { kFlyCastSpell, kFlyIdle, kFlyDie, kFlyTakeDamage, 
+	kFlyUpFast, kFlyRightFast, kFlyDownFast, kFlyBiteAttackLow, kFlyFireBreathAttackLow };
 
-class ShotDragonAnimationState :
+
+class SuperDragonAnimationState :
     public AnimationState
 {
 public:
-	ShotDragonAnimationState() {}
-	virtual ~ShotDragonAnimationState() {}
+	SuperDragonAnimationState();
+	virtual ~SuperDragonAnimationState() {}
 
 	virtual void Enter(int animation_track, Object* object, AnimatorComponent* animator) override;
 	virtual int Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator) override;

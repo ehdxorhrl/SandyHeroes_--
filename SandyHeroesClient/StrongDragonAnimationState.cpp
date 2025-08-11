@@ -17,6 +17,10 @@ void StrongDragonAnimationState::Enter(int animation_track, Object* object, Anim
 	{
 		animation_loop_type_ = 1; //Once
 	}
+	if ((int)StrongDragonAnimationTrack::kSpinAttackOnce == animation_track)
+	{
+		animation_loop_type_ = 1; //Once
+	}
 
 }
 
@@ -43,6 +47,12 @@ int StrongDragonAnimationState::Run(float elapsed_time, Object* object, bool is_
 			object->set_is_dead(true);
 		}
 		break;
+	case StrongDragonAnimationTrack::kSpinAttackOnce:
+		if (is_end)
+		{
+			ChangeAnimationTrack((int)StrongDragonAnimationTrack::kIdle, object, animator);
+		}
+		break;
 	default:
 		break;
 	}
@@ -52,6 +62,10 @@ int StrongDragonAnimationState::Run(float elapsed_time, Object* object, bool is_
 void StrongDragonAnimationState::Exit(int animation_track, Object* object, AnimatorComponent* animator)
 {
 	if ((int)StrongDragonAnimationTrack::kSpawn == animation_track)
+	{
+		animation_loop_type_ = 0; 
+	}
+	if ((int)StrongDragonAnimationTrack::kSpinAttackOnce == animation_track)
 	{
 		animation_loop_type_ = 0; 
 	}

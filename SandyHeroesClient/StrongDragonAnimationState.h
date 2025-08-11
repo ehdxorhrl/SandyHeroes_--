@@ -1,7 +1,7 @@
 #pragma once
 #include "AnimationState.h"
 
-enum class StrongDragonAnimationTrack { kIdle, kSpawn, kDie };
+enum class StrongDragonAnimationTrack { kIdle, kSpawn, kDie, kDash, kSpinAttackOnce, kSpinAttackLoop };
 
 class StrongDragonAnimationState :
     public AnimationState
