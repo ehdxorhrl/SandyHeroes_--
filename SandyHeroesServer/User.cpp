@@ -198,6 +198,13 @@ void Session::send_player_position()
 	memcpy(mp.matrix, &xf, sizeof(float) * 16);
 	auto player_component = Object::GetComponent<PlayerComponent>(player_object_);
 	mp.main_skill_gage = player_component->main_skill_gage();
+	float dash_cool_time = dash_cool_time_ - dash_cool_delta_time_;
+	if (dash_cool_time < 0)
+		dash_cool_time = 0.f;
+	if(dash_cool_time > dash_cool_time_)
+		dash_cool_time = dash_cool_time_;
+	mp.dash_cool_time = dash_cool_time;
+	std::cout << "´ë½¬ ÄðÅ¸ÀÓ: " << mp.dash_cool_time << std::endl;
 	do_send(&mp);
 	//std::cout << "x: " << player_object_->position_vector().x << std::endl;
 	//std::cout << "y: " << player_object_->position_vector().y << std::endl;
@@ -350,7 +357,13 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 			memcpy(mp.matrix, &xf, sizeof(float) * 16);
 			auto player_component = Object::GetComponent<PlayerComponent>(player_object_);
 			mp.main_skill_gage = player_component->main_skill_gage();
-			
+			float dash_cool_time = dash_cool_time_ - dash_cool_delta_time_;
+			if (dash_cool_time < 0)
+				dash_cool_time = 0.f;
+			if (dash_cool_time > dash_cool_time_)
+				dash_cool_time = dash_cool_time_;
+			mp.dash_cool_time = dash_cool_time;
+
 			const auto& users = SessionManager::getInstance().getAllSessions();
 			for (auto& u : users) {
 				u.second->do_send(&mp);

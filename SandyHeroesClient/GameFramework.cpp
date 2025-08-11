@@ -977,8 +977,12 @@ void GameFramework::ProcessPacket(char* p)
             memcpy(&xf, packet->matrix, sizeof(float) * 16);
             player->set_transform_matrix(xf);
             PlayerComponent* player_component = Object::GetComponentInChildren<PlayerComponent>(player);
-            if(player_component)
+            if (player_component)
+            {
                 player_component->set_main_skill_gage(packet->main_skill_gage);
+				player_component->set_dash_gage(packet->dash_cool_time);
+				OutputDebugStringA((std::to_string(packet->dash_cool_time) + "\n").c_str());
+            }
         }
         
     }

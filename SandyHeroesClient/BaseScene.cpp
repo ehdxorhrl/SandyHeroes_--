@@ -1303,6 +1303,45 @@ void BaseScene::CreatePlayerUI()
 		AddObject(player_hp_bar_background);
 	}
 
+	//Create Dash
+	{
+		Object* dash_icon = new Object();
+		Object* dash_icon_background = new Object();
+		dash_icon->AddChild(dash_icon_background);
+
+		// 배경 설정 (dash_background.dds)
+		dash_icon_background->set_name("Dash_Icon_Background");
+		auto dash_background_material = Scene::FindMaterial("Dash_Background", materials_);
+		auto dash_mesh = Scene::FindMesh("Dash", meshes_); // Star와 동일 크기 mesh 재사용
+		auto dash_back_comp = new UiMeshComponent(dash_icon_background, dash_mesh, dash_background_material, this);
+		dash_back_comp->set_is_static(true);
+		dash_back_comp->set_ui_layer(UiLayer::kOne);
+		dash_icon_background->AddComponent(dash_back_comp);
+
+		// 전면 설정 (dash.dds)
+		dash_icon->set_name("Dash_Icon");
+		auto dash_material = Scene::FindMaterial("Dash", materials_);
+		auto dash_comp = new UiMeshComponent(dash_icon, dash_mesh, dash_material, this);
+		dash_comp->set_is_static(true);
+		dash_icon->AddComponent(dash_comp);
+
+		// ProgressBarComponent
+		auto progress_bar = new ProgressBarComponent(dash_icon);
+		progress_bar->set_type(UiType::kProgressBarY); // 위에서 아래로 차오르게
+		progress_bar->set_view(player_);
+		progress_bar->set_get_max_value_func([](Object* object) -> float {
+			auto player_component = Object::GetComponent<PlayerComponent>(object);
+			return player_component->dash_max_gage();
+			});
+		progress_bar->set_get_current_value_func([](Object* object) -> float {
+			auto player_component = Object::GetComponent<PlayerComponent>(object);
+			return player_component->dash_gage();
+			});
+		dash_icon->AddComponent(progress_bar);
+
+		AddObject(dash_icon);
+	}
+
 	//Create Player's Bullet Count Text
 	{
 		Object* bullet_count_text = new Object();

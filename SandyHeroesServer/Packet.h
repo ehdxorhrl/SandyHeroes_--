@@ -150,6 +150,7 @@ struct sc_packet_move {
     uint32_t id;
     float matrix[16]; // 그대로 유지 (최적화 여지 있음)
     float main_skill_gage;
+	float dash_cool_time; // 대쉬 쿨타임
 };
 
 struct sc_packet_rotate {
