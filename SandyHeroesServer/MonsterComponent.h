@@ -2,6 +2,8 @@
 #include "Component.h"
 #include "BaseScene.h"
 
+struct Node;
+
 //enum class MonsterType { kNormal, kBoss, kMiniBoss };
 enum class StatusEffectType { None, Fire, Poison, Electric };
 struct StatusEffect
@@ -81,6 +83,9 @@ private:
 
 	std::unordered_map<StatusEffectType, StatusEffect> status_effects_;
 
-	//TODO: 몬스터를 움직일 AI 추가
+	int current_node_idx_{ 0 }; // 현재 노드 인덱스
+	Node* current_node_{ nullptr }; // 현재 노드
+	float astar_delta_cool_time_{ 0.0f }; // A* 알고리즘 쿨타임
+	std::vector<Node*> path_; // A* 알고리즘 경로
 };
 

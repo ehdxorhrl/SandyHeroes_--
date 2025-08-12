@@ -871,9 +871,15 @@ void BaseScene::DeleteDeadObjects()
 	ground_check_object_list_.remove_if([](const Object* object) {
 		return object->is_dead();
 		});
+
 	wall_check_object_list_.remove_if([](const WallCheckObject& wall_check_object) {
 		return wall_check_object.object->is_dead();
 		});
+
+	razer_list_.remove_if([](const RazerComponent* razer_component) {
+		return razer_component->owner()->is_dead();
+		});
+
 	Scene::DeleteDeadObjects();
 }
 

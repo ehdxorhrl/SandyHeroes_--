@@ -6,6 +6,7 @@
 #include "MovementComponent.h"
 #include "SessionManager.h"
 #include "User.h"
+#include "AStar.h"
 //#include "ShotDragonAnimationState.h"
 
 MonsterComponent::MonsterComponent(Object* owner) : Component(owner)
@@ -69,7 +70,69 @@ void MonsterComponent::Update(float elapsed_time)
             XMFLOAT3 look = owner_->look_vector();
             look.y = 0.f;
             look = xmath_util_float3::Normalize(look);
-            XMFLOAT3 direction = target_->world_position_vector() - owner_->world_position_vector();
+
+            constexpr float kAstarCoolTime = 0.5f;
+			astar_delta_cool_time_ += elapsed_time;
+            if (astar_delta_cool_time_ > kAstarCoolTime)
+            {
+				astar_delta_cool_time_ = 0.f;
+
+                // A* 알고리즘을 사용하여 경로를 찾는다.
+                auto base_scene = dynamic_cast<BaseScene*>(scene_);
+                const auto& current_stage_node_buffer = kStageNodeBuffers[base_scene->stage_clear_num()];
+                Node* start_node = nullptr;
+                Node* goal_node = nullptr;
+                float start_min_distance_sq = FLT_MAX;
+                float goal_min_distance_sq = FLT_MAX;
+                for (const auto& node : current_stage_node_buffer)
+                {
+                    float start_distance_sq = xmath_util_float3::LengthSq(node.position - owner_->world_position_vector());
+                    if (start_distance_sq < start_min_distance_sq)
+                    {
+                        start_min_distance_sq = start_distance_sq;
+                        start_node = const_cast<Node*>(&node);
+                    }
+                    float target_distance_sq = xmath_util_float3::LengthSq(node.position - target_->world_position_vector());
+                    if (target_distance_sq < goal_min_distance_sq)
+                    {
+                        goal_min_distance_sq = target_distance_sq;
+                        goal_node = const_cast<Node*>(&node);
+                    }
+                }
+                path_ = a_star::AStar(start_node, goal_node);
+                for (const auto& node : path_)
+                {
+                    node->position.y = 0.f;
+                }
+                current_node_idx_ = 0;
+                if (current_node_ == path_[0])
+                {
+                    ++current_node_idx_;
+                }
+			}
+
+            XMFLOAT3 direction;
+            if (path_.size() <= current_node_idx_)
+            {
+                direction = target_->world_position_vector() - owner_->world_position_vector();
+            }
+            else
+            {
+                auto position_xz = owner_->world_position_vector();
+                position_xz.y = 0.f;
+
+                // A* 경로를 따라 이동
+                direction = path_[current_node_idx_]->position - position_xz;
+                float distance = xmath_util_float3::Length(direction);
+
+				// 현재 노드에 도달했는지 확인하고 도달했다면 다음 노드로 이동
+                if (distance < 0.2f)
+                {
+					current_node_ = path_[current_node_idx_];
+                    ++current_node_idx_;
+                }
+            }
+
             direction.y = 0.f;
             direction = xmath_util_float3::Normalize(direction);
             float angle = xmath_util_float3::AngleBetween(look, direction);

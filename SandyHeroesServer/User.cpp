@@ -204,7 +204,6 @@ void Session::send_player_position()
 	if(dash_cool_time > dash_cool_time_)
 		dash_cool_time = dash_cool_time_;
 	mp.dash_cool_time = dash_cool_time;
-	std::cout << "´ë½¬ ÄðÅ¸ÀÓ: " << mp.dash_cool_time << std::endl;
 	do_send(&mp);
 	//std::cout << "x: " << player_object_->position_vector().x << std::endl;
 	//std::cout << "y: " << player_object_->position_vector().y << std::endl;
@@ -340,7 +339,6 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 
 		break;
 	}
-
 	case C2S_P_MOUSE_MOVE: {
 			cs_packet_mouse_move* packet = reinterpret_cast<cs_packet_mouse_move*>(p);
 			player_object_->Rotate(0,
