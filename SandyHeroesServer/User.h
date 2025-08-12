@@ -38,6 +38,7 @@ private:
 
 private:
 	bool is_firekey_down_ = false;
+	XMFLOAT3 fire_direction_{ 0,0,0 }; // 총알이 발사되는 방향
 
 	// 점프키가 눌렸고 owner가 지면위에 있다면 점프를 실행
 	bool is_jumpkey_pressed_ = false;

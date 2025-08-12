@@ -133,6 +133,25 @@ void Session::update(float elapsed_time)
 		movement->MoveXZ(dash_velocity_.x, dash_velocity_.z, kDashSpeed);
 	}
 
+	// 연사
+	if (is_firekey_down_)
+	{
+		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_object_);
+		if (gun && gun->fire_type() == GunFireType::kAuto) {
+			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
+
+			auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
+			gun->FireBullet(fire_direction_, bullet_mesh, base_scene, id_);
+			if (gun->gun_name() == "flamethrower")
+			{
+				for (const auto& monster : base_scene->monster_list())
+				{
+					base_scene->CheckObjectHitFlamethrow(monster->owner(), id_);
+				}
+			}
+		}
+	}
+
 
 	if (xmath_util_float3::Length(player_object_->position_vector() - dash_before_position_) >= dash_length_)
 	{
@@ -375,7 +394,7 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 	case C2S_P_MOUSE_CLICK: {
 		cs_packet_mouse_click* packet = reinterpret_cast<cs_packet_mouse_click*>(p);
 		is_firekey_down_ = true;
-		std::cout << "진입완료" << std::endl;
+		fire_direction_ = packet->pick_dir;
 
 		// 피킹 방향으로 총알 생성
 		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_object_);
@@ -383,7 +402,7 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
 
 			auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
-			gun->FireBullet(packet->pick_dir, bullet_mesh, base_scene, id_);
+			gun->FireBullet(fire_direction_, bullet_mesh, base_scene, id_);
 			if (gun->gun_name() == "flamethrower")
 			{
 				for (const auto& monster : base_scene->monster_list())
