@@ -33,6 +33,8 @@ public:
 
 	virtual void Update(float elapsed_time) override;
 
+	void UpdateTargetPath();
+
 	void InitAfterOwnerSet();
 
 	void HitDamage(float damage); //몬스터에 데미지를 입힘

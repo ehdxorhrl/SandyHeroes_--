@@ -77,35 +77,16 @@ void MonsterComponent::Update(float elapsed_time)
             {
 				astar_delta_cool_time_ = 0.f;
 
-                // A* 알고리즘을 사용하여 경로를 찾는다.
-                auto base_scene = dynamic_cast<BaseScene*>(scene_);
-                const auto& current_stage_node_buffer = kStageNodeBuffers[base_scene->stage_clear_num()];
-                Node* start_node = nullptr;
-                Node* goal_node = nullptr;
-                float start_min_distance_sq = FLT_MAX;
-                float goal_min_distance_sq = FLT_MAX;
-                for (const auto& node : current_stage_node_buffer)
-                {
-                    float start_distance_sq = xmath_util_float3::LengthSq(node.position - owner_->world_position_vector());
-                    if (start_distance_sq < start_min_distance_sq)
-                    {
-                        start_min_distance_sq = start_distance_sq;
-                        start_node = const_cast<Node*>(&node);
-                    }
-                    float target_distance_sq = xmath_util_float3::LengthSq(node.position - target_->world_position_vector());
-                    if (target_distance_sq < goal_min_distance_sq)
-                    {
-                        goal_min_distance_sq = target_distance_sq;
-                        goal_node = const_cast<Node*>(&node);
-                    }
-                }
-                path_ = a_star::AStar(start_node, goal_node);
+                UpdateTargetPath();
+
+                //경로를 활용할 때는 y 좌표가 필요없음
                 for (const auto& node : path_)
                 {
                     node->position.y = 0.f;
                 }
+
                 current_node_idx_ = 0;
-                if (current_node_ == path_[0])
+                if (current_node_ == path_[0]) // 현재노드가 시작노드와 같다면 다음노드 부터 시작
                 {
                     ++current_node_idx_;
                 }
@@ -263,6 +244,37 @@ void MonsterComponent::Update(float elapsed_time)
         }
     }
 
+}
+
+void MonsterComponent::UpdateTargetPath()
+{
+    auto base_scene = dynamic_cast<BaseScene*>(scene_);
+    const auto& current_stage_node_buffer = kStageNodeBuffers[base_scene->stage_clear_num()];
+
+    Node* start_node = nullptr;
+    Node* goal_node = nullptr;
+
+    float start_min_distance_sq = FLT_MAX;
+    float goal_min_distance_sq = FLT_MAX;
+
+    for (const auto& node : current_stage_node_buffer)
+    {
+        float start_distance_sq = xmath_util_float3::LengthSq(node.position - owner_->world_position_vector());
+        if (start_distance_sq < start_min_distance_sq)
+        {
+            start_min_distance_sq = start_distance_sq;
+            start_node = const_cast<Node*>(&node);
+        }
+
+        float target_distance_sq = xmath_util_float3::LengthSq(node.position - target_->world_position_vector());
+        if (target_distance_sq < goal_min_distance_sq)
+        {
+            goal_min_distance_sq = target_distance_sq;
+            goal_node = const_cast<Node*>(&node);
+        }
+    }
+
+    path_ = a_star::AStar(start_node, goal_node);
 }
 
 void MonsterComponent::InitAfterOwnerSet() {
