@@ -88,6 +88,8 @@ void BaseScene::BuildMesh()
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Object/Scroll.bin", meshes_, materials_, textures_));	//13 스크롤
 
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Super_Dragon.bin", meshes_, materials_, textures_));
+	
+	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Thorn_Projectile.bin", meshes_, materials_, textures_));
 
 	// 씬 배치 정보 로딩
 	std::ifstream scene_file{ "./Resource/Model/World/Scene.bin", std::ios::binary };
@@ -881,9 +883,15 @@ void BaseScene::DeleteDeadObjects()
 	ground_check_object_list_.remove_if([](const Object* object) {
 		return object->is_dead();
 		});
+
 	wall_check_object_list_.remove_if([](const WallCheckObject& wall_check_object) {
 		return wall_check_object.object->is_dead();
 		});
+
+	razer_list_.remove_if([](const RazerComponent* razer_component) {
+		return razer_component->owner()->is_dead();
+		});
+
 	Scene::DeleteDeadObjects();
 }
 
@@ -1956,6 +1964,18 @@ void BaseScene::CheckRazerHitEnemy(RazerComponent* razer_component, MonsterCompo
 		{
 			monster_component->HitDamage(razer_component->damage());
 			razer_component->set_is_collided(true);
+
+			XMFLOAT3 hit_position;
+			XMStoreFloat3(&hit_position, ray_origin + (ray_direction * t));
+
+			sc_packet_monster_damaged_particle packet{};
+			packet.color = XMFLOAT4{ 1.f, 0.f, 0.f, 1.f }; // 레이저 색상
+			packet.position = hit_position;
+
+			const auto& users = SessionManager::getInstance().getAllSessions();
+			for (const auto& player : users) {
+				player.second->do_send(&packet);
+			}
 
 		}
 	}

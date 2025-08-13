@@ -199,8 +199,10 @@
     <ClInclude Include="ShadowShader.h" />
     <ClInclude Include="ShotDragonAnimationState.h" />
     <ClInclude Include="SkinnedShadowShader.h" />
+    <ClInclude Include="SoundComponent.h" />
     <ClInclude Include="SpawnerComponent.h" />
     <ClInclude Include="StrongDragonAnimationState.h" />
+    <ClInclude Include="SuperDragonAnimationState.h" />
     <ClInclude Include="TestAnimationState.h" />
     <ClInclude Include="TextComponent.h" />
     <ClInclude Include="TextFormat.h" />
@@ -283,8 +285,10 @@
     <ClCompile Include="ShadowShader.cpp" />
     <ClCompile Include="ShotDragonAnimationState.cpp" />
     <ClCompile Include="SkinnedShadowShader.cpp" />
+    <ClCompile Include="SoundComponent.cpp" />
     <ClCompile Include="SpawnerComponent.cpp" />
     <ClCompile Include="StrongDragonAnimationState.cpp" />
+    <ClCompile Include="SuperDragonAnimationState.cpp" />
     <ClCompile Include="TestAnimationState.cpp" />
     <ClCompile Include="TextComponent.cpp" />
     <ClCompile Include="TextFormat.cpp" />

@@ -30,7 +30,7 @@ void RazerComponent::Update(float elapsed_time)
     {
         if (!is_collision_active_)
         {
-            //FMODSoundManager::Instance().PlaySound("lazer", false, 0.025f);
+            FMODSoundManager::Instance().PlaySound("lazer", false, 0.025f);
         }
         is_collision_active_ = true;
     }

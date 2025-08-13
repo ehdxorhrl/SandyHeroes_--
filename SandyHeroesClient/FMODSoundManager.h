@@ -17,7 +17,9 @@ public:
 
     FMOD::System* system() { return system_; }
 
+
 private:
+
     FMOD::System* system_ = nullptr;
     std::unordered_map<std::string, FMOD::Sound*> sounds_;
     std::unordered_map<std::string, FMOD::Channel*> channels_;

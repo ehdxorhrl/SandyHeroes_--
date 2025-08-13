@@ -193,6 +193,12 @@
     <Filter Include="7.Component\Player">
       <UniqueIdentifier>{269b9c97-22f7-44f6-a014-fe4aee50a66d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sound">
+      <UniqueIdentifier>{ba80ce85-1f01-4341-af0b-e89fc23fe18c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation\State\SuperDragon">
+      <UniqueIdentifier>{f4ee4a86-2f4f-4aca-9b05-ad073aa06da3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -450,6 +456,12 @@
     <ClInclude Include="PlayerComponent.h">
       <Filter>7.Component\Player</Filter>
     </ClInclude>
+    <ClInclude Include="SoundComponent.h">
+      <Filter>Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="SuperDragonAnimationState.h">
+      <Filter>Animation\State\SuperDragon</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandyHeroesClient.cpp">
@@ -688,6 +700,12 @@
     </ClCompile>
     <ClCompile Include="PlayerComponent.cpp">
       <Filter>7.Component\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundComponent.cpp">
+      <Filter>Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="SuperDragonAnimationState.cpp">
+      <Filter>Animation\State\SuperDragon</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

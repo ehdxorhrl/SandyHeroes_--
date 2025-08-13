@@ -159,6 +159,7 @@ struct sc_packet_move {
     uint32_t id;
     float matrix[16]; // 그대로 유지 (최적화 여지 있음)
     float main_skill_gage;
+	float dash_cool_time; // 대쉬 쿨타임
 };
 
 struct sc_packet_rotate {
@@ -190,6 +191,7 @@ struct sc_packet_create_bullet {
     uint8_t loaded_bullets;  // 남은 총알
 };
 
+
 struct cs_packet_login {
     uint8_t size;
     uint8_t type;
@@ -211,8 +213,7 @@ struct cs_packet_mouse_move {
 struct cs_packet_mouse_click {
     uint8_t size;
     uint8_t type;
-    float camera_px, camera_py, camera_pz;  //position
-    float camera_lx, camera_ly, camera_lz;  //look
+    XMFLOAT3 pick_dir;
 };
 
 struct cs_packet_mouse_unclick {

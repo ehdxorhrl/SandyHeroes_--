@@ -132,6 +132,8 @@ void PlayerComponent::HealShield(float heal_amount)
 
 void PlayerComponent::HitDamage(float damage)
 {
+	FMODSoundManager::Instance().PlaySound("grunt", false, 0.3f);
+
 	if (shield_ > 0.f)
 	{
 		shield_ -= damage;

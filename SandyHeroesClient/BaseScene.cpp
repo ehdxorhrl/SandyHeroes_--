@@ -49,12 +49,12 @@
 #include "ScrollComponent.h"
 #include "ChestComponent.h"
 #include "ChestAnimationState.h"
-//#include "SoundComponent.h"
-//#include "FMODSoundManager.h"
+#include "SoundComponent.h"
+#include "FMODSoundManager.h"
 #include "RazerShader.h"
 #include "RazerMesh.h"
 #include "BillboardMeshComponent.h"
-//#include "SuperDragonAnimationState.h"
+#include "SuperDragonAnimationState.h"
 
 void BaseScene::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* command_list, 
 	ID3D12RootSignature* root_signature, GameFramework* game_framework, 
@@ -81,7 +81,7 @@ void BaseScene::BuildShader(ID3D12Device* device, ID3D12RootSignature* root_sign
 	shaders_[(int)ShaderType::kStandardMesh] = std::make_unique<StandardMeshShader>();
 	shaders_[(int)ShaderType::kStandardSkinnedMesh] = std::make_unique<StandardSkinnedMeshShader>();
 	shaders_[(int)ShaderType::kSkybox] = std::make_unique<SkyboxShader>();
-	shaders_[(int)ShaderType::kDebug] = std::make_unique<DebugShader>();
+	//shaders_[(int)ShaderType::kDebug] = std::make_unique<DebugShader>();
 	shaders_[(int)ShaderType::kUI] = std::make_unique<UIShader>();
 	shaders_[(int)ShaderType::kBreathing] = std::make_unique<BreathingShader>();
 	shaders_[(int)ShaderType::kShadow] = std::make_unique<ShadowShader>();
@@ -192,6 +192,8 @@ void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* comma
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Object/Scroll.bin", meshes_, materials_, textures_));	//13 스크롤
 
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Super_Dragon.bin", meshes_, materials_, textures_));
+	
+	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Thorn_Projectile.bin", meshes_, materials_, textures_));
 
 	std::ifstream scene_file{ "./Resource/Model/World/Scene.bin", std::ios::binary };
 
@@ -331,10 +333,6 @@ void BaseScene::BuildMaterial(ID3D12Device* device, ID3D12GraphicsCommandList* c
 	materials_.emplace_back();
 	materials_.back().reset(material);
 
-	material = new Material{ "debug", (int)ShaderType::kDebug };
-	materials_.emplace_back();
-	materials_.back().reset(material);
-
 	material = new Material{ "Face27", (int)ShaderType::kStandardSkinnedMesh };
 	textures_.push_back(std::make_unique<Texture>());
 	textures_.back()->name = "Face27";
@@ -445,7 +443,7 @@ void BaseScene::BuildMaterial(ID3D12Device* device, ID3D12GraphicsCommandList* c
 
 void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* command_list)
 {
-	cb_object_capacity_ = 10000;
+	cb_object_capacity_ = 11000;
 	cb_skinned_mesh_object_capacity_ = 1000;
 	cb_ui_mesh_capacity_ = 100;
 	
@@ -500,7 +498,7 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 		monster_hit_particles_.emplace_back(new Object("monster_hit_particle"));
 		Object* monster_particle = monster_hit_particles_.back();
 		object_list_.emplace_back(monster_particle);
-		monster_particle->set_local_position({ 0, 1, 0 });
+		monster_particle->set_local_position({ 0, 0, 0 });
 		Material* monster_particle_material = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
 			return material->name() == "Trail_1";
 			})->get();
@@ -615,26 +613,26 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	}
 
 	// 사운드
-	//{
-	//	FMODSoundManager::Instance().Initialize();
-	//	Object* sound_object = new Object();
-	//	auto sound_comp = new SoundComponent(sound_object);
-	//	sound_comp->Load("gun_fire", "Resource/Fmod/sound/gun_fire.wav", false);
-	//	sound_comp->Load("flamethrower", "Resource/Fmod/sound/flamethrower.wav", true);
-	//	sound_comp->Load("chest", "Resource/Fmod/sound/chest.wav", false);
-	//	sound_comp->Load("get_drop_gun", "Resource/Fmod/sound/get_drop_gun.wav", false);
-	//	sound_comp->Load("scroll_pickup", "Resource/Fmod/sound/scroll_pickup.wav", false);
-	//	sound_comp->Load("bgm", "Resource/Fmod/sound/bgm.wav", true);
-	//	sound_comp->Load("reload", "Resource/Fmod/sound/reload.wav", false);
-	//	sound_comp->Load("grunt", "Resource/Fmod/sound/grunt.wav", false);
-	//	sound_comp->Load("hit", "Resource/Fmod/sound/hit.wav", false);
-	//	sound_comp->Load("lazer", "Resource/Fmod/sound/lazer.wav", false);
-	//	sound_object->AddComponent(sound_comp);
-	//	sounds_.push_back(sound_object);
-	//	AddObject(sound_object);
-	//
-	//	FMODSoundManager::Instance().PlaySound("bgm", true, 0.3f); // loop=true, volume 조절 가능
-	//}
+	{
+		FMODSoundManager::Instance().Initialize();
+		Object* sound_object = new Object();
+		auto sound_comp = new SoundComponent(sound_object);
+		sound_comp->Load("gun_fire", "Resource/Fmod/sound/gun_fire.wav", false);
+		sound_comp->Load("flamethrower", "Resource/Fmod/sound/flamethrower.wav", true);
+		sound_comp->Load("chest", "Resource/Fmod/sound/chest.wav", false);
+		sound_comp->Load("get_drop_gun", "Resource/Fmod/sound/get_drop_gun.wav", false);
+		sound_comp->Load("scroll_pickup", "Resource/Fmod/sound/scroll_pickup.wav", false);
+		sound_comp->Load("bgm", "Resource/Fmod/sound/bgm.wav", true);
+		sound_comp->Load("reload", "Resource/Fmod/sound/reload.wav", false);
+		sound_comp->Load("grunt", "Resource/Fmod/sound/grunt.wav", false);
+		sound_comp->Load("hit", "Resource/Fmod/sound/hit.wav", false);
+		sound_comp->Load("lazer", "Resource/Fmod/sound/lazer.wav", false);
+		sound_object->AddComponent(sound_comp);
+		sounds_.push_back(sound_object);
+		AddObject(sound_object);
+
+		FMODSoundManager::Instance().PlaySound("bgm", true, 0.3f); // loop=true, volume 조절 가능
+	}
 
 	//Create Skybox
 	Object* skybox = new Object();
@@ -673,10 +671,7 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	AddObject(camera_object);
 
 	//모든 메쉬 있는 객체에 메쉬 콜라이더 추가(주의사항: 새롭게 만들어지는 메쉬있는 객체는 메쉬콜라이더가 없음)
-	//+ 디버그용 메쉬 추가
-	Mesh* debug_mesh = Scene::FindMesh("Debug_Mesh", meshes_);
-	const auto& const debug_material = Scene::FindMaterial("debug", materials_);
-
+	//25.08.08 수정: 디버그 메쉬 삭제(사용하지 않고 에러가 발생함)
 	for (auto& object : object_list_)
 	{
 		auto& mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(object.get());
@@ -687,12 +682,6 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 			MeshColliderComponent* mesh_collider = new MeshColliderComponent(object);
 			mesh_collider->set_mesh(mesh);
 			object->AddComponent(mesh_collider);
-			if (mesh->name() != "Debug_Mesh")
-			{
-				auto debug_mesh_component = new DebugMeshComponent(object, debug_mesh, mesh->bounds());
-				debug_mesh_component->AddMaterial(debug_material);
-				object->AddComponent(debug_mesh_component);
-			}
 		}
 	}
 	PrepareGroundChecking();
@@ -1316,6 +1305,45 @@ void BaseScene::CreatePlayerUI()
 		AddObject(player_hp_bar_background);
 	}
 
+	//Create Dash
+	{
+		Object* dash_icon = new Object();
+		Object* dash_icon_background = new Object();
+		dash_icon->AddChild(dash_icon_background);
+
+		// 배경 설정 (dash_background.dds)
+		dash_icon_background->set_name("Dash_Icon_Background");
+		auto dash_background_material = Scene::FindMaterial("Dash_Background", materials_);
+		auto dash_mesh = Scene::FindMesh("Dash", meshes_); // Star와 동일 크기 mesh 재사용
+		auto dash_back_comp = new UiMeshComponent(dash_icon_background, dash_mesh, dash_background_material, this);
+		dash_back_comp->set_is_static(true);
+		dash_back_comp->set_ui_layer(UiLayer::kOne);
+		dash_icon_background->AddComponent(dash_back_comp);
+
+		// 전면 설정 (dash.dds)
+		dash_icon->set_name("Dash_Icon");
+		auto dash_material = Scene::FindMaterial("Dash", materials_);
+		auto dash_comp = new UiMeshComponent(dash_icon, dash_mesh, dash_material, this);
+		dash_comp->set_is_static(true);
+		dash_icon->AddComponent(dash_comp);
+
+		// ProgressBarComponent
+		auto progress_bar = new ProgressBarComponent(dash_icon);
+		progress_bar->set_type(UiType::kProgressBarY); // 위에서 아래로 차오르게
+		progress_bar->set_view(player_);
+		progress_bar->set_get_max_value_func([](Object* object) -> float {
+			auto player_component = Object::GetComponent<PlayerComponent>(object);
+			return player_component->dash_max_gage();
+			});
+		progress_bar->set_get_current_value_func([](Object* object) -> float {
+			auto player_component = Object::GetComponent<PlayerComponent>(object);
+			return player_component->dash_gage();
+			});
+		dash_icon->AddComponent(progress_bar);
+
+		AddObject(dash_icon);
+	}
+
 	//Create Player's Bullet Count Text
 	{
 		Object* bullet_count_text = new Object();
@@ -1726,6 +1754,17 @@ bool BaseScene::ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time
 			}
 			return true;
 		}
+		if (w_param == VK_F1)
+		{
+			ShowCursor(true);
+			return true;
+		}
+		if (w_param == VK_F2)
+		{
+			ShowCursor(false);
+			return true;
+		}
+
 	}
 		break;
 	default:
@@ -1750,7 +1789,10 @@ void BaseScene::Update(float elapsed_time)
 
 	Scene::Update(elapsed_time);
 
+	FMODSoundManager::Instance().system()->update();
+
 	DeleteDeadObjects();
+
 }
 
 void BaseScene::RenderText(ID2D1DeviceContext2* d2d_device_context)
@@ -2517,6 +2559,9 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 
 		AddObject(dropped_gun);
 		dropped_guns_.push_back(dropped_gun);
+
+		FMODSoundManager::Instance().PlaySound("get_drop_gun", false, 0.3f);
+
 }
 
 void BaseScene::change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t upgrade_level, uint8_t element_type, uint32_t player_id)

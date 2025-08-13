@@ -6,6 +6,7 @@
 #include "MovementComponent.h"
 #include "UiMeshComponent.h"
 #include "ShotDragonAnimationState.h"
+#include "FMODSoundManager.h"
 
 MonsterComponent::MonsterComponent(Object* owner) : Component(owner)
 {
@@ -117,10 +118,12 @@ void MonsterComponent::HitDamage(float damage)
 			hp_ += shield_; // shield가 음수면 hp에 더해줌
 			shield_ = 0;
 		}
+        FMODSoundManager::Instance().PlaySound("hit", false, 0.3f);
 	}
 	else
 	{
 		hp_ -= damage;
+        FMODSoundManager::Instance().PlaySound("hit", false, 0.3f);
 	}
 	if (hp_ < 0)
 	{

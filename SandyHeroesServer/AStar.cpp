@@ -34,6 +34,16 @@ void a_star::ConnectNodes(const std::vector<NodeConnector>& node_connectors)
 
 std::vector<Node*> a_star::AStar(Node* start, Node* goal)
 {
+    for(auto& node_list : kStageNodeBuffers)
+    {
+        for (auto& node : node_list)
+        {
+            node.gCost = FLT_MAX; // 초기화
+            node.hCost = 0.0f; // 초기화
+            node.parent = nullptr; // 초기화
+        }
+	}
+
     auto heuristic = [](Node* a, Node* b) {
         XMVECTOR pa = XMLoadFloat3(&a->position);
         XMVECTOR pb = XMLoadFloat3(&b->position);
@@ -41,8 +51,8 @@ std::vector<Node*> a_star::AStar(Node* start, Node* goal)
         return XMVectorGetX(XMVector3Length(d)); // 유클리드 거리
         };
 
-    std::priority_queue < Node*, std::vector<Node*>,
-        decltype([](Node* a, Node* b) { return a->fCost() > b->fCost(); }) > openSet;
+    std::priority_queue<Node*, std::vector<Node*>,
+        decltype([](Node* a, Node* b) { return a->fCost() > b->fCost(); })> openSet;
 
     start->gCost = 0.0f;
     start->hCost = heuristic(start, goal);
@@ -59,7 +69,7 @@ std::vector<Node*> a_star::AStar(Node* start, Node* goal)
         {
             // 경로 복원
             std::vector<Node*> path;
-            while (current)
+			while (current) 
             {
                 path.push_back(current);
                 current = current->parent;

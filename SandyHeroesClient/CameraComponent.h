@@ -22,6 +22,8 @@ public:
 
 	bool CollisionCheckByMeshComponent(MeshComponent* mesh_component);
 
+	void GetPickingRay(int screen_x, int screen_y, XMFLOAT3& ray_origin, XMFLOAT3& ray_direction);
+
 	//owner의 월드 행렬 기반으로 view matrix 업데이트 
 	//(owner의 월드행렬이 업데이트가 되고 이 함수가 호출되어야함)
 	void UpdateCameraInfo();

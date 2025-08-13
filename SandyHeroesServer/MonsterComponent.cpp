@@ -7,6 +7,7 @@
 #include "SessionManager.h"
 #include "User.h"
 #include "AIComponent.h"
+#include "AStar.h"
 //#include "ShotDragonAnimationState.h"
 
 MonsterComponent::MonsterComponent(Object* owner) : Component(owner)
@@ -61,93 +62,6 @@ void MonsterComponent::Update(float elapsed_time)
         }
     }
 
-    //if (!target_)
-    //{
-    //    float min_distance_sq = FLT_MAX;
-    //    Object* nearest_player = nullptr;
-    //
-    //    const auto& sessions = SessionManager::getInstance().getAllSessions();
-    //    for (const auto& pair : sessions)
-    //    {
-    //        const auto& session = pair.second;
-    //        Object* player = session->get_player_object();
-    //        if (!player || player->is_dead())
-    //            continue;
-    //
-    //        float dist_sq = xmath_util_float3::LengthSq(player->world_position_vector() - owner_->world_position_vector());
-    //        if (dist_sq < min_distance_sq)
-    //        {
-    //            min_distance_sq = dist_sq;
-    //            nearest_player = player;
-    //        }
-    //    }
-    //
-    //    if (nearest_player)
-    //    {
-    //        set_target(nearest_player);
-    //    }
-    //}
-
-    ////TODO: 몬스터의 행동을 결정하는 AI 추가
-    ////EX) ai->Update(owner_, elapsed_time);
-    //auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
-    //if (movement)
-    //{
-    //    XMFLOAT3 look = owner_->look_vector();
-    //    look.y = 0.f;
-    //    look = xmath_util_float3::Normalize(look);
-    //    XMFLOAT3 direction = target_->world_position_vector() - owner_->world_position_vector();
-    //    direction.y = 0.f;
-    //    direction = xmath_util_float3::Normalize(direction);
-    //    float angle = xmath_util_float3::AngleBetween(look, direction);
-    //    if (angle > XM_PI / 180.f * 5.f)
-    //    {
-    //        //회전 방향 연산
-    //        XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, direction);
-    //        if (cross.y < 0)
-    //        {
-    //            angle = -angle;
-    //        }
-    //        angle = XMConvertToDegrees(angle);
-    //        owner_->Rotate(0.f, angle, 0.f);
-    //    }
-    //
-    //    if (owner_->tag() == "Shot_Dragon")
-    //    {
-    //        auto animator = Object::GetComponent<AnimatorComponent>(owner_);
-    //        auto animation_state = animator->animation_state();
-    //        //animation_state->ChangeAnimationTrack((int)ShotDragonAnimationTrack::kAttack, owner_, animator);
-    //        //animation_state->set_animation_loop_type(0); // Loop
-    //       
-    //    }
-    //    if (owner_->tag() == "Strong_Dragon")
-    //    {
-    //        //return;
-    //    }
-    //
-    //    movement->MoveXZ(direction.x, direction.z, 5.f);
-    //
-    //    movement->set_max_speed_xz(3.5f);
-    //
-    //    auto velocity_xz = movement->velocity();
-    //    velocity_xz.y = 0.f;
-    //    float speed = xmath_util_float3::Length(velocity_xz);
-    //
-    //    sc_packet_monster_move mm;
-    //    mm.size = sizeof(sc_packet_monster_move);
-    //    mm.type = S2C_P_MONSTER_MOVE;
-    //    mm.id = owner_->id();
-    //    mm.speed = speed;
-    //    XMFLOAT4X4 xf;
-    //    const XMFLOAT4X4& mat = owner_->transform_matrix();
-    //    XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
-    //    memcpy(mm.matrix, &xf, sizeof(float) * 16);
-    //
-    //    const auto& users = SessionManager::getInstance().getAllSessions();
-    //    for (auto& u : users) {
-    //        u.second->do_send(&mm);
-    //    }
-    //}
     for (auto& [type, effect] : status_effects_)
     {
         if (!effect.IsActive()) continue;
@@ -158,6 +72,119 @@ void MonsterComponent::Update(float elapsed_time)
         {
             float dps = effect.fire_damage * 0.9f;
             HitDamage(dps * elapsed_time);
+            XMFLOAT3 look = owner_->look_vector();
+
+            look.y = 0.f;
+            look = xmath_util_float3::Normalize(look);
+
+            constexpr float kAstarCoolTime = 0.5f;
+			astar_delta_cool_time_ += elapsed_time;
+            if (astar_delta_cool_time_ > kAstarCoolTime)
+            {
+				astar_delta_cool_time_ = 0.f;
+
+                UpdateTargetPath();
+
+                //경로를 활용할 때는 y 좌표가 필요없음
+                for (const auto& node : path_)
+                {
+                    node->position.y = 0.f;
+                }
+
+                current_node_idx_ = 0;
+                if (current_node_ == path_[0]) // 현재노드가 시작노드와 같다면 다음노드 부터 시작
+                {
+                    ++current_node_idx_;
+                }
+			}
+
+            XMFLOAT3 direction;
+            if (path_.size() <= current_node_idx_)
+            {
+                direction = target_->world_position_vector() - owner_->world_position_vector();
+            }
+            else
+            {
+                auto position_xz = owner_->world_position_vector();
+                position_xz.y = 0.f;
+
+                // A* 경로를 따라 이동
+                direction = path_[current_node_idx_]->position - position_xz;
+                float distance = xmath_util_float3::Length(direction);
+
+				// 현재 노드에 도달했는지 확인하고 도달했다면 다음 노드로 이동
+                if (distance < 0.2f)
+                {
+					current_node_ = path_[current_node_idx_];
+                    ++current_node_idx_;
+                }
+            }
+
+            direction.y = 0.f;
+            direction = xmath_util_float3::Normalize(direction);
+            float angle = xmath_util_float3::AngleBetween(look, direction);
+            if (angle > XM_PI / 180.f * 5.f)
+            {
+                //회전 방향 연산
+                XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, direction);
+                if (cross.y < 0)
+                {
+                    angle = -angle;
+                }
+                angle = XMConvertToDegrees(angle);
+                owner_->Rotate(0.f, angle, 0.f);
+            }
+
+            if (owner_->tag() == "Shot_Dragon")
+            {
+                auto animator = Object::GetComponent<AnimatorComponent>(owner_);
+                auto animation_state = animator->animation_state();
+                //animation_state->ChangeAnimationTrack((int)ShotDragonAnimationTrack::kAttack, owner_, animator);
+                //animation_state->set_animation_loop_type(0); // Loop
+
+
+                sc_packet_monster_move mm;
+                mm.size = sizeof(sc_packet_monster_move);
+                mm.type = S2C_P_MONSTER_MOVE;
+                mm.id = owner_->id();
+                XMFLOAT4X4 xf;
+                const XMFLOAT4X4& mat = owner_->transform_matrix();
+                XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
+                memcpy(mm.matrix, &xf, sizeof(float) * 16);
+
+                const auto& users = SessionManager::getInstance().getAllSessions();
+                for (auto& u : users) {
+                    u.second->do_send(&mm);
+                }
+                return;
+            }
+            if (owner_->tag() == "Strong_Dragon")
+            {
+                return;
+            }
+
+            movement->MoveXZ(direction.x, direction.z, 5.f);
+
+            movement->set_max_speed_xz(3.5f);
+
+            auto velocity_xz = movement->velocity();
+            velocity_xz.y = 0.f;
+            float speed = xmath_util_float3::Length(velocity_xz);
+
+            sc_packet_monster_move mm;
+            mm.size = sizeof(sc_packet_monster_move);
+            mm.type = S2C_P_MONSTER_MOVE;
+            mm.id = owner_->id();
+            mm.speed = speed;
+            XMFLOAT4X4 xf;
+            const XMFLOAT4X4& mat = owner_->transform_matrix();
+            XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
+            memcpy(mm.matrix, &xf, sizeof(float) * 16);
+
+            const auto& users = SessionManager::getInstance().getAllSessions();
+            for (auto& u : users) {
+                u.second->do_send(&mm);
+            }
         }
         else if (type == StatusEffectType::Electric)
         {
@@ -192,6 +219,37 @@ void MonsterComponent::Update(float elapsed_time)
         ai_->Update(elapsed_time);       // 매 프레임 BT 실행
     }
 
+}
+
+void MonsterComponent::UpdateTargetPath()
+{
+    auto base_scene = dynamic_cast<BaseScene*>(scene_);
+    const auto& current_stage_node_buffer = kStageNodeBuffers[base_scene->stage_clear_num()];
+
+    Node* start_node = nullptr;
+    Node* goal_node = nullptr;
+
+    float start_min_distance_sq = FLT_MAX;
+    float goal_min_distance_sq = FLT_MAX;
+
+    for (const auto& node : current_stage_node_buffer)
+    {
+        float start_distance_sq = xmath_util_float3::LengthSq(node.position - owner_->world_position_vector());
+        if (start_distance_sq < start_min_distance_sq)
+        {
+            start_min_distance_sq = start_distance_sq;
+            start_node = const_cast<Node*>(&node);
+        }
+
+        float target_distance_sq = xmath_util_float3::LengthSq(node.position - target_->world_position_vector());
+        if (target_distance_sq < goal_min_distance_sq)
+        {
+            goal_min_distance_sq = target_distance_sq;
+            goal_node = const_cast<Node*>(&node);
+        }
+    }
+
+    path_ = a_star::AStar(start_node, goal_node);
 }
 
 void MonsterComponent::InitAfterOwnerSet() {

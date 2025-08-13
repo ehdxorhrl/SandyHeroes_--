@@ -133,6 +133,25 @@ void Session::update(float elapsed_time)
 		movement->MoveXZ(dash_velocity_.x, dash_velocity_.z, kDashSpeed);
 	}
 
+	// 연사
+	if (is_firekey_down_)
+	{
+		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_object_);
+		if (gun && gun->fire_type() == GunFireType::kAuto) {
+			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
+
+			auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
+			gun->FireBullet(fire_direction_, bullet_mesh, base_scene, id_);
+			if (gun->gun_name() == "flamethrower")
+			{
+				for (const auto& monster : base_scene->monster_list())
+				{
+					base_scene->CheckObjectHitFlamethrow(monster->owner(), id_);
+				}
+			}
+		}
+	}
+
 
 	if (xmath_util_float3::Length(player_object_->position_vector() - dash_before_position_) >= dash_length_)
 	{
@@ -198,6 +217,12 @@ void Session::send_player_position()
 	memcpy(mp.matrix, &xf, sizeof(float) * 16);
 	auto player_component = Object::GetComponent<PlayerComponent>(player_object_);
 	mp.main_skill_gage = player_component->main_skill_gage();
+	float dash_cool_time = dash_cool_time_ - dash_cool_delta_time_;
+	if (dash_cool_time < 0)
+		dash_cool_time = 0.f;
+	if(dash_cool_time > dash_cool_time_)
+		dash_cool_time = dash_cool_time_;
+	mp.dash_cool_time = dash_cool_time;
 	do_send(&mp);
 	//std::cout << "x: " << player_object_->position_vector().x << std::endl;
 	//std::cout << "y: " << player_object_->position_vector().y << std::endl;
@@ -333,7 +358,6 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 
 		break;
 	}
-
 	case C2S_P_MOUSE_MOVE: {
 			cs_packet_mouse_move* packet = reinterpret_cast<cs_packet_mouse_move*>(p);
 			player_object_->Rotate(0,
@@ -350,7 +374,13 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 			memcpy(mp.matrix, &xf, sizeof(float) * 16);
 			auto player_component = Object::GetComponent<PlayerComponent>(player_object_);
 			mp.main_skill_gage = player_component->main_skill_gage();
-			
+			float dash_cool_time = dash_cool_time_ - dash_cool_delta_time_;
+			if (dash_cool_time < 0)
+				dash_cool_time = 0.f;
+			if (dash_cool_time > dash_cool_time_)
+				dash_cool_time = dash_cool_time_;
+			mp.dash_cool_time = dash_cool_time;
+
 			const auto& users = SessionManager::getInstance().getAllSessions();
 			for (auto& u : users) {
 				u.second->do_send(&mp);
@@ -364,25 +394,15 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 	case C2S_P_MOUSE_CLICK: {
 		cs_packet_mouse_click* packet = reinterpret_cast<cs_packet_mouse_click*>(p);
 		is_firekey_down_ = true;
-		std::cout << "진입완료" << std::endl;
-		// 카메라 방향을 받는다
-		XMFLOAT3 cam_pos{ packet->camera_px, packet->camera_py, packet->camera_pz };
-		XMFLOAT3 cam_look{ packet->camera_lx, packet->camera_ly, packet->camera_lz };
-		cam_look = xmath_util_float3::Normalize(cam_look);
+		fire_direction_ = packet->pick_dir;
 
-		// 카메라 방향으로 총알 생성
+		// 피킹 방향으로 총알 생성
 		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_object_);
 		if (gun) {
 			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
 
-			XMFLOAT3 gun_shoting_point{ gun->owner()->world_position_vector() };
-			XMFLOAT3 target_pos = cam_pos + (cam_look * 25.f);
-			XMVECTOR picking_point_w = XMLoadFloat3(&target_pos);
-			XMFLOAT3 bullet_dir{};
-			XMStoreFloat3(&bullet_dir, XMVector3Normalize(picking_point_w - XMLoadFloat3(&gun_shoting_point)));
-
 			auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
-			gun->FireBullet(bullet_dir, bullet_mesh, base_scene, id_);
+			gun->FireBullet(fire_direction_, bullet_mesh, base_scene, id_);
 			if (gun->gun_name() == "flamethrower")
 			{
 				for (const auto& monster : base_scene->monster_list())

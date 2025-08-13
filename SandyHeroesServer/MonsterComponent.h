@@ -3,6 +3,7 @@
 #include "BaseScene.h"
 
 class AIComponent;
+struct Node;
 
 //enum class MonsterType { kNormal, kBoss, kMiniBoss };
 enum class StatusEffectType { None, Fire, Poison, Electric };
@@ -32,6 +33,8 @@ public:
 	virtual Component* GetCopy() override;
 
 	virtual void Update(float elapsed_time) override;
+
+	void UpdateTargetPath();
 
 	void InitAfterOwnerSet();
 
@@ -86,8 +89,12 @@ private:
 
 	std::unordered_map<StatusEffectType, StatusEffect> status_effects_;
 
-	AIComponent* ai_ = nullptr;
-
 	//TODO: 몬스터를 움직일 AI 추가
+	AIComponent* ai_ = nullptr;
+	int current_node_idx_{ 0 }; // 현재 노드 인덱스
+	Node* current_node_{ nullptr }; // 현재 노드
+	float astar_delta_cool_time_{ 0.0f }; // A* 알고리즘 쿨타임
+	std::vector<Node*> path_; // A* 알고리즘 경로
+
 };
 
