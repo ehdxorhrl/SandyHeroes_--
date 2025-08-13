@@ -54,7 +54,7 @@
 #include "RazerShader.h"
 #include "RazerMesh.h"
 #include "BillboardMeshComponent.h"
-//#include "SuperDragonAnimationState.h"
+#include "SuperDragonAnimationState.h"
 
 void BaseScene::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* command_list, 
 	ID3D12RootSignature* root_signature, GameFramework* game_framework, 
@@ -192,6 +192,8 @@ void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* comma
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Object/Scroll.bin", meshes_, materials_, textures_));	//13 스크롤
 
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Super_Dragon.bin", meshes_, materials_, textures_));
+	
+	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Thorn_Projectile.bin", meshes_, materials_, textures_));
 
 	std::ifstream scene_file{ "./Resource/Model/World/Scene.bin", std::ios::binary };
 
@@ -441,7 +443,7 @@ void BaseScene::BuildMaterial(ID3D12Device* device, ID3D12GraphicsCommandList* c
 
 void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* command_list)
 {
-	cb_object_capacity_ = 10000;
+	cb_object_capacity_ = 11000;
 	cb_skinned_mesh_object_capacity_ = 1000;
 	cb_ui_mesh_capacity_ = 100;
 	

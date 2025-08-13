@@ -88,6 +88,8 @@ void BaseScene::BuildMesh()
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Object/Scroll.bin", meshes_, materials_, textures_));	//13 스크롤
 
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Super_Dragon.bin", meshes_, materials_, textures_));
+	
+	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Thorn_Projectile.bin", meshes_, materials_, textures_));
 
 	// 씬 배치 정보 로딩
 	std::ifstream scene_file{ "./Resource/Model/World/Scene.bin", std::ios::binary };

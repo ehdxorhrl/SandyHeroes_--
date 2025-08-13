@@ -156,13 +156,18 @@ Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::u
 			material->set_shader_type((int)ShaderType::kStandardMesh);
 
 			Material* find_material = Scene::FindMaterial(material->name(), materials);
-			if (find_material)
+			if (find_material && find_material->shader_type() != (int)ShaderType::kStandardSkinnedMesh)
 			{
 				delete material;
 				material = find_material;
 			}
 			else
 			{
+				if (find_material)
+				{
+					material->set_name(find_material->name() + "_copy");
+				}
+
 				materials.emplace_back();
 				materials.back().reset(material);
 			}
