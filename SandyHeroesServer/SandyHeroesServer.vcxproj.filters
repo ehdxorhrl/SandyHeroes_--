@@ -109,6 +109,9 @@
     <Filter Include="5.Component\Mesh\BillboardMesh">
       <UniqueIdentifier>{7c2e60d2-0561-4266-b450-a0ce337e69fc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="5.Component\AI">
+      <UniqueIdentifier>{9d7d9cec-a142-4fe3-9014-97f7e360be09}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="targetver.h">
@@ -239,6 +242,9 @@
     <ClInclude Include="BillboardMeshComponent.h">
       <Filter>5.Component\Mesh\BillboardMesh</Filter>
     </ClInclude>
+    <ClInclude Include="AIComponent.h">
+      <Filter>5.Component\AI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandyHeroesServer.cpp">
@@ -357,6 +363,9 @@
     </ClCompile>
     <ClCompile Include="BillboardMeshComponent.cpp">
       <Filter>5.Component\Mesh\BillboardMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="AIComponent.cpp">
+      <Filter>5.Component\AI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

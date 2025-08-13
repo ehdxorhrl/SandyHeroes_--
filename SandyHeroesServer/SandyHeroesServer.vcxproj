@@ -130,6 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AIComponent.h" />
     <ClInclude Include="AnimationSet.h" />
     <ClInclude Include="AnimationState.h" />
     <ClInclude Include="AnimationTrack.h" />
@@ -183,6 +184,7 @@
     <None Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AIComponent.cpp" />
     <ClCompile Include="AnimationSet.cpp" />
     <ClCompile Include="AnimationState.cpp" />
     <ClCompile Include="AnimationTrack.cpp" />

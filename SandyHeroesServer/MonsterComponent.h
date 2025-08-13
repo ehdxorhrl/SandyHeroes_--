@@ -2,6 +2,8 @@
 #include "Component.h"
 #include "BaseScene.h"
 
+class AIComponent;
+
 //enum class MonsterType { kNormal, kBoss, kMiniBoss };
 enum class StatusEffectType { None, Fire, Poison, Electric };
 struct StatusEffect
@@ -47,12 +49,15 @@ public:
 	void set_push_timer(float value);
 	void set_scene(Scene* value);
 
+	void RebuildBehaviorTree_();
+
 	//getter
 	float shield() const;
 	float hp()const;
 	float max_hp()const;
 	float max_shield()const;
 	float attack_force()const;
+	Object* target() const;
 
 	bool IsDead() const;
 
@@ -80,6 +85,8 @@ private:
 	bool dead_by_fire_{ false };
 
 	std::unordered_map<StatusEffectType, StatusEffect> status_effects_;
+
+	AIComponent* ai_ = nullptr;
 
 	//TODO: 몬스터를 움직일 AI 추가
 };

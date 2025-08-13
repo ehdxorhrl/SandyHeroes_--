@@ -27,6 +27,7 @@ constexpr char S2C_P_MONSTER_MOVE = 22;     // 몬스터 무브
 constexpr char S2C_P_MONSTER_DAMAGED = 23;  // 몬스터가 입은 데미지
 constexpr char S2C_P_MONSTER_DEATH = 24;
 constexpr char S2C_P_MONSTER_DAMAGED_PATICLE = 25;
+constexpr char S2C_P_MONSTER_CHANGE_ANIMATION = 26;
 
 constexpr char S2C_P_STAGE_CLEAR = 55;
 
@@ -44,9 +45,17 @@ constexpr char PRESS_ON = 1;
 
 #pragma pack (push,1)
 
+struct sc_packet_monster_change_animation {
+    uint8_t size;
+    uint8_t type;  // S2C_P_MONSTER_CHANGE_ANIMATION
+    uint32_t id;   // 몬스터 id
+    uint8_t animation_track; // 애니메이션 트랙
+    uint8_t loop_type; // 애니메이션 횟수
+};
+
 struct sc_packet_play_mainskill {
     uint8_t size;
-    uint8_t type;  // S2C_P_TAKE_SCROLL
+    uint8_t type;  // S2C_P_PLAY_MAINSKILL
     uint32_t id;
 };
 

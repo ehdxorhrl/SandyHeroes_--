@@ -10,7 +10,9 @@
 #include "InputManager.h"
 #include "GunComponent.h"
 #include "FPSControllerComponent.h"
+#include "AnimationState.h"
 #include "InputControllerComponent.h"
+#include "AnimatorComponent.h"
 #include "MonsterComponent.h"
 #include "MovementComponent.h"
 #include "PlayerComponent.h"
@@ -1100,6 +1102,17 @@ void GameFramework::ProcessPacket(char* p)
             if (player_component)
                 player_component->ActivateMainSkill();
         }
+    }
+        break;
+    case S2C_P_MONSTER_CHANGE_ANIMATION:
+    {
+        auto packet = reinterpret_cast<sc_packet_monster_change_animation*>(p);
+        Object* monster = base_scene->FindObject(packet->id);
+        if (!monster) break;
+        auto animator = Object::GetComponent<AnimatorComponent>(monster);
+        auto animation_state = animator->animation_state();
+        animation_state->ChangeAnimationTrack(packet->animation_track, monster, animator);
+        animation_state->set_animation_loop_type(packet->loop_type); // Loop
     }
         break;
     default:
