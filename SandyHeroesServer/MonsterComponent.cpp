@@ -1,4 +1,4 @@
-#include "stdafx.h"
+Ôªø#include "stdafx.h"
 #include "MonsterComponent.h"
 #include "Object.h"
 #include "AnimatorComponent.h"
@@ -38,7 +38,7 @@ void MonsterComponent::Update(float elapsed_time)
         auto animator = Object::GetComponentInChildren<AnimatorComponent>(owner_);
         if (!animator)
         {
-            std::string temp = owner_->name() + "¿« MonsterComponent ¡◊¿Ω æ÷¥œ∏ﬁ¿Ãº« √‚∑¬ ∞˙¡§ø°º≠ πÆ¡¶∞° ª˝∞ÂΩ¿¥œ¥Ÿ.";
+            std::string temp = owner_->name() + "ÔøΩÔøΩ MonsterComponent ÔøΩÔøΩÔøΩÔøΩ ÔøΩ÷¥œ∏ÔøΩÔøΩÃºÔøΩ ÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩœ¥ÔøΩ.";
             std::wstring debug_str;
             debug_str.assign(temp.begin(), temp.end());
 
@@ -50,11 +50,9 @@ void MonsterComponent::Update(float elapsed_time)
         {
             if (animation_state->GetDeadAnimationTrack() == -1)
             {
-                // ¡◊¥¬ æ÷¥œ∏ﬁ¿Ãº«¿Ã æ¯¿∏∏È ±◊≥… ¡◊¥¬¥Ÿ.
                 owner_->set_is_dead(true);
                 return;
             }
-            // ¡◊¥¬ æ÷¥œ∏ﬁ¿Ãº«¿∏∑Œ ¿¸»Ø
             animation_state->ChangeAnimationTrack(animation_state->GetDeadAnimationTrack(), owner_, animator);
             animation_state->set_animation_loop_type(1); // Once
             is_dead_animationing_ = true;
@@ -62,41 +60,60 @@ void MonsterComponent::Update(float elapsed_time)
         }
     }
 
-    for (auto& [type, effect] : status_effects_)
+    //EX) ai->Update(owner_, elapsed_time);
+    if (target_)
     {
-        if (!effect.IsActive()) continue;
-
-        effect.elapsed += elapsed_time;
-
-        if (type == StatusEffectType::Fire)
+        auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
+        if (movement)
         {
-            float dps = effect.fire_damage * 0.9f;
-            HitDamage(dps * elapsed_time);
             XMFLOAT3 look = owner_->look_vector();
-
             look.y = 0.f;
             look = xmath_util_float3::Normalize(look);
 
             constexpr float kAstarCoolTime = 0.5f;
-			astar_delta_cool_time_ += elapsed_time;
+            astar_delta_cool_time_ += elapsed_time;
             if (astar_delta_cool_time_ > kAstarCoolTime)
             {
-				astar_delta_cool_time_ = 0.f;
+                astar_delta_cool_time_ = 0.f;
 
+                auto base_scene = dynamic_cast<BaseScene*>(scene_);
+                const auto& current_stage_node_buffer = kStageNodeBuffers[base_scene->stage_clear_num()];
+                Node* start_node = nullptr;
+                Node* goal_node = nullptr;
+                float start_min_distance_sq = FLT_MAX;
+                float goal_min_distance_sq = FLT_MAX;
+                for (const auto& node : current_stage_node_buffer)
+                {
+                    float start_distance_sq = xmath_util_float3::LengthSq(node.position - owner_->world_position_vector());
+                    if (start_distance_sq < start_min_distance_sq)
+                    {
+                        start_min_distance_sq = start_distance_sq;
+                        start_node = const_cast<Node*>(&node);
+                    }
+                    float target_distance_sq = xmath_util_float3::LengthSq(node.position - target_->world_position_vector());
+                    if (target_distance_sq < goal_min_distance_sq)
+                    {
+                        goal_min_distance_sq = target_distance_sq;
+                        goal_node = const_cast<Node*>(&node);
+                    }
+                }
+                path_ = a_star::AStar(start_node, goal_node);
                 UpdateTargetPath();
 
-                //∞Ê∑Œ∏¶ »∞øÎ«“ ∂ß¥¬ y ¡¬«•∞° « ø‰æ¯¿Ω
                 for (const auto& node : path_)
                 {
                     node->position.y = 0.f;
                 }
 
                 current_node_idx_ = 0;
-                if (current_node_ == path_[0]) // «ˆ¿Á≥ÎµÂ∞° Ω√¿€≥ÎµÂøÕ ∞∞¥Ÿ∏È ¥Ÿ¿Ω≥ÎµÂ ∫Œ≈Õ Ω√¿€
+                if (current_node_ == path_[0]) 
                 {
-                    ++current_node_idx_;
+                    if (current_node_ == path_[0])
+                    {
+                        ++current_node_idx_;
+                    }
                 }
-			}
+            }
 
             XMFLOAT3 direction;
             if (path_.size() <= current_node_idx_)
@@ -108,14 +125,12 @@ void MonsterComponent::Update(float elapsed_time)
                 auto position_xz = owner_->world_position_vector();
                 position_xz.y = 0.f;
 
-                // A* ∞Ê∑Œ∏¶ µ˚∂Û ¿Ãµø
                 direction = path_[current_node_idx_]->position - position_xz;
                 float distance = xmath_util_float3::Length(direction);
 
-				// «ˆ¿Á ≥ÎµÂø° µµ¥ﬁ«ﬂ¥¬¡ˆ »Æ¿Œ«œ∞Ì µµ¥ﬁ«ﬂ¥Ÿ∏È ¥Ÿ¿Ω ≥ÎµÂ∑Œ ¿Ãµø
                 if (distance < 0.2f)
                 {
-					current_node_ = path_[current_node_idx_];
+                    current_node_ = path_[current_node_idx_];
                     ++current_node_idx_;
                 }
             }
@@ -125,7 +140,6 @@ void MonsterComponent::Update(float elapsed_time)
             float angle = xmath_util_float3::AngleBetween(look, direction);
             if (angle > XM_PI / 180.f * 5.f)
             {
-                //»∏¿¸ πÊ«‚ ø¨ªÍ
                 XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, direction);
                 if (cross.y < 0)
                 {
@@ -186,38 +200,77 @@ void MonsterComponent::Update(float elapsed_time)
                 u.second->do_send(&mm);
             }
         }
-        else if (type == StatusEffectType::Electric)
+        for (auto& [type, effect] : status_effects_)
+        {
+            if (!effect.IsActive()) continue;
+
+            effect.elapsed += elapsed_time;
+
+            if (type == StatusEffectType::Fire)
+            {
+                float dps = effect.fire_damage * 0.9f;
+                HitDamage(dps * elapsed_time);
+            }
+            else if (type == StatusEffectType::Electric)
+            {
+                auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
+                if (movement)
+                {
+                    if (!electric_slow_applied_)
+                    {
+                        original_speed_ = movement->max_speed_xz();
+                        movement->set_max_speed_xz(original_speed_ * 0.70f);
+                        electric_slow_applied_ = true;
+                    }
+                }
+            }
+        }
+        auto& electric = status_effects_[StatusEffectType::Electric];
+        if (!electric.IsActive() && electric_slow_applied_)
         {
             auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
             if (movement)
             {
-                if (!electric_slow_applied_)
-                {
-                    original_speed_ = movement->max_speed_xz();
-                    movement->set_max_speed_xz(original_speed_ * 0.70f);
-                    electric_slow_applied_ = true;
-                }
+                movement->set_max_speed_xz(original_speed_);
+                electric_slow_applied_ = false;
             }
         }
     }
-    auto& electric = status_effects_[StatusEffectType::Electric];
-    if (!electric.IsActive() && electric_slow_applied_)
+
+    if (!target_)
     {
-        auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
-        if (movement)
+        float min_distance_sq = FLT_MAX;
+        Object* nearest_player = nullptr;
+
+        const auto& sessions = SessionManager::getInstance().getAllSessions();
+        for (const auto& pair : sessions)
         {
-            movement->set_max_speed_xz(original_speed_);
-            electric_slow_applied_ = false;
+            const auto& session = pair.second;
+            Object* player = session->get_player_object();
+            if (!player || player->is_dead())
+                continue;
+
+            float dist_sq = xmath_util_float3::LengthSq(player->world_position_vector() - owner_->world_position_vector());
+            if (dist_sq < min_distance_sq)
+            {
+                min_distance_sq = dist_sq;
+                nearest_player = player;
+            }
+        }
+
+        if (nearest_player)
+        {
+            set_target(nearest_player);
         }
     }
 
-    if (!ai_) {
-        RebuildBehaviorTree_();          // «ˆ¿Á ≈∏¿‘/≈∏∞Ÿ ±‚¡ÿ¿∏∑Œ ∆Æ∏Æ ±∏º∫
-    }
-    
-    if (ai_) {
-        ai_->Update(elapsed_time);       // ∏≈ «¡∑π¿” BT Ω««‡
-    }
+    //if (!ai_) {
+    //    RebuildBehaviorTree_();          // ÌòÑÏû¨ ÌÉÄÏûÖ/ÌÉÄÍ≤ü Í∏∞Ï§ÄÏúºÎ°ú Ìä∏Î¶¨ Íµ¨ÏÑ±
+    //}
+    //
+    //if (ai_) {
+    //    ai_->Update(elapsed_time);       // Îß§ ÌîÑÎ†àÏûÑ BT Ïã§Ìñâ
+    //}
 
 }
 
@@ -290,14 +343,14 @@ void MonsterComponent::HitDamage(float damage)
 {
     if (shield_ > 0)
     {
-        //std::cout << "¿¸: " << shield_ << std::endl;
+        //std::cout << "Ï†Ñ: " << shield_ << std::endl;
         shield_ -= damage;
         if (shield_ < 0)
         {
-            hp_ += shield_; // shield∞° ¿Ωºˆ∏È hpø° ¥ı«ÿ¡‹
+            hp_ += shield_; // shieldÍ∞Ä ÏùåÏàòÎ©¥ hpÏóê ÎçîÌï¥Ï§å
             shield_ = 0;
         }
-        //std::cout << "»ƒ: " << shield_ << std::endl;
+        //std::cout << "ÌõÑ: " << shield_ << std::endl;
     }
     else
     {
@@ -410,7 +463,7 @@ void MonsterComponent::set_scene(Scene* value)
 void MonsterComponent::RebuildBehaviorTree_()
 {
     if (!ai_) {
-        ai_ = new AIComponent(owner_); // ∂«¥¬ make_unique ªÁøÎ
+        ai_ = new AIComponent(owner_); // ÎòêÎäî make_unique ÏÇ¨Ïö©
     }
 
     BTNode* root = nullptr;
@@ -418,12 +471,12 @@ void MonsterComponent::RebuildBehaviorTree_()
     switch (owner_->monster_type()) {
     case MonsterType::Strong_Dragon:
         root = Build_Strong_Dragon_Tree(owner_);
-        //std::cout << "Build_Strong_Dragon_Tree ª˝º∫ øœ∑·" << std::endl;
+        //std::cout << "Build_Strong_Dragon_Tree ÏÉùÏÑ± ÏôÑÎ£å" << std::endl;
         break;
     case MonsterType::Hit_Dragon:  root = Build_Hit_Dragon_Tree(owner_);  
         break;
     case MonsterType::Bomb_Dragon:  root = Build_Bomb_Dragon_Tree(owner_);
-        std::cout << "Build_Bomb_Dragon_Tree ª˝º∫ øœ∑·" << std::endl;
+        std::cout << "Build_Bomb_Dragon_Tree ÏÉùÏÑ± ÏôÑÎ£å" << std::endl;
         break;
     case MonsterType::Shot_Dragon:  root = Build_Shot_Dragon_Tree(owner_);
         break;
