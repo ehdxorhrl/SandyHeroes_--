@@ -1,12 +1,15 @@
 #pragma once
+#include "stdafx.h"
+#include "GameFramework.h"
 #include "Component.h"
-#include "MonsterComponent.h"
 #include "SessionManager.h"
-#include "MovementComponent.h"
 #include "AnimatorComponent.h"
+#include "MonsterComponent.h"
+#include "MovementComponent.h"
 #include "User.h"
-#include <vector>
-#include <functional>
+#include "Object.h"
+
+class BaseScene;
 
 struct BombState {
     float acc = 0.f;
@@ -87,17 +90,21 @@ public:
 
     void SetBehaviorTree(BTNode* root);
 
+    bool Move_To_Target(float dt);                       // 경로 쿨타임/추적(이동/회전/패킷)
+
 private:
     BTNode* behavior_tree_root_ = nullptr;
+    int current_node_idx_{ 0 };
+    Node* current_node_{ nullptr };
+    float astar_delta_cool_time_{ 0.0f };
+    std::vector<Node*> path_;
 };
 
-// 현재 타겟을 엔진 방식에 맞게 가져오는 헬퍼 (예시)
 static Object* GetCurrentTarget(Object* self) {
     auto* monster_component = Object::GetComponentInChildren<MonsterComponent>(self);
     return monster_component->target();
 }
 
-// 다른 타겟을 선택/설정하는 헬퍼 (예시)
 static Object* Set_Target(Object* self) {
     auto* monster_component = Object::GetComponentInChildren<MonsterComponent>(self);
 
@@ -128,57 +135,6 @@ static Object* Set_Target(Object* self) {
     return nearest_player;
 }
 
-
-inline bool Move_To_Target(Object* self, Object* target)
-{
-    if (!self || !target) return false;
-
-    auto movement = Object::GetComponentInChildren<MovementComponent>(self);
-
-    XMFLOAT3 look = self->look_vector();
-    look.y = 0.f;
-    look = xmath_util_float3::Normalize(look);
-    XMFLOAT3 direction = target->world_position_vector() - self->world_position_vector();
-    direction.y = 0.f;
-    direction = xmath_util_float3::Normalize(direction);
-    float angle = xmath_util_float3::AngleBetween(look, direction);
-    if (angle > XM_PI / 180.f * 5.f)
-    {
-        //회전 방향 연산
-        XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, direction);
-        if (cross.y < 0)
-        {
-            angle = -angle;
-        }
-        angle = XMConvertToDegrees(angle);
-        self->Rotate(0.f, angle, 0.f);
-    }
-
-    movement->MoveXZ(direction.x, direction.z, 5.f);
-
-    movement->set_max_speed_xz(3.5f);
-
-    auto velocity_xz = movement->velocity();
-    velocity_xz.y = 0.f;
-    float speed = xmath_util_float3::Length(velocity_xz);
-
-    sc_packet_monster_move mm;
-    mm.size = sizeof(sc_packet_monster_move);
-    mm.type = S2C_P_MONSTER_MOVE;
-    mm.id = self->id();
-    XMFLOAT4X4 xf;
-    const XMFLOAT4X4& mat = self->transform_matrix();
-    XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
-    memcpy(mm.matrix, &xf, sizeof(float) * 16);
-
-    const auto& users = SessionManager::getInstance().getAllSessions();
-    for (auto& u : users) {
-        u.second->do_send(&mm);
-    }
-
-    return true;
-}
-
 static bool InRangeXZ(Object* self, Object* target, float r) { // 범위 계산
     if (!self || !target) return false;
     auto d = target->world_position_vector() - self->world_position_vector();
@@ -189,10 +145,10 @@ static bool InRangeXZ(Object* self, Object* target, float r) { // 범위 계산
 template<typename MonsterPtr>
 std::unique_ptr<AIComponent> CreateMonsterAI(MonsterPtr monster) {
     std::unique_ptr<Node> root;
-    std::cout << "Bomb_Dragon 진입완료 " << std::endl;
     switch (monster->monster_type()) {
     case MonsterType::Hit_Dragon:
-        root = Build_Hit_Dragon_Tree(); break;
+        root = Build_Hit_Dragon_Tree(); 
+        break;
     case MonsterType::Shot_Dragon:
         root = Build_Shot_Dragon_Tree(); break;
     case MonsterType::Bomb_Dragon:
@@ -223,8 +179,8 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
             mca.size = sizeof(sc_packet_monster_change_animation);
             mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
             mca.id = self->id();
-            mca.loop_type = 3;
-            mca.animation_track = 1; // kGoingToExplode
+            mca.loop_type = 0;
+            mca.animation_track = 2; // kGoingToExplode
 
             const auto& users = SessionManager::getInstance().getAllSessions();
             for (auto& u : users) {
@@ -257,7 +213,6 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
     // ───────────────── 트리 구성 ─────────────────
     auto* root = new Selector();
 
-    // 쏴용은 그냥 공격만(캐릭터에 맞춰 회전할거라 따로 회전하는 노드는 필요X)
     {
         auto* seq = new Sequence();
         seq->children.push_back(new ActionNode(prepare_to_explode));
@@ -273,8 +228,8 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
 
 static BTNode* Build_Shot_Dragon_Tree(Object* self)
 {
-    // 공격
-    auto attack = [self](float elapsed_time) -> bool {
+    // 회전
+    auto rotate = [self](float elapsed_time) -> bool {
         auto* target = Set_Target(self);
         if (!target) return false; // 타켓이 없으면 종료
 
@@ -298,6 +253,32 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
             angle = XMConvertToDegrees(angle);
             self->Rotate(0.f, angle, 0.f);
         }
+
+        sc_packet_monster_move mm;
+        mm.size = sizeof(sc_packet_monster_move);
+        mm.type = S2C_P_MONSTER_MOVE;
+        mm.id = self ->id();
+        mm.speed = 0;
+        XMFLOAT4X4 xf;
+        const XMFLOAT4X4& mat = self->transform_matrix();
+        XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
+        memcpy(mm.matrix, &xf, sizeof(float) * 16);
+
+        const auto& users = SessionManager::getInstance().getAllSessions();
+        for (auto& u : users) {
+            u.second->do_send(&mm);
+        }
+
+        return true;
+    };
+
+    auto attack = [self](float elapsed_time) -> bool {
+        auto* target = GetCurrentTarget(self);
+        if (!target) return false; // 타켓이 없으면 종료
+
+        // 공격 로직
+        //BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
+        //auto thorn_projectile_mesh = base_scene->FindModelInfo("Thorn_Projectile")->GetInstance();
     };
 
     // ───────────────── 트리 구성 ─────────────────
@@ -306,6 +287,7 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
     // 쏴용은 그냥 공격만(캐릭터에 맞춰 회전할거라 따로 회전하는 노드는 필요X)
     {
         auto* seq = new Sequence();
+        seq->children.push_back(new ActionNode(rotate));
         seq->children.push_back(new ActionNode(attack));
         root->children.push_back(seq);
     }
@@ -318,16 +300,20 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
 static BTNode* Build_Hit_Dragon_Tree(Object* self)
 {
     // 근거리 공격
-    auto attack = [self](float elapsed_time) -> bool {
-        // 1. 사거리 내 타겟 존재 확인
-        // 2. 존재 하면 공격 후 return false + target 재탐색, 존재하지 않으면 타겟한테 이동하도록 
-        return true;
-    };
+    //auto attack = [self](float elapsed_time) -> bool {
+    //    // 1. 사거리 내 타겟 존재 확인
+    //    // 2. 존재 하면 공격 후 return false + target 재탐색, 존재하지 않으면 타겟한테 이동하도록 
+    //    return true;
+    //};
 
     auto move_to_player = [self](float elapsed_time) -> bool {
         // TODO: 플레이어를 향해 이동 명령
-        auto* target = GetCurrentTarget(self);
-        return Move_To_Target(self, target); // 명령 성공했으면 true
+        auto* target = Set_Target(self);
+        if (!target) return false; // 타켓이 없으면 종료
+        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        std::cout << "move_to_player 진입" << std::endl;
+        if (!ai) return false;
+        return ai->Move_To_Target(elapsed_time); // 명령 성공했으면 true
     };
 
     // ───────────────── 트리 구성 ─────────────────
@@ -336,7 +322,7 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
     // 몬스터 사거리내에 타겟이 존재하면 공격 -> 아니면 이동
     {
         auto* seq = new Sequence();
-        seq->children.push_back(new ActionNode(attack));
+        //seq->children.push_back(new ActionNode(attack));
         seq->children.push_back(new ActionNode(move_to_player));
         root->children.push_back(seq);
     }
@@ -357,12 +343,12 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
         return monstercomp->hp() / monstercomp->max_hp();
     };
 
-    auto move_to_player_dash_in_place = [self]() -> bool {
+    auto move_to_player_dash_in_place = [self](float elapsed_time) -> bool {
         // TODO: 플레이어를 향해 이동 명령
-        auto* target = GetCurrentTarget(self);
-
-        if (!target) return false;
-        return Move_To_Target(self, target);
+        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        if (!ai) return false;
+        bool flag = ai->Move_To_Target(elapsed_time);
+        return flag; // 명령 성공했으면 true
     };
 
     auto spin_attack_once = [self]() -> bool {

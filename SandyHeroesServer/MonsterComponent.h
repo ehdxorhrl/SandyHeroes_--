@@ -61,6 +61,7 @@ public:
 	float max_shield()const;
 	float attack_force()const;
 	Object* target() const;
+	Scene* scene() const;
 
 	bool IsDead() const;
 
