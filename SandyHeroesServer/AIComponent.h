@@ -550,7 +550,7 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
 
 static BTNode* Build_Hit_Dragon_Tree(Object* self)
 {
-    constexpr float range = 0.7f; // 근거리 공격 범위
+    constexpr float range = 1.1f; // 근거리 공격 범위
 	constexpr float attack_cool_time = 1.f; // 공격 쿨타임
 	auto state = std::make_shared<HitState>();
 
@@ -559,9 +559,16 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
 		constexpr float animation_spf = 0.03f; // 공격 애니메이션 프레임당 시간
 		constexpr float start_attack_time = animation_spf * 7.f; // 공격 시작 시간
 		constexpr float end_attack_time = animation_spf * 14.f; // 공격 종료 시간
+
         if(state->is_attacking) {
+
+            state->attack_time += elapsed_time;
+
+            std::cout << "state->is_attacking 진입" << std::endl;
+            std::cout << "state->attack_time 시간: " << state->attack_time << std::endl;
             if (state->attack_time > end_attack_time)
             {
+                std::cout << "end_attack_time 진입" << std::endl;
 				state->is_attacking = false; // 공격이 끝났으면 상태를 초기화
                 state->attack_time = 0.f; // 공격 시간 초기화
                 return !state->is_attacking; //공격 중이 아니면 진행
@@ -569,6 +576,8 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
 
             if (state->attack_time > start_attack_time)
             {
+                std::cout << "start_attack_time 진입" << std::endl;
+                std::cout << "state->attack_time 시간: " << state->attack_time << std::endl;
                 auto left_arm = self->FindFrame("RigLArm2");
                 auto box = Object::GetComponent<BoxColliderComponent>(left_arm);
                 if (!box)
@@ -585,6 +594,7 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
                     if (!player_box) continue; // 플레이어 박스가 없으면 건너뛰기
                     if (box->animated_box().Intersects(player_box->animated_box())) 
                     {
+                        std::cout << "때려용 공격 성공" << std::endl;
                         auto playercomp = Object::GetComponentInChildren<PlayerComponent>(user.second->get_player_object());
                         auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
                         playercomp->HitDamage(monstercomp->attack_force());
@@ -621,6 +631,28 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
 		if (!target) return false; // 타겟이 없으면 실패
 		state->attack_cooldown = 0.f; // 공격 쿨타임 초기화
 		state->is_attacking = true; // 공격 상태로 변경
+
+        // 회전 후 공격
+        auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+
+        XMFLOAT3 look = self->look_vector();
+        look.y = 0.f;
+        look = xmath_util_float3::Normalize(look);
+        XMFLOAT3 direction = target->world_position_vector() - self->world_position_vector();
+        direction.y = 0.f;
+        direction = xmath_util_float3::Normalize(direction);
+        float angle = xmath_util_float3::AngleBetween(look, direction);
+        if (angle > XM_PI / 180.f * 5.f)
+        {
+            //회전 방향 연산
+            XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, direction);
+            if (cross.y < 0)
+            {
+                angle = -angle;
+            }
+            angle = XMConvertToDegrees(angle);
+            self->Rotate(0.f, angle, 0.f);
+        }
 
         //애니메이션 상태 변경
 		sc_packet_monster_change_animation mca;
@@ -670,6 +702,7 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
     }
 
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+    monstercomp->set_attack_force(15);
     auto* movement = Object::GetComponentInChildren<MovementComponent>(self);
     movement->set_max_speed_xz(4.5f);
     return root;
