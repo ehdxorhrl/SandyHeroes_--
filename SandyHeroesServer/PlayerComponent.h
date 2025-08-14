@@ -66,5 +66,9 @@ private:
 
 	float dash_gage_ = 0.0f;	// 대쉬 게이지
 	float dash_max_gage_ = 5.0f;	// 대쉬 쿨타임 최대 시간
+
+	float damage_cool_time_ = 1.f; // 무적시간
+	float last_damage_time_ = 0.f; // 마지막으로 데미지입고 경과한 시간
+	bool is_damaged = false;  // 데미지를 입었는지
 };
 

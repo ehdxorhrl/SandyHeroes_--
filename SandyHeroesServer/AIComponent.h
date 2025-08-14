@@ -231,16 +231,6 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
                 auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player_object);
                 auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
                 playercomp->HitDamage(monstercomp->attack_force());
-                sc_packet_player_damaged pd;
-                pd.size = sizeof(sc_packet_player_damaged);
-                pd.type = S2C_P_PLAYER_DAMAGED;
-                pd.id = player.second->get_id();
-                pd.hp = playercomp->hp();
-                pd.shield = playercomp->shield();
-        
-                for (auto& u : users) {
-                    u.second->do_send(&pd);
-                }
             }
         }
         
@@ -265,6 +255,7 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
     monstercomp->set_attack_force(50);
     monstercomp->set_shield(150);
     monstercomp->set_hp(100);
+    //auto* movement = Object::GetComponentInChildren<MovementComponent>(self);
 
     return root;
 }
@@ -348,17 +339,19 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
     auto melee = [self](float elapsed_time) -> bool {
         // 1. 사거리 내 타겟 존재 확인
         // 2. 존재 하면 공격 후 return false + target 재탐색, 존재하지 않으면 타겟한테 이동하도록 
+        std::cout << "공격" << std::endl;
         return true;
     };
 
     auto move_to_player = [self](float elapsed_time) -> bool {
-        // TODO: 플레이어를 향해 이동 명령
-        auto* target = Set_Target(self);
-        if (!target) return false; // 타켓이 없으면 종료
+        auto* target = GetCurrentTarget(self);
+        if (!target)target = Set_Target(self);
+
         auto* ai = Object::GetComponentInChildren<AIComponent>(self);
-        std::cout << "move_to_player 진입" << std::endl;
-        if (!ai) return false;
-        return ai->Move_To_Target(elapsed_time); // 명령 성공했으면 true
+        if (!ai) return true;
+
+        bool is_range = InRangeXZ(self, target, 1.0f);
+        if (is_range) return false;
     };
 
     // ───────────────── 트리 구성 ─────────────────

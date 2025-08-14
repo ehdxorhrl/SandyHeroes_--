@@ -132,8 +132,6 @@ bool AIComponent::Move_To_Target(float elapsed_time) {
 
         movement->MoveXZ(direction.x, direction.z, 5.f);
 
-        movement->set_max_speed_xz(3.5f);
-
         auto velocity_xz = movement->velocity();
         velocity_xz.y = 0.f;
         float speed = xmath_util_float3::Length(velocity_xz);

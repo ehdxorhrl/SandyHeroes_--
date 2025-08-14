@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "PlayerComponent.h"
 #include "ScrollComponent.h"
+#include "SessionManager.h"
 //#include "FMODSoundManager.h"
 #include "Scene.h"
 //#include "RazerComponent.h"
@@ -76,6 +77,15 @@ void PlayerComponent::Update(float elapsed_time)
 					scene_->AddObject(razer);
 				}
 			}	
+		}
+	}
+	HitDamage(1);
+
+	if (is_damaged) {
+		last_damage_time_ += elapsed_time;
+		if (last_damage_time_ >= damage_cool_time_) {
+			last_damage_time_ = 0.f;
+			is_damaged = false;
 		}
 	}
 }
@@ -156,10 +166,13 @@ void PlayerComponent::HitDamage(float damage)
 
 	//FMODSoundManager::Instance().PlaySound("grunt", false, 0.3f);
 
+	if (is_damaged) return;
+
 	if (HasScroll(ScrollType::kHardenedSkin))
 	{
 		damage *= 0.9f;
 	}
+
 	if (shield_ > 0.f)
 	{
 		shield_ -= damage;
@@ -177,6 +190,28 @@ void PlayerComponent::HitDamage(float damage)
 	{
 		hp_ = 0.f; // hp가 음수로 내려가지 않도록
 	}
+
+	is_damaged = true;
+
+	const auto& users = SessionManager::getInstance().getAllSessions();
+	for (const auto& player : users)
+	{
+		const auto& player_object = player.second->get_player_object();
+		if (owner_->id() == player_object->id()) {
+			auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player_object);
+			sc_packet_player_damaged pd;
+			pd.size = sizeof(sc_packet_player_damaged);
+			pd.type = S2C_P_PLAYER_DAMAGED;
+			pd.id = player.second->get_id();
+			pd.hp = playercomp->hp();
+			pd.shield = playercomp->shield();
+
+			for (auto& u : users) {
+				u.second->do_send(&pd);
+			}
+		}
+	}
+
 }
 
 void PlayerComponent::AddScroll(ScrollType type)
