@@ -283,7 +283,9 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
             auto box = Object::GetComponentInChildren<BoxColliderComponent>(*it);
             for (const auto& user : users) // 플레이어 충돌검사
             {
-                if (user.second->get_player_object()->is_dead()) continue; // 플레이어가 죽었으면 건너뛰기
+                if (user.second->get_player_object()->is_dead()) {
+                    continue;   // 플레이어가 죽었으면 건너뛰기
+                }    
                 auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(user.second->get_player_object());
                 if (!player_box) continue; // 플레이어 박스가 없으면 건너뛰기
                 if (box->animated_box().Intersects(player_box->animated_box())) {
@@ -291,6 +293,84 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
                     auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
                     playercomp->HitDamage(monstercomp->attack_force());
 
+                    //TODO: 가시 제거 패킷 전송
+                    sc_packet_object_set_dead osd;
+                    osd.size = sizeof(sc_packet_object_set_dead);
+                    osd.type = S2C_P_OBJECT_SET_DEAD;
+                    osd.id = (*it)->id();
+
+                    for (auto& u : users) {
+                        u.second->do_send(&osd);
+                    }
+                    //std::cout << "삭제하는 thorn_id: " << osd.id << std::endl;
+
+                    // 가시 제거
+                    (*it)->set_is_dead(true);
+                    state->hit_someone = true;
+                }
+            }
+
+            {
+                auto movement = Object::GetComponentInChildren<MovementComponent>(*it);
+                XMFLOAT3 velocity = movement->velocity();
+
+                XMFLOAT3 position = (*it)->world_position_vector();
+                constexpr float kGroundYOffset = 0.75f;
+                position.y += kGroundYOffset;
+                XMVECTOR ray_origin = XMLoadFloat3(&position);
+                position.y -= kGroundYOffset;
+
+
+                XMVECTOR ray_direction = XMLoadFloat3(&velocity);
+                ray_direction = XMVectorSetY(ray_direction, 0);
+                ray_direction = XMVector3Normalize(ray_direction);
+
+                if (0 == XMVectorGetX(XMVector3Length(ray_direction))) {
+                }
+
+                bool is_collide = false;
+                float distance{ std::numeric_limits<float>::max() };
+                int a = 0;
+                constexpr float MAX_DISTANCE = 0.5f;
+
+                BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
+                int stage_num = base_scene->stage_clear_num();
+
+                for (auto& mesh_collider : base_scene->stage_wall_collider_list(stage_num))
+                {
+                    ++a;
+                    float t{};
+                    if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
+                    {
+                        if (t < distance)
+                        {
+                            distance = t;
+                        }
+                    }
+                }
+                if (stage_num - 1 >= 0)
+                {
+                    for (auto& mesh_collider : base_scene->stage_wall_collider_list(stage_num-1))
+                    {
+                        ++a;
+                        float t{};
+                        if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
+                        {
+                            if (t < distance)
+                            {
+                                distance = t;
+                            }
+
+                        }
+                    }
+                }
+                if (distance < MAX_DISTANCE)
+                    is_collide = true;
+
+                //OutputDebugString(std::wstring(L"MeshColliderComponent Count: " + std::to_wstring(a) + L"\n").c_str());
+
+                if (is_collide)
+                {
                     //TODO: 가시 제거 패킷 전송
                     sc_packet_object_set_dead osd;
                     osd.size = sizeof(sc_packet_object_set_dead);
@@ -311,6 +391,7 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
             if (state->hit_someone) {
                 // 실제 오브젝트 파괴 시점은 엔진이 처리, 리스트에서는 즉시 제외
                 it = fired_thorns.erase(it);
+                state->hit_someone = false;
             }
             else {
                 ++it;

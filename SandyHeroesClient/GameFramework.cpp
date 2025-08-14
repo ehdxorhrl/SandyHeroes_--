@@ -1192,6 +1192,8 @@ void GameFramework::ProcessPacket(char* p)
             movement->set_max_speed_xz(4.f);
             movement->Move(direction, 4.f);
             thorn_projectile->Scale(1.f);
+
+            thorn_projectile->set_id(packet->thorn_id);
             base_scene->AddObject(thorn_projectile);
         }
     }
@@ -1202,6 +1204,7 @@ void GameFramework::ProcessPacket(char* p)
         Object* obj = base_scene->FindObject(packet->id);
         if (obj)
         {
+            std::cout << "삭제 ID: " << obj->id() << std::endl;
             obj->set_is_dead(true);
         }
     }

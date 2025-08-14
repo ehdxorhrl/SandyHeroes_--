@@ -99,4 +99,6 @@ void SpawnerComponent::ForceSpawn()
 	
 	
 	scene_->AddObject(new_object);
+
+	new_object->UpdateWorldMatrix(nullptr);
 }
