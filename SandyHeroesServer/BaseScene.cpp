@@ -1295,78 +1295,143 @@ void BaseScene::CheckPlayerHitWall(Object* object, MovementComponent* movement)
 
 void BaseScene::CheckObjectHitObject(Object* object)
 {
-	//TODO: 몬스터 AI완성 이후 충돌시에 밀리는 기능 추가 및 return; 삭제!!
-	return;
+	//if (!object || object->is_dead()) return;
 
+	//auto movement = Object::GetComponentInChildren<MovementComponent>(object);
+	//if (!movement) return;
+
+	//XMFLOAT3 object_pos = object->world_position_vector();
+
+	//auto mesh_collider = Object::GetComponentInChildren<MeshColliderComponent>(object);
+	//if (mesh_collider)
+	//{
+	//	BoundingOrientedBox obb1 = mesh_collider->GetWorldOBB();
+
+	//	for (auto& other : ground_check_object_list_)
+	//	{
+	//		if (!other || other == object || other->is_dead()) continue;
+
+	//		auto other_box = Object::GetComponentInChildren<BoxColliderComponent>(other);
+	//		if (!other_box) continue;
+
+	//		if (obb1.Intersects(other_box->animated_box()))
+	//		{
+	//			XMFLOAT3 position = object->world_position_vector();
+	//			constexpr float kGroundYOffset = 0.75f;
+	//			position.y += kGroundYOffset;
+	//			XMVECTOR ray_origin = XMLoadFloat3(&position);
+	//			position.y -= kGroundYOffset;
+
+	//			XMFLOAT3 other_pos = other->world_position_vector();
+	//			XMFLOAT3 dir = xmath_util_float3::Normalize(object_pos - other_pos);
+
+	//			XMVECTOR ray_direction = XMLoadFloat3(&dir);
+	//			ray_direction = XMVectorSetY(ray_direction, 0);
+	//			ray_direction = XMVector3Normalize(ray_direction);
+
+	//			if (0 == XMVectorGetX(XMVector3Length(ray_direction)))
+	//				return;
+
+	//			bool is_collide = false;
+	//			float distance{ std::numeric_limits<float>::max() };
+	//			for (auto& mesh_collider : stage_wall_collider_list_[stage_clear_num_])
+	//			{
+	//				float t{};
+	//				if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
+	//				{
+	//					if (t < distance)
+	//					{
+	//						distance = t;
+	//					}
+	//				}
+	//			}
+
+	//			constexpr float kContactOffset = 0.05f; // 벽과 최소 여유
+	//			constexpr float kPushStep = 0.03f; // 한번에 미는 최대량(튜닝)
+
+	//			// 벽까지 거리 distance 를 썼던 부분을 ↓로 교체
+	//			float safe = std::max(0.f, distance - kContactOffset);
+	//			float step = std::min(kPushStep, safe);
+	//			if (step > 0.f) {
+	//				object->set_position_vector(object_pos + dir * step);
+	//				if (auto monster = Object::GetComponent<MonsterComponent>(object)) {
+	//					monster->set_is_pushed(true);
+	//					monster->set_push_timer(5.0f);
+	//				}
+	//			}
+	//			return;
+	//		}
+	//	}
+	//}
 
 	if (!object || object->is_dead()) return;
 
 	auto movement = Object::GetComponentInChildren<MovementComponent>(object);
 	if (!movement) return;
 
-	XMFLOAT3 object_pos = object->world_position_vector();
+	auto selfMesh = Object::GetComponentInChildren<MeshColliderComponent>(object);
+	auto selfBox = Object::GetComponentInChildren<BoxColliderComponent>(object);
 
-	auto mesh_collider = Object::GetComponentInChildren<MeshColliderComponent>(object);
-	if (mesh_collider)
-	{
-		BoundingOrientedBox obb1 = mesh_collider->GetWorldOBB();
+	for (auto& other : ground_check_object_list_) {
+		if (!other || other == object || other->is_dead()) continue;
 
-		for (auto& other : ground_check_object_list_)
-		{
-			if (!other || other == object || other->is_dead()) continue;
+		auto otherMesh = Object::GetComponentInChildren<MeshColliderComponent>(other);
+		auto otherBox = Object::GetComponentInChildren<BoxColliderComponent>(other);
 
-			auto other_box = Object::GetComponentInChildren<BoxColliderComponent>(other);
-			if (!other_box) continue;
+		bool intersect = false;
 
-			if (obb1.Intersects(other_box->animated_box()))
-			{
-				XMFLOAT3 position = object->world_position_vector();
-				constexpr float kGroundYOffset = 0.75f;
-				position.y += kGroundYOffset;
-				XMVECTOR ray_origin = XMLoadFloat3(&position);
-				position.y -= kGroundYOffset;
+		if (selfMesh && otherMesh) {
+			BoundingOrientedBox a = selfMesh->GetWorldOBB();
+			BoundingOrientedBox b = otherMesh->GetWorldOBB();
+			intersect = a.Intersects(b);
+		}
+		else if (selfMesh && otherBox) {
+			BoundingOrientedBox a = selfMesh->GetWorldOBB();
+			intersect = a.Intersects(otherBox->animated_box());
+		}
+		else if (selfBox && otherBox) {
+			intersect = selfBox->animated_box().Intersects(otherBox->animated_box());
+		}
+		else {
+			continue; // 비교 가능한 콜라이더가 없음
+		}
 
-				XMFLOAT3 other_pos = other->world_position_vector();
-				XMFLOAT3 dir = xmath_util_float3::Normalize(object_pos - other_pos);
+		if (!intersect) continue;
 
-				XMVECTOR ray_direction = XMLoadFloat3(&dir);
-				ray_direction = XMVectorSetY(ray_direction, 0);
-				ray_direction = XMVector3Normalize(ray_direction);
+		XMFLOAT3 object_pos = object->world_position_vector();
+		XMFLOAT3 other_pos = other->world_position_vector();
+		XMFLOAT3 dir = xmath_util_float3::Normalize(object_pos - other_pos);
 
-				if (0 == XMVectorGetX(XMVector3Length(ray_direction)))
-					return;
+		constexpr float kGroundYOffset = 0.75f;
+		XMFLOAT3 pos = object_pos; pos.y += kGroundYOffset;
+		XMVECTOR ray_origin = XMLoadFloat3(&pos);
 
-				bool is_collide = false;
-				float distance{ std::numeric_limits<float>::max() };
-				for (auto& mesh_collider : stage_wall_collider_list_[stage_clear_num_])
-				{
-					float t{};
-					if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
-					{
-						if (t < distance)
-						{
-							distance = t;
-						}
-					}
-				}
+		XMVECTOR ray_direction = XMLoadFloat3(&dir);
+		ray_direction = XMVectorSetY(ray_direction, 0);
+		ray_direction = XMVector3Normalize(ray_direction);
+		if (0 == XMVectorGetX(XMVector3Length(ray_direction))) return;
 
-				constexpr float kMinSafeDistance = 1.5f; // 살짝 밀려도 충돌 안나도록 여유
-				if (distance > kMinSafeDistance) // 벽에 안 부딪힌다면 밀기
-				{
-					object->set_position_vector(object_pos + dir * 0.1f);
-
-					// TODO : 몬스터 AI완성 이후 충돌시에 밀리는 기능 추가
-
-					auto monster = Object::GetComponent<MonsterComponent>(object);
-					if (monster)
-					{
-						monster->set_is_pushed(true);
-						monster->set_push_timer(5.0f);
-					}
-				}
-				return;
+		float distance = std::numeric_limits<float>::max();
+		for (auto& mesh_collider : stage_wall_collider_list_[stage_clear_num_]) {
+			float t{};
+			if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t)) {
+				if (t < distance) distance = t;
 			}
 		}
+
+		constexpr float kContactOffset = 0.05f;
+		constexpr float kPushStep = 0.03f;
+		float safe = std::max(0.f, distance - kContactOffset);
+		float step = std::min(kPushStep, safe);
+
+		if (step > 0.f) {
+			object->set_position_vector(object_pos + dir * step);
+			if (auto monster = Object::GetComponent<MonsterComponent>(object)) {
+				monster->set_is_pushed(true);
+				monster->set_push_timer(0.15f); // 0.1~0.2초 정도로 짧게
+			}
+		}
+		return; //
 	}
 }
 

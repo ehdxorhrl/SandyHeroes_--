@@ -116,6 +116,13 @@ private:
     Node* current_node_{ nullptr };
     float astar_delta_cool_time_{ 0.0f };
     std::vector<Node*> path_;
+
+    static std::unordered_map<int, int> s_node_owner_;   // node_id -> owner_id(0=없음)
+    static std::unordered_map<int, int> s_desire_next_;  // owner_id -> node_id
+
+    // 내가 점유 중인 노드 id(해제용), 잠시 양보 타이머
+    int   last_owned_node_id_{ -1 };
+    float yield_timer_{ 0.f };
 };
 
 static Object* GetCurrentTarget(Object* self) {
@@ -704,7 +711,7 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_attack_force(15);
     auto* movement = Object::GetComponentInChildren<MovementComponent>(self);
-    movement->set_max_speed_xz(4.5f);
+    movement->set_max_speed_xz(2.5f);
     return root;
 }
 

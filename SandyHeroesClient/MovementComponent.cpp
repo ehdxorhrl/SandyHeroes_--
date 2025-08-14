@@ -17,75 +17,7 @@ Component* MovementComponent::GetCopy()
 
 void MovementComponent::Update(float elapsed_time)
 {
-    if (owner_->is_player())
-        return;
-	old_position_ = owner_->position_vector();  
-
-    //if (is_gravity_)
-    //{
-    //    velocity_.y -= gravity_acceleration_ * elapsed_time;
-    //}
-    //
-    ////지면에 서있으면 더 이상 떨어지지 않음.
-    //if (owner_->is_ground() && velocity_.y < 0.f)
-    //{
-    //    velocity_.y = 0.f;
-    //}
-    //
-    ////점프 높이 제한
-    //if (velocity_.y > 0 && (jump_before_y_ + jump_max_height_) <= owner_->position_vector().y)
-    //{
-    //     velocity_.y = 0.f;
-    //}
-
-    //최대 속력 제한
-	float speed = xmath_util_float3::Length(velocity_);
-	XMFLOAT3 direction = xmath_util_float3::Normalize(velocity_);
-	if (speed > max_speed_)
-	{
-		velocity_ = xmath_util_float3::ScalarProduct(direction, max_speed_);
-	}
-
-    //xz 평면 이동에 필요한 변수들
-    XMFLOAT3 velocity_xz{ velocity_.x, 0.f, velocity_.z };
-    XMFLOAT3 direction_xz = xmath_util_float3::Normalize(velocity_xz);
-    float speed_xz = xmath_util_float3::Length(velocity_xz);
-    constexpr float kFrictionAcceleration{ 70.f };
-
-    //xz 평면 최대 속도 제한
-    if (speed_xz > max_speed_xz_)
-    {
-        velocity_.x *= (max_speed_xz_ / speed_xz);
-        velocity_.z *= (max_speed_xz_ / speed_xz);
-    }
-
-    //마찰 구현
-    if (is_friction_)
-    {
-        if (is_gravity_)
-        {
-            if (speed_xz < elapsed_time * kFrictionAcceleration)
-            {
-                velocity_ = { 0, velocity_.y, 0 };
-            }
-            else
-            {
-                velocity_ -= direction_xz * elapsed_time * kFrictionAcceleration;
-            }
-        }
-        else
-        {
-            if (speed < elapsed_time * kFrictionAcceleration)
-            {
-                velocity_ = { 0, 0, 0 };
-            }
-            else
-            {
-                velocity_ -= direction * elapsed_time * kFrictionAcceleration;
-            }
-        }
-    }
-    owner_->set_position_vector(owner_->position_vector() + (velocity_ * elapsed_time));
+    // 클라이언트에서는 물리X
 }
 
 void MovementComponent::EnableGravity()

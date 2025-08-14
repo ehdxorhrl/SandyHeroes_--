@@ -1018,6 +1018,7 @@ void GameFramework::ProcessPacket(char* p)
         auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
         gun->FireBullet(bullet_dir, bullet_mesh, base_scene);
         gun->set_loaded_bullets(packet->loaded_bullets);
+
         if (packet->loaded_bullets <= 0)
         {
             if (!(gun->bullet_type() == BulletType::kSpecial))
@@ -1037,8 +1038,22 @@ void GameFramework::ProcessPacket(char* p)
         GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player);
         if (!gun) break;
 
-
         gun->set_loaded_bullets(packet->loaded_bullets);
+    }
+        break;
+    case S2C_P_PLAY_RELOAD_SOUND:
+    {
+        sc_packet_play_reload_sound* packet = reinterpret_cast<sc_packet_play_reload_sound*>(p);
+        Object* player = base_scene->player();
+        if (!player) break;
+
+        GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player);
+        if (!gun) break;
+
+        if (!(gun->bullet_type() == BulletType::kSpecial))
+        {
+            FMODSoundManager::Instance().PlaySound("reload", false, 0.3f);
+        }
     }
         break;
     case S2C_P_DROP_GUN:
@@ -1083,7 +1098,6 @@ void GameFramework::ProcessPacket(char* p)
             //particle_component->set_color(gun_particle->color());
             //particle_component->Play(50);
         }
-
             
     }
         break;

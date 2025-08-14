@@ -84,7 +84,7 @@ void MovementComponent::Update(float elapsed_time)
         }
     }
 
-    owner_->set_position_vector(owner_->position_vector() + (velocity_ * (elapsed_time +0.0002)));
+    owner_->set_position_vector(owner_->position_vector() + (velocity_ * (elapsed_time)));
 
     
 

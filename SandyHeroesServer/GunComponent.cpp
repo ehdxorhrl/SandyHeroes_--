@@ -106,7 +106,6 @@ void GunComponent::ReloadBullets()
     {
         loading_time_ = reload_time_;
         is_reload_ = true;
-
     }
 }
 
