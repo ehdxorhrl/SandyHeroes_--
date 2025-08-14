@@ -79,7 +79,6 @@ void PlayerComponent::Update(float elapsed_time)
 			}	
 		}
 	}
-	HitDamage(1);
 
 	if (is_damaged) {
 		last_damage_time_ += elapsed_time;

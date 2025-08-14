@@ -28,9 +28,10 @@ constexpr char S2C_P_MONSTER_DAMAGED = 23;  // 몬스터가 입은 데미지
 constexpr char S2C_P_MONSTER_DEATH = 24;
 constexpr char S2C_P_MONSTER_DAMAGED_PATICLE = 25;
 constexpr char S2C_P_MONSTER_CHANGE_ANIMATION = 26;
+constexpr char S2C_P_SHOTDRAGON_ATTACK = 27;
 
 constexpr char S2C_P_STAGE_CLEAR = 55;
-
+constexpr char S2C_P_OBJECT_SET_DEAD = 56;
 
 constexpr char C2S_P_LOGIN = 101;
 constexpr char C2S_P_KEYBOARD_INPUT = 102;
@@ -44,6 +45,20 @@ constexpr char PRESS_OFF = 0;
 constexpr char PRESS_ON = 1;
 
 #pragma pack (push,1)
+
+struct sc_packet_object_set_dead {
+    uint8_t size;
+    uint8_t type;  // S2C_P_OBJECT_SET_DEAD
+    uint32_t id;    // object id
+};
+
+struct sc_packet_shotdragon_attack {
+    uint8_t size;
+    uint8_t type;  // S2C_P_SHOTDRAGON_ATTACK
+    uint32_t id;   // 몬스터 id
+    uint32_t thorn_id; // 삭제를 위한 thorn id
+    float dx, dy, dz;
+};
 
 struct sc_packet_monster_change_animation {
     uint8_t size;

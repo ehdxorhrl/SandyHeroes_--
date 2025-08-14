@@ -61,12 +61,14 @@ public:
 
 
 	std::list<MeshColliderComponent*> checking_maps_mesh_collider_list(int index);
+	std::list<WallColliderComponent*> stage_wall_collider_list(int index);
 	int stage_clear_num();
 
 	void ActivateStageMonsterSpawner(int stage_num);
 
 	void add_catch_monster_num();
 	const std::list<MonsterComponent*>& monster_list() const;
+
 private:
 	//스테이지별 몬스터 스포너 리스트
 	std::array<std::list<SpawnerComponent*>, kStageMaxCount> stage_monster_spawner_list_;

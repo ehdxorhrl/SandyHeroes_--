@@ -457,13 +457,17 @@ void MonsterComponent::RebuildBehaviorTree_()
         root = Build_Strong_Dragon_Tree(owner_);
         //std::cout << "Build_Strong_Dragon_Tree 생성 완료" << std::endl;
         break;
-    case MonsterType::Hit_Dragon:  root = Build_Hit_Dragon_Tree(owner_);  
+    case MonsterType::Hit_Dragon:  
+        root = Build_Hit_Dragon_Tree(owner_);  
         std::cout << "Build_Hit_Dragon_Tree 생성 완료" << std::endl;
         break;
-    case MonsterType::Bomb_Dragon:  root = Build_Bomb_Dragon_Tree(owner_);
+    case MonsterType::Bomb_Dragon:  
+        root = Build_Bomb_Dragon_Tree(owner_);
         std::cout << "Build_Bomb_Dragon_Tree 생성 완료" << std::endl;
         break;
-    case MonsterType::Shot_Dragon:  root = Build_Shot_Dragon_Tree(owner_);
+    case MonsterType::Shot_Dragon:  
+        root = Build_Shot_Dragon_Tree(owner_);
+        std::cout << "Build_Shot_Dragon_Tree 생성 완료" << std::endl;
         break;
     default:
         break;

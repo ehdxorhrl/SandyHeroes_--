@@ -8,6 +8,7 @@
 #include "PlayerComponent.h"
 #include "MovementComponent.h"
 #include "BoxColliderComponent.h"
+#include "WallColliderComponent.h"
 #include "User.h"
 #include "Object.h"
 
@@ -16,12 +17,15 @@ class BaseScene;
 struct BombState {
     float acc = 0.f;
     bool prepared = false;
-
     float fuse = 2.f;
 };
 
 struct ShotState {
 	std::list<Object*> fired_thorn_list;
+    bool hit_someone = false;
+    float acc = 0.f;
+    float fuse = 0.83f;
+    bool attacked = false;
 };
 
 class BTNode {
@@ -154,8 +158,7 @@ std::unique_ptr<AIComponent> CreateMonsterAI(MonsterPtr monster) {
     std::unique_ptr<Node> root;
     switch (monster->monster_type()) {
     case MonsterType::Hit_Dragon:
-        root = Build_Hit_Dragon_Tree(); 
-        break;
+        root = Build_Hit_Dragon_Tree(); break;
     case MonsterType::Shot_Dragon:
         root = Build_Shot_Dragon_Tree(); break;
     case MonsterType::Bomb_Dragon:
@@ -268,17 +271,17 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
 
 static BTNode* Build_Shot_Dragon_Tree(Object* self)
 {
-	auto state = std::make_shared<ShotState>();
+    auto state = std::make_shared<ShotState>();
 
-	// update thorn projectile list
+    // update thorn projectile list
     auto thorn_update = [self, state](float elapsed_time) -> bool {
         auto& fired_thorns = state->fired_thorn_list;
         const auto& users = SessionManager::getInstance().getAllSessions();
 
         for (auto it = fired_thorns.begin(); it != fired_thorns.end();) {
             // 충돌 검사
-			auto box = Object::GetComponentInChildren<BoxColliderComponent>(*it);
-            for (const auto& user : users)
+            auto box = Object::GetComponentInChildren<BoxColliderComponent>(*it);
+            for (const auto& user : users) // 플레이어 충돌검사
             {
                 if (user.second->get_player_object()->is_dead()) continue; // 플레이어가 죽었으면 건너뛰기
                 auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(user.second->get_player_object());
@@ -288,24 +291,34 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
                     auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
                     playercomp->HitDamage(monstercomp->attack_force());
 
-                    sc_packet_player_damaged pd;
-                    pd.size = sizeof(sc_packet_player_damaged);
-                    pd.type = S2C_P_PLAYER_DAMAGED;
-                    pd.id = user.second->get_id();
-                    pd.hp = playercomp->hp();
-                    pd.shield = playercomp->shield();
+                    //TODO: 가시 제거 패킷 전송
+                    sc_packet_object_set_dead osd;
+                    osd.size = sizeof(sc_packet_object_set_dead);
+                    osd.type = S2C_P_OBJECT_SET_DEAD;
+                    osd.id = (*it)->id();
+
                     for (auto& u : users) {
-                        u.second->do_send(&pd);
+                        u.second->do_send(&osd);
                     }
+                    std::cout << "삭제하는 thorn_id: " << osd.id << std::endl;
 
                     // 가시 제거
-					(*it)->set_is_dead(true);
-					//TODO: 가시 제거 패킷 전송
+                    (*it)->set_is_dead(true);
+                    state->hit_someone = true;
                 }
             }
+
+            if (state->hit_someone) {
+                // 실제 오브젝트 파괴 시점은 엔진이 처리, 리스트에서는 즉시 제외
+                it = fired_thorns.erase(it);
+            }
+            else {
+                ++it;
+            }
         }
-        return false;
-		};
+        return true;
+    };
+
 
     // 회전
     auto rotate = [self](float elapsed_time) -> bool {
@@ -353,6 +366,11 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
 
     // 가시 발사
     auto attack = [self, state](float elapsed_time) -> bool {
+        if (state->attacked && (state->acc < state->fuse)) {
+            state->acc += elapsed_time;
+            return false;
+        }
+
         auto* target = GetCurrentTarget(self);
         if (!target) return false; // 타켓이 없으면 종료
 
@@ -391,17 +409,34 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         movement->set_gravity_acceleration(0.f);
         movement->set_max_speed_xz(4.f);
         movement->Move(direction, 4.f);
-        thorn_projectile->Scale(3.f);
+        thorn_projectile->Scale(1.f);
         base_scene->AddObject(thorn_projectile);
 
         std::function<void(Object*)> on_destroy_func = [state](Object* thorn) {
             state->fired_thorn_list.remove(thorn);
             };
         thorn_projectile->OnDestroy(on_destroy_func);
-
+        
 		state->fired_thorn_list.push_back(thorn_projectile);
 
+        state->attacked = true;
+        state->acc = 0.0f;
+
         //TODO: thorn_projectile 동기화
+        sc_packet_shotdragon_attack sa;
+        sa.size = sizeof(sc_packet_shotdragon_attack);
+        sa.type = S2C_P_SHOTDRAGON_ATTACK;
+        sa.id = self->id();
+        sa.thorn_id = thorn_projectile->id();
+        sa.dx = direction.x;
+        sa.dy = direction.y;
+        sa.dz = direction.z;
+
+        std::cout << "thorn_id: " << thorn_projectile->id() << std::endl;
+
+        for (auto& u : users) {
+            u.second->do_send(&sa);
+        }
 
         return true;
     };
@@ -419,7 +454,9 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
     }
 
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
-
+    monstercomp->set_attack_force(20);
+    monstercomp->set_shield(100);
+    monstercomp->set_hp(100);
     return root;
 }
 
@@ -442,6 +479,9 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
 
         bool is_range = InRangeXZ(self, target, 1.0f);
         if (is_range) return false;
+
+        //아니면 타겟방향으로 이동
+        return ai->Move_To_Target(elapsed_time); // 명령 성공했으면 true
     };
 
     // ───────────────── 트리 구성 ─────────────────

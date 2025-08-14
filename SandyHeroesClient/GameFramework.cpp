@@ -1157,7 +1157,7 @@ void GameFramework::ProcessPacket(char* p)
     {
         auto packet = reinterpret_cast<sc_packet_player_damaged*>(p);
         Object* player = base_scene->FindObject(packet->id);
-        if (player && player->id() == packet->id)
+        if (player)
         {
             PlayerComponent* player_component = Object::GetComponentInChildren<PlayerComponent>(player);
             if (player_component) {
@@ -1166,7 +1166,46 @@ void GameFramework::ProcessPacket(char* p)
             }
         }
     }
-    break;
+        break;
+    case S2C_P_SHOTDRAGON_ATTACK:
+    {
+        auto packet = reinterpret_cast<sc_packet_shotdragon_attack*>(p);
+        Object* monster = base_scene->FindObject(packet->id);
+        if(monster)
+        {
+            XMFLOAT3 direction = XMFLOAT3(packet->dx, packet->dy, packet->dz);
+            auto thorn_projectile = base_scene->FindModelInfo("Thorn_Projectile")->GetInstance();
+            thorn_projectile->set_is_movable(true);
+            XMFLOAT3 look = xmath_util_float3::Normalize(thorn_projectile->look_vector());
+            XMFLOAT3 rotate_axis = xmath_util_float3::CrossProduct(look, direction);
+            float angle = xmath_util_float3::AngleBetween(look, direction);
+            XMMATRIX rotation_matrix = XMMatrixRotationAxis(XMLoadFloat3(&rotate_axis), angle);
+            XMFLOAT4X4 transform_matrix = thorn_projectile->transform_matrix();
+            XMStoreFloat4x4(&transform_matrix, rotation_matrix* XMLoadFloat4x4(&transform_matrix));
+            thorn_projectile->set_transform_matrix(transform_matrix);
+
+            MovementComponent* movement = new MovementComponent(thorn_projectile);
+            thorn_projectile->AddComponent(movement);
+            thorn_projectile->set_position_vector(monster->world_position_vector());
+            movement->DisableFriction();
+            movement->set_gravity_acceleration(0.f);
+            movement->set_max_speed_xz(4.f);
+            movement->Move(direction, 4.f);
+            thorn_projectile->Scale(1.f);
+            base_scene->AddObject(thorn_projectile);
+        }
+    }
+        break;
+    case S2C_P_OBJECT_SET_DEAD:
+    {
+        auto packet = reinterpret_cast<sc_packet_object_set_dead*>(p);
+        Object* obj = base_scene->FindObject(packet->id);
+        if (obj)
+        {
+            obj->set_is_dead(true);
+        }
+    }
+        break;
     default:
         break;
     }
