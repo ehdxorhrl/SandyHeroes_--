@@ -5,6 +5,7 @@
 #include "SessionManager.h"
 #include "AnimatorComponent.h"
 #include "MonsterComponent.h"
+#include "PlayerComponent.h"
 #include "MovementComponent.h"
 #include "User.h"
 #include "Object.h"
@@ -14,7 +15,8 @@ class BaseScene;
 struct BombState {
     float acc = 0.f;
     bool prepared = false;
-    float fuse = 5.f;
+
+    float fuse = 2.f;
 };
 
 class BTNode {
@@ -170,7 +172,23 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
 {
     auto state = std::make_shared<BombState>();
 
+    auto move_to_player = [self, state](float elapsed_time)->bool {
+        if (state->prepared) return false; // prepare_to_explode 동작시 추격 X
+
+        auto* target = Set_Target(self);
+        if (!target) return false; // 타겟이 없으면 자폭
+        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        if (!ai) return false;
+
+        bool is_range = InRangeXZ(self, target, 1.0f);
+        if (is_range) return false; // 범위안에 타겟이 있으면 자폭시퀀스로 넘어간다
+
+        //아니면 타겟방향으로 이동
+        return ai->Move_To_Target(elapsed_time); // 명령 성공했으면 true
+    };
+
     auto prepare_to_explode = [self, state](float elapsed_time) -> bool { // acc는 누적시간, fuse는 준비시간
+
         state->acc += elapsed_time;
         if (state->acc >= state->fuse) { state->acc = 0.f; return true; }
 
@@ -205,6 +223,26 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
         for (auto& u : users) {
             u.second->do_send(&mca);
         }
+
+        for (const auto& player : users)
+        {
+            const auto& player_object = player.second->get_player_object();
+            if (InRangeXZ(self, player_object, 2.0f)) {
+                auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player_object);
+                auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+                playercomp->HitDamage(monstercomp->attack_force());
+                sc_packet_player_damaged pd;
+                pd.size = sizeof(sc_packet_player_damaged);
+                pd.type = S2C_P_PLAYER_DAMAGED;
+                pd.id = player.second->get_id();
+                pd.hp = playercomp->hp();
+                pd.shield = playercomp->shield();
+        
+                for (auto& u : users) {
+                    u.second->do_send(&pd);
+                }
+            }
+        }
         
         self->set_is_dead(true);
         return true;
@@ -212,15 +250,21 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
 
     // ───────────────── 트리 구성 ─────────────────
     auto* root = new Selector();
+    {   
+        auto* chase = new Sequence();
+        chase->children.push_back(new ActionNode(move_to_player));
+        root->children.push_back(chase);
 
-    {
-        auto* seq = new Sequence();
-        seq->children.push_back(new ActionNode(prepare_to_explode));
-        seq->children.push_back(new ActionNode(explode));
-        root->children.push_back(seq);
+        auto* attack = new Sequence();
+        attack->children.push_back(new ActionNode(prepare_to_explode));
+        attack->children.push_back(new ActionNode(explode));
+        root->children.push_back(attack);
     }
 
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+    monstercomp->set_attack_force(50);
+    monstercomp->set_shield(150);
+    monstercomp->set_hp(100);
 
     return root;
 }
@@ -279,6 +323,7 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         // 공격 로직
         //BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
         //auto thorn_projectile_mesh = base_scene->FindModelInfo("Thorn_Projectile")->GetInstance();
+        return true;
     };
 
     // ───────────────── 트리 구성 ─────────────────
@@ -300,11 +345,11 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
 static BTNode* Build_Hit_Dragon_Tree(Object* self)
 {
     // 근거리 공격
-    //auto attack = [self](float elapsed_time) -> bool {
-    //    // 1. 사거리 내 타겟 존재 확인
-    //    // 2. 존재 하면 공격 후 return false + target 재탐색, 존재하지 않으면 타겟한테 이동하도록 
-    //    return true;
-    //};
+    auto melee = [self](float elapsed_time) -> bool {
+        // 1. 사거리 내 타겟 존재 확인
+        // 2. 존재 하면 공격 후 return false + target 재탐색, 존재하지 않으면 타겟한테 이동하도록 
+        return true;
+    };
 
     auto move_to_player = [self](float elapsed_time) -> bool {
         // TODO: 플레이어를 향해 이동 명령
@@ -321,10 +366,13 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
 
     // 몬스터 사거리내에 타겟이 존재하면 공격 -> 아니면 이동
     {
-        auto* seq = new Sequence();
-        //seq->children.push_back(new ActionNode(attack));
-        seq->children.push_back(new ActionNode(move_to_player));
-        root->children.push_back(seq);
+        auto* chase = new Sequence();
+        chase->children.push_back(new ActionNode(move_to_player));
+        root->children.push_back(chase);
+
+        auto* attack = new Sequence();
+        attack->children.push_back(new ActionNode(melee));
+        root->children.push_back(attack);
     }
 
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);

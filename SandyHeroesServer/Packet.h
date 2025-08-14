@@ -145,6 +145,14 @@ struct sc_packet_stage_clear {
     uint8_t stage_num;
 };
 
+struct sc_packet_player_damaged {
+    uint8_t size;
+    uint8_t type;
+    uint32_t id;  // À¯Àú id
+    uint32_t hp;
+    uint32_t shield;
+};
+
 struct sc_packet_user_info {
     uint8_t size;
     uint8_t type;

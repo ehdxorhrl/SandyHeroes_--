@@ -45,6 +45,8 @@ public:
 	void set_scene(Scene* scene) { scene_ = scene; }	//플레이어가 속한 씬 설정
 	void set_dash_gage(float gage) { dash_gage_ = gage; }
 	void set_main_skill_gage(float gage) { main_skill_gage_ = gage; }
+	void set_hp(float hp) { hp_ = hp; }
+	void set_shield(float shield) { shield_ = shield; }
 
 private:	
 	Scene* scene_ = nullptr;	//플레이어가 속한 씬

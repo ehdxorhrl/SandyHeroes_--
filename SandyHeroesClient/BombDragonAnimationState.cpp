@@ -51,6 +51,12 @@ int BombDragonAnimationState::Run(float elapsed_time, Object* object, bool is_en
 			object->set_is_dead(true);
 		}
 		break;
+	case BombDragonAnimationTrack::kExplode:
+		if (is_end)
+		{
+			object->set_is_dead(true);
+		}
+		break;
 	default:
 		break;
 	}

@@ -1153,6 +1153,20 @@ void GameFramework::ProcessPacket(char* p)
         animation_state->set_animation_loop_type(packet->loop_type); // Loop
     }
         break;
+    case S2C_P_PLAYER_DAMAGED:
+    {
+        auto packet = reinterpret_cast<sc_packet_player_damaged*>(p);
+        Object* player = base_scene->FindObject(packet->id);
+        if (player && player->id() == packet->id)
+        {
+            PlayerComponent* player_component = Object::GetComponentInChildren<PlayerComponent>(player);
+            if (player_component) {
+                player_component->set_hp(packet->hp);
+                player_component->set_shield(packet->shield);
+            }
+        }
+    }
+    break;
     default:
         break;
     }
