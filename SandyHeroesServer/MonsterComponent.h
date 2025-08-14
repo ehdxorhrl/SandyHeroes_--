@@ -28,7 +28,7 @@ class MonsterComponent :
 public:
 	MonsterComponent(Object* owner);
 	MonsterComponent(const MonsterComponent& other);
-	virtual ~MonsterComponent() {}
+	virtual ~MonsterComponent();
 
 	virtual Component* GetCopy() override;
 
