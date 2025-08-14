@@ -650,15 +650,15 @@ void BaseScene::CreateMonsterSpawner()
 		//AddObject(spawner);
 		//stage_monster_spawner_list_[0].push_back(spawner_component);
 		//
-		//spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 27.85f, 6.73f, -8.07f }, 1, 9.f, 5.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
-		//
-		//spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 24.53f, 5.31f, 10.05f }, 1, 11.f, 5.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 27.85f, 6.73f, -8.07f }, 1, 9.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
+		
+		spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 24.53f, 5.31f, 10.05f }, 1, 11.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
 	}
 	
 	//Stage 2
@@ -1984,6 +1984,11 @@ void BaseScene::CheckRazerHitEnemy(RazerComponent* razer_component, MonsterCompo
 std::list<MeshColliderComponent*> BaseScene::checking_maps_mesh_collider_list(int index)
 {
 	return checking_maps_mesh_collider_list_[index];
+}
+
+std::list<WallColliderComponent*> BaseScene::stage_wall_collider_list(int index)
+{
+	return stage_wall_collider_list_[index];
 }
 
 int BaseScene::stage_clear_num()
