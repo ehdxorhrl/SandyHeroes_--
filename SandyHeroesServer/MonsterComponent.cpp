@@ -375,7 +375,6 @@ void MonsterComponent::set_shield(float value)
 
 void MonsterComponent::set_hp(float value)
 {
-    max_hp_ = value;
     hp_ = value;
 }
 

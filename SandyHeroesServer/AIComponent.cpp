@@ -97,7 +97,7 @@ bool AIComponent::Move_To_Target(float elapsed_time) {
         }
 
         XMFLOAT3 direction;
-        if (path_.size() <= current_node_idx_)
+        if (path_.size() <= current_node_idx_ || path_.size() <= 2)
         {
             direction = monstercomponent->target()->world_position_vector() - owner_->world_position_vector();
         }
