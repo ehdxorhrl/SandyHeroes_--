@@ -47,7 +47,6 @@ void PlayerComponent::Update(float elapsed_time)
 
 	if (main_skill_activation_time_ < main_skill_max_activation_time_)
 	{
-
 		main_skill_activation_time_ += elapsed_time;
 		main_skill_razer_shot_time_ += elapsed_time;
 		if(main_skill_razer_cool_time_ < main_skill_razer_shot_time_){
@@ -79,7 +78,6 @@ void PlayerComponent::Update(float elapsed_time)
 			}	
 		}
 	}
-	HitDamage(1);
 
 	if (is_damaged) {
 		last_damage_time_ += elapsed_time;

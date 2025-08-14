@@ -24,6 +24,13 @@ struct ShotState {
 	std::list<Object*> fired_thorn_list;
 };
 
+struct HitState
+{
+    bool is_attacking = false;
+	float attack_time = 0.f; // 공격 시간
+	float attack_cooldown = 0.f; // 공격 쿨타임
+};
+
 class BTNode {
 public:
     virtual ~BTNode() {}
@@ -304,7 +311,7 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
                 }
             }
         }
-        return false;
+        return true;
 		};
 
     // 회전
@@ -425,23 +432,106 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
 
 static BTNode* Build_Hit_Dragon_Tree(Object* self)
 {
-    // 근거리 공격
-    auto melee = [self](float elapsed_time) -> bool {
-        // 1. 사거리 내 타겟 존재 확인
-        // 2. 존재 하면 공격 후 return false + target 재탐색, 존재하지 않으면 타겟한테 이동하도록 
-        std::cout << "공격" << std::endl;
+    constexpr float range = 0.7f; // 근거리 공격 범위
+	constexpr float attack_cool_time = 1.f; // 공격 쿨타임
+	auto state = std::make_shared<HitState>();
+
+    // 근거리 공격 시퀀스
+    auto is_attacking = [self, state](float elapsed_time) -> bool {
+		constexpr float animation_spf = 0.03f; // 공격 애니메이션 프레임당 시간
+		constexpr float start_attack_time = animation_spf * 7.f; // 공격 시작 시간
+		constexpr float end_attack_time = animation_spf * 14.f; // 공격 종료 시간
+        if(state->is_attacking) {
+            if (state->attack_time > end_attack_time)
+            {
+				state->is_attacking = false; // 공격이 끝났으면 상태를 초기화
+                state->attack_time = 0.f; // 공격 시간 초기화
+                return !state->is_attacking; //공격 중이 아니면 진행
+            }
+
+            if (state->attack_time > start_attack_time)
+            {
+                auto left_arm = self->FindFrame("RigLArm2");
+                auto box = Object::GetComponent<BoxColliderComponent>(left_arm);
+                if (!box)
+                {
+                    std::cout << "때려용 RigLArm2에 box collider가 없습니다." << std::endl;
+                    return false;
+                }
+                //충돌 검사
+				const auto& users = SessionManager::getInstance().getAllSessions();
+                for (const auto& user : users)
+                {
+                    if (user.second->get_player_object()->is_dead()) continue; // 플레이어가 죽었으면 건너뛰기
+                    auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(user.second->get_player_object());
+                    if (!player_box) continue; // 플레이어 박스가 없으면 건너뛰기
+                    if (box->animated_box().Intersects(player_box->animated_box())) 
+                    {
+                        auto playercomp = Object::GetComponentInChildren<PlayerComponent>(user.second->get_player_object());
+                        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+                        playercomp->HitDamage(monstercomp->attack_force());
+                        sc_packet_player_damaged pd;
+                        pd.size = sizeof(sc_packet_player_damaged);
+                        pd.type = S2C_P_PLAYER_DAMAGED;
+                        pd.id = user.second->get_id();
+                        pd.hp = playercomp->hp();
+                        pd.shield = playercomp->shield();
+                        for (auto& u : users) 
+                        {
+                            u.second->do_send(&pd);
+                        }
+                    }
+                }
+            }
+		}
+        return !state->is_attacking; //공격 중이 아니면 진행
+        };
+    auto is_end_cooldown = [self, state](float elapsed_time) -> bool {
+        state->attack_cooldown += elapsed_time;
+        if (state->attack_cooldown >= attack_cool_time) { // 1초 쿨타임
+            state->attack_cooldown = 0.f; // 쿨타임 초기화
+            return true; // 쿨타임이 끝났으면 true 반환
+        }
+        return false; // 아직 쿨타임이 끝나지 않음
+		};
+    auto is_in_range = [self](float elapsed_time) -> bool {
+        auto target = GetCurrentTarget(self);
+        return InRangeXZ(self, target, range);
+		};
+    auto melee = [self, state](float elapsed_time) -> bool {
+		auto* target = GetCurrentTarget(self);
+		if (!target) return false; // 타겟이 없으면 실패
+		state->attack_cooldown = 0.f; // 공격 쿨타임 초기화
+		state->is_attacking = true; // 공격 상태로 변경
+
+        //애니메이션 상태 변경
+		sc_packet_monster_change_animation mca;
+		mca.size = sizeof(sc_packet_monster_change_animation);
+		mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
+		mca.id = self->id();
+		mca.loop_type = 1; // Once
+		mca.animation_track = 7; // kSlashLeftAttack
+		const auto& users = SessionManager::getInstance().getAllSessions();
+		for (auto& u : users) {
+			u.second->do_send(&mca);
+		}
+
         return true;
     };
 
+	// 플레이어를 향해 이동
     auto move_to_player = [self](float elapsed_time) -> bool {
-        auto* target = GetCurrentTarget(self);
-        if (!target)target = Set_Target(self);
+        auto* target = Set_Target(self);
+        if (!target) return false; // 타겟이 없으면 자폭
 
         auto* ai = Object::GetComponentInChildren<AIComponent>(self);
-        if (!ai) return true;
+        if (!ai) return false;
 
-        bool is_range = InRangeXZ(self, target, 1.0f);
-        if (is_range) return false;
+        bool is_range = InRangeXZ(self, target, range - 0.1f);
+        if (is_range) return false; 
+
+        //아니면 타겟방향으로 이동
+        return ai->Move_To_Target(elapsed_time); // 명령 성공했으면 true
     };
 
     // ───────────────── 트리 구성 ─────────────────
@@ -454,12 +544,16 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
         root->children.push_back(chase);
 
         auto* attack = new Sequence();
+        attack->children.push_back(new ActionNode(is_attacking)); 
+        attack->children.push_back(new ActionNode(is_end_cooldown)); 
+		attack->children.push_back(new ActionNode(is_in_range)); // 범위 내에 타겟이 있는지 확인
         attack->children.push_back(new ActionNode(melee));
         root->children.push_back(attack);
     }
 
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
-
+    auto* movement = Object::GetComponentInChildren<MovementComponent>(self);
+    movement->set_max_speed_xz(4.5f);
     return root;
 }
 

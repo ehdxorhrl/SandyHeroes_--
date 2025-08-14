@@ -61,7 +61,7 @@ private:
 	ModelInfo* razer_model_info_ = nullptr;	//플레이어 레이저 모델 정보
 	float main_skill_gage_ = 0.f;	//플레이어 메인 스킬 게이지
 	float main_skill_max_gage_ = 5.f;	//플레이어 최대 메인 스킬 게이지
-	float main_skill_activation_time_ = 0.f;	//플레이어 메인 스킬 활성화 시간
+	float main_skill_activation_time_ = 5.f;	//플레이어 메인 스킬 활성화 시간
 	float main_skill_max_activation_time_ = 5.f;	//플레이어 최대 메인 스킬 활성화 시간
 	float main_skill_razer_shot_time_ = 0.f;	//플레이어 메인 스킬 레이저 발사 후 지난 시간
 	float main_skill_razer_cool_time_ = 0.3f;	//플레이어 메인 스킬 레이저 발사 간격

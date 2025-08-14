@@ -51,7 +51,7 @@ bool AIComponent::Move_To_Target(float elapsed_time) {
         look.y = 0.f;
         look = xmath_util_float3::Normalize(look);
 
-        constexpr float kAstarCoolTime = 0.5f;
+        constexpr float kAstarCoolTime = 0.2f;
         astar_delta_cool_time_ += elapsed_time;
         if (astar_delta_cool_time_ > kAstarCoolTime)
         {

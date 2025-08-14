@@ -39,6 +39,13 @@ int HitDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end
 			object->set_is_dead(true);
 		}
 		break;
+	case HitDragonAnimationTrack::kSlashLeftAttack:
+		if (is_end)
+		{
+			ChangeAnimationTrack((int)HitDragonAnimationTrack::kIdle, object, animator);
+		}
+		break;
+
 	default:
 		break;
 	}
@@ -47,6 +54,10 @@ int HitDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end
 
 void HitDragonAnimationState::Exit(int animation_track, Object* object, AnimatorComponent* animator)
 {
+	if (animation_track == (int)HitDragonAnimationTrack::kSlashLeftAttack)
+	{
+		animation_loop_type_ = 0;
+	}
 }
 
 AnimationState* HitDragonAnimationState::GetCopy()
