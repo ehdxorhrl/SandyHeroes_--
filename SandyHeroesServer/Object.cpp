@@ -2,7 +2,7 @@
 #include "Object.h"
 #include "Component.h"
 
-UINT Object::kObjectNextId = 5000;
+UINT Object::kObjectNextId = 50000;
 
 Object::Object()
 {

@@ -44,7 +44,9 @@ public:
 		bool flame_frenzy, bool acid_frenzy, bool electric_frenzy);
 
 	//setter
+	void set_max_shield(float value);
 	void set_shield(float value);
+	void set_max_hp(float value);
 	void set_hp(float value);
 	void set_attack_force(float value);
 	void set_target(Object* target); //몬스터가 공격할 타겟 설정
@@ -67,10 +69,9 @@ public:
 
 private:
 	float max_hp_{ 90.f };
-
+	float hp_{ 90.f };
 	float shield_{ 50.f };
 	float max_shield_{ 50.f };
-	float hp_{ 90.f };
 	float attack_force_{};
 
 	Object* target_{ nullptr };	//몬스터가 공격할 타겟

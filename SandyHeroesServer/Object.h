@@ -12,7 +12,8 @@ enum MonsterType {
 	Hit_Dragon,
 	Shot_Dragon,
 	Bomb_Dragon,
-	Strong_Dragon
+	Strong_Dragon,
+	Super_Dragon = 14 - 2
 };
 
 struct CollideType

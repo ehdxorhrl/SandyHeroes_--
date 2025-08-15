@@ -35,6 +35,23 @@ struct HitState
 	float attack_cooldown = 0.f; // 공격 쿨타임
 };
 
+struct StrongState
+{
+    bool is_attacking = false;
+    float attack_time = 0.f; // 공격 시간
+    float attack_cooldown = 0.f; // 공격 쿨타임
+};
+
+struct SuperState
+{
+    bool is_attacking = false;
+    bool is_fly_to_sky = false;
+    bool is_revolution = false;
+    float attack_time = 0.f; // 공격 시간
+    float attack_cooldown = 0.f; // 공격 쿨타임
+	float revolution_time = 0.f; // 회전 시간
+};;
+
 class BTNode {
 public:
     virtual ~BTNode() {}
@@ -179,8 +196,9 @@ std::unique_ptr<AIComponent> CreateMonsterAI(MonsterPtr monster) {
         root = Build_Bomb_Dragon_Tree(); break;
     case MonsterType::Strong_Dragon:
         root = Build_Strong_Dragon_Tree(); break;
-    //case MonsterType::Fly_Dragon:
-    //    root = BuildFlyingTree(); break;
+    case MonsterType::Super_Dragon:
+        root = Build_Super_Dragon_Tree(); 
+        break;
     default:
         break;
     }
@@ -281,7 +299,6 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
 
     return root;
 }
-
 
 static BTNode* Build_Shot_Dragon_Tree(Object* self)
 {
@@ -679,7 +696,7 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
 	// 플레이어를 향해 이동
     auto move_to_player = [self](float elapsed_time) -> bool {
         auto* target = Set_Target(self);
-        if (!target) return false; // 타겟이 없으면 자폭
+        if (!target) return false; 
 
         auto* ai = Object::GetComponentInChildren<AIComponent>(self);
         if (!ai) return false;
@@ -717,47 +734,199 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
 
 static BTNode* Build_Strong_Dragon_Tree(Object* self)
 {
-
+	auto state = std::make_shared<StrongState>();
+	constexpr float range = 3.0f; // 근거리 공격 범위
+    constexpr float attack_cool_time = 1.f; // 공격 쿨타임
     auto hp_ratio = [self]() -> float {
         auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
         if (!monstercomp) return 0.f;
-        float maxhp = monstercomp->max_hp();
-        std::cout << monstercomp->hp()/maxhp << std::endl;
         return monstercomp->hp() / monstercomp->max_hp();
     };
 
+    //스핀 공격 1회 시퀀스
     auto move_to_player_dash_in_place = [self](float elapsed_time) -> bool {
-        // TODO: 플레이어를 향해 이동 명령
+        auto* target = Set_Target(self);
+        if (!target) return false; 
+
         auto* ai = Object::GetComponentInChildren<AIComponent>(self);
         if (!ai) return false;
-        bool flag = ai->Move_To_Target(elapsed_time);
-        return flag; // 명령 성공했으면 true
-    };
 
-    auto spin_attack_once = [self]() -> bool {
-        // TODO: 스핀 1회 공격 트리거 (애니메이션 이벤트로 히트 판정) 공격범위 내에 타겟 플레이어 존재하면 1회 회전공격 
-        // 예: self->PlayAnimOnce("SpinAttackOnce");
+        bool is_range = InRangeXZ(self, target, range - 0.1f);
+        if (is_range) return true;
+
+        //아니면 타겟방향으로 이동
+        return !ai->Move_To_Target(elapsed_time); 
+        };
+    auto is_attacking = [self, state](float elapsed_time) -> bool {
+            constexpr float animation_spf = 0.03f; // 공격 애니메이션 프레임당 시간
+            constexpr float start_attack_time = animation_spf * 10.f; // 공격 시작 시간
+            constexpr float end_attack_time = animation_spf * 20.f; // 공격 종료 시간
+            if (state->is_attacking) {
+                state->attack_time += elapsed_time; // 공격 시간 누적
+                if (state->attack_time > end_attack_time)
+                {
+                    state->is_attacking = false; // 공격이 끝났으면 상태를 초기화
+                    state->attack_time = 0.f; // 공격 시간 초기화
+                    return !state->is_attacking; //공격 중이 아니면 진행
+                }
+                if (state->attack_time > start_attack_time)
+                {
+                    auto left_arm = self->FindFrame("RigLArm1");
+                    auto right_arm = self->FindFrame("RigRArm1");
+                    auto box_list = Object::GetComponentsInChildren<BoxColliderComponent>(left_arm);
+                    box_list.splice(box_list.end(), Object::GetComponentsInChildren<BoxColliderComponent>(right_arm));
+                    if (!box_list.size())
+                    {
+                        std::cout << "쎄용 Arm에 box collider가 없습니다." << std::endl;
+                        return false;
+                    }
+                    //충돌 검사
+                    const auto& users = SessionManager::getInstance().getAllSessions();
+                    for (const auto& user : users)
+                    {
+                        if (user.second->get_player_object()->is_dead()) continue; // 플레이어가 죽었으면 건너뛰기
+                        auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(user.second->get_player_object());
+                        if (!player_box) continue; // 플레이어 박스가 없으면 건너뛰기
+                        bool is_collide = false;
+                        for (const auto& box : box_list)
+                        {
+                            if (!box) continue; // 박스가 없으면 건너뛰기
+                            if (is_collide) break;
+                            if (box->animated_box().Intersects(player_box->animated_box()))
+                            {
+                                is_collide = true;
+                                auto playercomp = Object::GetComponentInChildren<PlayerComponent>(user.second->get_player_object());
+                                auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+                                playercomp->HitDamage(monstercomp->attack_force());
+                                sc_packet_player_damaged pd;
+                                pd.size = sizeof(sc_packet_player_damaged);
+                                pd.type = S2C_P_PLAYER_DAMAGED;
+                                pd.id = user.second->get_id();
+                                pd.hp = playercomp->hp();
+                                pd.shield = playercomp->shield();
+                                for (auto& u : users)
+                                {
+                                    u.second->do_send(&pd);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return !state->is_attacking;
+            };
+    auto is_end_cooldown = [self, state](float elapsed_time) -> bool {
+        state->attack_cooldown += elapsed_time;
+        if (state->attack_cooldown >= attack_cool_time) { // 1초 쿨타임
+            std::cout << "is_end_cooldown: true"<< std::endl;
+            state->attack_cooldown = 0.f; // 쿨타임 초기화
+            return true; // 쿨타임이 끝났으면 true 반환
+        }            
+        return false; // 아직 쿨타임이 끝나지 않음
+        };
+    auto is_in_range = [self](float elapsed_time) -> bool {
+        auto target = GetCurrentTarget(self);
+        return InRangeXZ(self, target, range);
+        };
+    auto spin_attack_once = [self, state](float elapsed_time) -> bool {
+            auto* target = GetCurrentTarget(self);
+            if (!target) return false; // 타겟이 없으면 실패
+            state->attack_cooldown = 0.f; // 공격 쿨타임 초기화
+            state->attack_time = 0.f;
+            state->is_attacking = true; // 공격 상태로 변경
+
+            //애니메이션 상태 변경
+            sc_packet_monster_change_animation mca;
+            mca.size = sizeof(sc_packet_monster_change_animation);
+            mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
+            mca.id = self->id();
+            mca.loop_type = 1; // Once
+            mca.animation_track = 4; // kSpinAttackOnce
+            const auto& users = SessionManager::getInstance().getAllSessions();
+            for (auto& u : users) {
+                u.second->do_send(&mca);
+            }
+            return true;
+            };
+
+
+    auto is_loop_attacking = [self, state](float elapsed_time) -> bool {
+        if (state->is_attacking) 
+        {
+            state->attack_time += elapsed_time; // 공격 시간 누적
+            auto left_arm = self->FindFrame("RigLArm1");
+            auto right_arm = self->FindFrame("RigRArm1");
+            auto box_list = Object::GetComponentsInChildren<BoxColliderComponent>(left_arm);
+            box_list.splice(box_list.end(), Object::GetComponentsInChildren<BoxColliderComponent>(right_arm));
+            if (!box_list.size())
+            {
+                std::cout << "쎄용 Arm에 box collider가 없습니다." << std::endl;
+                return false;
+            }
+            //충돌 검사
+            const auto& users = SessionManager::getInstance().getAllSessions();
+            for (const auto& user : users)
+            {
+                if (user.second->get_player_object()->is_dead()) continue; // 플레이어가 죽었으면 건너뛰기
+                auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(user.second->get_player_object());
+                if (!player_box) continue; // 플레이어 박스가 없으면 건너뛰기
+                bool is_collide = false;
+                for (const auto& box : box_list)
+                {
+                    if (!box) continue; // 박스가 없으면 건너뛰기
+                    if (is_collide) break;
+                    if (box->animated_box().Intersects(player_box->animated_box()))
+                    {
+                        is_collide = true;
+                        auto playercomp = Object::GetComponentInChildren<PlayerComponent>(user.second->get_player_object());
+                        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+                        playercomp->HitDamage(monstercomp->attack_force());
+                        sc_packet_player_damaged pd;
+                        pd.size = sizeof(sc_packet_player_damaged);
+                        pd.type = S2C_P_PLAYER_DAMAGED;
+                        pd.id = user.second->get_id();
+                        pd.hp = playercomp->hp();
+                        pd.shield = playercomp->shield();
+                        for (auto& u : users)
+                        {
+                            u.second->do_send(&pd);
+                        }
+                    }
+                }
+            }
+        }
         return true;
     };
+    auto chase_target = [self](float elapsed_time) -> bool {
+		auto target = Set_Target(self);
+		if (!target) return false; // 타겟이 없으면 실패
 
-    // 3초 동안 스핀 루프하며 추격: 상태형 액션이 필요하면
-    // 오브젝트 내부의 상태/타이머를 체크해서 완료 시 true를 반환하세요.
-    auto move_to_player_over_3s_spin_loop = [self, acc = 0.f](float elapsed_time) -> bool {
-        // TODO:
-        //  - 최초 호출 시 스핀 루프 상태 진입
-        //  - self 내부 타이머가 3초 경과했는지 체크
-        //  - 3초 동안은 계속 플레이어 추격 유지
-        //  - 3초 경과 시 true, 아니면 false로 유지형 설계도 가능
-        // 단, 현재 BT 프레임워크는 elapsed_time을 전달하지 않으므로
-        //  타이머는 self 쪽에서 관리하세요.
-        // 우선 트리거형으로 즉시 성공 처리(엔진 연결 후 상태형으로 바꾸세요)
-        return true;
-    };
+        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        if (!ai) return false;
 
-    auto set_other_target = [self]() -> bool {
-        // TODO: spin_loop 공격후에 다른 타겟 설정
+        if(InRangeXZ(self, target, range)) return true;
+
+        return ai->Move_To_Target(elapsed_time);
+        };
+    auto spin_attack_loop = [self, state](float elapsed_time) -> bool {
+		std::cout << "스핀 공격 루프 시작" << std::endl;
+        auto* target = GetCurrentTarget(self);
+        if (!target) return false; // 타겟이 없으면 실패
+        state->attack_time = 0.f;
+        state->is_attacking = true; // 공격 상태로 변경
+        //애니메이션 상태 변경
+        sc_packet_monster_change_animation mca;
+        mca.size = sizeof(sc_packet_monster_change_animation);
+        mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
+        mca.id = self->id();
+        mca.loop_type = 0; // Loop
+        mca.animation_track = 5; // kSpinAttackLoop
+        const auto& users = SessionManager::getInstance().getAllSessions();
+        for (auto& u : users) {
+            u.second->do_send(&mca);
+        }
         return true;
-    };
+		};
 
     // ───────────────── 트리 구성 ─────────────────
     auto* root = new Selector();
@@ -767,6 +936,9 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
         auto* seq_left = new Sequence();
         seq_left->children.push_back(new ConditionNode([hp_ratio]() { return hp_ratio() > 0.5f; }));
         seq_left->children.push_back(new ActionNode(move_to_player_dash_in_place));
+        seq_left->children.push_back(new ActionNode(is_attacking));
+		seq_left->children.push_back(new ActionNode(is_end_cooldown));
+		seq_left->children.push_back(new ActionNode(is_in_range));
         seq_left->children.push_back(new ActionNode(spin_attack_once));
         root->children.push_back(seq_left);
     }
@@ -775,14 +947,270 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
     {
         auto* seq_right = new Sequence();
         seq_right->children.push_back(new ConditionNode([hp_ratio]() { return hp_ratio() <= 0.5f; }));
-        seq_right->children.push_back(new ActionNode(move_to_player_over_3s_spin_loop));
-        seq_right->children.push_back(new ActionNode(set_other_target));
+        seq_right->children.push_back(new ActionNode(is_loop_attacking));
+        seq_right->children.push_back(new ActionNode(chase_target));
+        seq_right->children.push_back(new ActionNode(spin_attack_loop));
         root->children.push_back(seq_right);
     }
 
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
-    monstercomp->set_shield(5000);
-    monstercomp->set_hp(5000);
+    monstercomp->set_shield(500.f);
+    monstercomp->set_hp(90.f);
+    monstercomp->set_attack_force(40);
+
+    return root;
+}
+
+static BTNode* Build_Super_Dragon_Tree(Object* self)
+{
+    auto state = std::make_shared<SuperState>();
+    auto hp_ratio = [self]() -> float {
+        auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+        if (!monstercomp) return 0.f;
+        return monstercomp->hp() / monstercomp->max_hp();
+        };
+
+    auto is_bite_attacking = [self, state](float elapsed_time) -> bool {
+        constexpr float animation_spf = 0.03f; // 공격 애니메이션 프레임당 시간
+        constexpr float start_attack_time = animation_spf * 10.f; // 공격 시작 시간
+        constexpr float end_attack_time = animation_spf * 27.f; // 공격 종료 시간
+        if (state->is_attacking) {
+            state->attack_time += elapsed_time; // 공격 시간 누적
+            std::cout << "공격 중\n";
+            if (state->attack_time > end_attack_time)
+            {
+                state->is_attacking = false; // 공격이 끝났으면 상태를 초기화
+                state->attack_time = 0.f; // 공격 시간 초기화
+                return !state->is_attacking; //공격 중이 아니면 진행
+            }
+            if (state->attack_time > start_attack_time)
+            {
+                auto head = self->FindFrame("RigHead");
+                auto box = Object::GetComponent<BoxColliderComponent>(head);
+                if (!box)
+                {
+                    std::cout << "짱쎄용 RigHead에 box collider가 없습니다." << std::endl;
+                    return false;
+                }
+                //충돌 검사
+                const auto& users = SessionManager::getInstance().getAllSessions();
+                for (const auto& user : users)
+                {
+                    if (user.second->get_player_object()->is_dead()) continue; // 플레이어가 죽었으면 건너뛰기
+                    auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(user.second->get_player_object());
+                    if (!player_box) continue; // 플레이어 박스가 없으면 건너뛰기
+                    if (box->animated_box().Intersects(player_box->animated_box()))
+                    {
+                        auto playercomp = Object::GetComponentInChildren<PlayerComponent>(user.second->get_player_object());
+                        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+                        playercomp->HitDamage(monstercomp->attack_force());
+                        sc_packet_player_damaged pd;
+                        pd.size = sizeof(sc_packet_player_damaged);
+                        pd.type = S2C_P_PLAYER_DAMAGED;
+                        pd.id = user.second->get_id();
+                        pd.hp = playercomp->hp();
+                        pd.shield = playercomp->shield();
+                        for (auto& u : users)
+                        {
+                            u.second->do_send(&pd);
+                        }
+                    }
+                }
+            }
+        }
+		return !state->is_attacking;
+        };
+    auto fly_to_sky = [self, state](float elapsed_time) -> bool {
+        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        if (!ai) return false;
+		auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+		if (!movement) return false; 
+
+        if (state->is_revolution) return true;
+
+        // 하늘로 날아오르기
+		constexpr XMFLOAT3 target_position{ 205.3f, 23.f, -91.f }; // 하늘로 날아오를 목표 위치
+        XMFLOAT3 direction = target_position - self->world_position_vector();
+        if (xmath_util_float3::Length(direction) < 0.2f) 
+        {
+			std::cout << "목표 위치에 도달했습니다." << std::endl;
+            state->is_fly_to_sky = false;
+            movement->Stop();
+            return true; // 목표 위치에 도달하면 true 반환
+		}
+        else
+        {
+            if(!state->is_fly_to_sky) 
+            {
+				std::cout << "하늘로 날아오르기 시작합니다." << std::endl;
+                state->is_fly_to_sky = true;
+                direction = xmath_util_float3::Normalize(direction);
+                movement->Move(direction, 8.f);
+
+                XMFLOAT3 look = self->look_vector();
+                look = xmath_util_float3::Normalize(look);
+                float angle = xmath_util_float3::AngleBetween(look, direction);
+                if (angle > XM_PI / 180.f * 5.f)
+                {
+                    XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, direction);
+                    if (cross.y < 0)
+                    {
+                        angle = -angle;
+                    }
+                    angle = XMConvertToDegrees(angle);
+                    self->Rotate(0.f, angle, 0.f);
+                }
+
+                // 애니메이션 상태 변경
+                sc_packet_monster_change_animation mca;
+                mca.size = sizeof(sc_packet_monster_change_animation);
+                mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
+                mca.id = self->id();
+                mca.loop_type = 0; // Loop
+                mca.animation_track = 4; // kFlyUpFast
+                const auto& users = SessionManager::getInstance().getAllSessions();
+                for (auto& u : users) {
+                    u.second->do_send(&mca);
+                }
+			}
+            sc_packet_monster_move mm;
+            mm.size = sizeof(sc_packet_monster_move);
+            mm.type = S2C_P_MONSTER_MOVE;
+            mm.id = self->id();
+            mm.speed = 6.f;
+            XMFLOAT4X4 xf;
+            const XMFLOAT4X4& mat = self->transform_matrix();
+            XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
+            memcpy(mm.matrix, &xf, sizeof(float) * 16);
+
+            const auto& users = SessionManager::getInstance().getAllSessions();
+            for (auto& u : users) {
+                u.second->do_send(&mm);
+            }
+
+            return false;
+        }
+		};
+    auto revolution = [self, state](float elapsed_time) -> bool {
+        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        if (!ai) return false;
+		constexpr float max_revolution_time = 6.f; // 회전 시간
+        if (state->revolution_time > max_revolution_time)
+        {
+			state->is_revolution = false; // 회전 종료
+            return true;
+        }
+        if (!state->is_revolution)
+        {
+			std::cout << "회전 시작" << std::endl;
+            state->is_revolution = true; // 회전 시작
+            state->revolution_time = 0.f; // 회전 시간 초기화
+            // 애니메이션 상태 변경
+            sc_packet_monster_change_animation mca;
+            mca.size = sizeof(sc_packet_monster_change_animation);
+            mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
+            mca.id = self->id();
+            mca.loop_type = 0; // Loop
+            mca.animation_track = 5; // kFlyRightFast
+            const auto& users = SessionManager::getInstance().getAllSessions();
+            for (auto& u : users) {
+                u.second->do_send(&mca);
+            }
+        }
+
+        state->revolution_time += elapsed_time;
+
+		constexpr float anglular_velocity = 60.f; // 초당 회전 각도
+		float angle = XMConvertToRadians(anglular_velocity * -state->revolution_time); // 현재 프레임에서 회전할 각도
+
+		constexpr XMFLOAT3 start_position{ 205.3f, 23.f, -91.f }; // 회전 시작 위치
+		constexpr XMFLOAT3 revolution_center{ 205.3f, 23.f, -67.f }; // 회전 중심
+		constexpr float dx = start_position.x - revolution_center.x; // 회전 시작 위치와 중심의 X축 차이
+		constexpr float dz = start_position.z - revolution_center.z; // 회전 시작 위치와 중심의 Z축 차이
+
+		const float start_angle = atan2(dz, dx);
+		angle += start_angle; // 시작 위치에서의 각도에 현재 각도를 더함
+
+        // 각도 wrap 처리 (0 ~ 2π)
+        if (angle > XM_2PI) angle -= XM_2PI;
+        if (angle < 0)      angle += XM_2PI;
+
+		const float revolution_radius = sqrtf(dx * dx + dz * dz); // 회전 반지름
+        const XMFLOAT3 next_position{ 
+            revolution_center.x + revolution_radius * cosf(angle), 
+            23.f, 
+            revolution_center.z + revolution_radius * sinf(angle) };
+
+		self->set_position_vector(next_position); // 오브젝트 위치 업데이트
+
+		std::cout << "회전 중: " << XMConvertToDegrees(angle) << "도" << std::endl;
+
+        // 접선 방향(정규화)
+        XMFLOAT3 tangent{
+            -sinf(angle),  // X
+             0.0f,         // Y
+             cosf(angle)   // Z
+        };
+        tangent = xmath_util_float3::Normalize(tangent);
+        tangent = tangent * -1.f;
+		XMFLOAT3 look = self->look_vector();
+		look = xmath_util_float3::Normalize(look);
+        float rotate_angle = xmath_util_float3::AngleBetween(look, tangent);
+        if (rotate_angle > XM_PI / 180.f * 5.f)
+        {
+            XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, tangent);
+            if (cross.y < 0)
+            {
+                rotate_angle = -rotate_angle;
+            }
+            rotate_angle = XMConvertToDegrees(rotate_angle);
+            self->Rotate(0.f, rotate_angle, 0.f);
+        }
+
+        sc_packet_monster_move mm;
+        mm.size = sizeof(sc_packet_monster_move);
+        mm.type = S2C_P_MONSTER_MOVE;
+        mm.id = self->id();
+        mm.speed = 6.f;
+        XMFLOAT4X4 xf;
+        const XMFLOAT4X4& mat = self->transform_matrix();
+        XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
+        memcpy(mm.matrix, &xf, sizeof(float) * 16);
+
+        const auto& users = SessionManager::getInstance().getAllSessions();
+        for (auto& u : users) {
+            u.second->do_send(&mm);
+        }
+
+		return false;
+		};
+
+
+    // ───────────────── 트리 구성 ─────────────────
+    auto* root = new Selector();
+    // 좌측 시퀀스: HP > 50% 
+    {
+        auto* seq_left = new Sequence();
+        seq_left->children.push_back(new ConditionNode([hp_ratio]() { return hp_ratio() > 0.5f; }));
+		seq_left->children.push_back(new ActionNode(is_bite_attacking)); // 하늘로 날아오르기
+		seq_left->children.push_back(new ActionNode(fly_to_sky)); // 하늘로 날아오르기
+		seq_left->children.push_back(new ActionNode(revolution)); // 회전
+        root->children.push_back(seq_left);
+    }
+
+    // 우측 시퀀스: HP ≤ 50%
+    {
+        auto* seq_right = new Sequence();
+        seq_right->children.push_back(new ConditionNode([hp_ratio]() { return hp_ratio() <= 0.5f; }));
+        root->children.push_back(seq_right);
+    }
+
+    auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+    monstercomp->set_attack_force(60);
+
+	auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+	movement->set_gravity_acceleration(0.f); // 중력 제거
+	movement->DisableFriction(); // 마찰 제거
 
     return root;
 }

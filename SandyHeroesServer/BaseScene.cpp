@@ -87,7 +87,7 @@ void BaseScene::BuildMesh()
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Object/Chest.bin", meshes_, materials_, textures_));	//12 상자
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Object/Scroll.bin", meshes_, materials_, textures_));	//13 스크롤
 
-	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Super_Dragon.bin", meshes_, materials_, textures_));
+	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Super_Dragon.bin", meshes_, materials_, textures_)); // 14 슈퍼 드래곤
 	
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Thorn_Projectile.bin", meshes_, materials_, textures_));  //15 쏴용 무기
 
@@ -198,6 +198,11 @@ void BaseScene::BuildModelInfo()
 	strong_dragon->hierarchy_root()->set_is_movable(true);
 	strong_dragon->hierarchy_root()->set_tag("Strong_Dragon");
 
+	ModelInfo* super_dragon = FindModelInfo("Super_Dragon");
+	super_dragon->hierarchy_root()->set_collide_type(true, true);
+	super_dragon->hierarchy_root()->set_is_movable(true);
+	super_dragon->hierarchy_root()->set_tag("Super_Dragon");
+
 	//Create Hit Dragon Spawner
 	ModelInfo* hit_dragon_spawner = new ModelInfo();
 	hit_dragon_spawner->set_model_name("Hit_Dragon_Spawner");
@@ -251,6 +256,19 @@ void BaseScene::BuildModelInfo()
 	strong_dragon_spawner->set_hierarchy_root(spawner);
 	model_infos_.emplace_back();
 	model_infos_.back().reset(strong_dragon_spawner);
+
+	//Create Super Dragon Spawner
+	ModelInfo* super_dragon_spawner = new ModelInfo();
+	super_dragon_spawner->set_model_name("Super_Dragon_Spawner");
+	spawner = new Object();
+	spawner_component = new SpawnerComponent(spawner, this, super_dragon);
+	spawner_component->AddComponent(monster_component->GetCopy());
+	spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
+	spawner_component->SetMonsterType(MonsterType::Super_Dragon);
+	spawner->AddComponent(spawner_component);
+	super_dragon_spawner->set_hierarchy_root(spawner);
+	model_infos_.emplace_back();
+	model_infos_.back().reset(super_dragon_spawner);
 
 	//Create Gun Models
 	{
@@ -400,7 +418,7 @@ void BaseScene::BuildModelInfo()
 void BaseScene::BuildObject()
 {
 
-	constexpr int kSpawnBoxCount = 5;
+	constexpr int kSpawnBoxCount = 7;
 	spawn_boxs_.reserve(kSpawnBoxCount);
 	for (int i = 0; i < kSpawnBoxCount; ++i)
 	{
@@ -621,11 +639,15 @@ void BaseScene::CreateMonsterSpawner()
 	int strong_spawner_id = 0;
 	ModelInfo* strong_dragon_spawner = FindModelInfo("Strong_Dragon_Spawner");
 	
+	//super dragon
+	int super_spawner_id = 0;
+	ModelInfo* super_dragon_spawner = FindModelInfo("Super_Dragon_Spawner");
+
 	Object* spawner;
 	SpawnerComponent* spawner_component;
 	//Stage 1
 	{
-		//spawner = create_spawner(strong_dragon_spawner, strong_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
+		//spawner = create_spawner(strong_dragon_spawner, strong_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
 		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		//AddObject(spawner);
 		//stage_monster_spawner_list_[0].push_back(spawner_component);
@@ -635,11 +657,11 @@ void BaseScene::CreateMonsterSpawner()
 		//AddObject(spawner);
 		//stage_monster_spawner_list_[0].push_back(spawner_component);
 
-		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 1.f, 5.f);
+		spawner = create_spawner(super_dragon_spawner, super_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
 		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		AddObject(spawner);
 		stage_monster_spawner_list_[0].push_back(spawner_component);
-		//
+		
 		//spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.f, 2.6f, 11.74f }, 3, 4.f, 4.f);
 		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		//AddObject(spawner);
@@ -719,6 +741,14 @@ void BaseScene::CreateMonsterSpawner()
 		AddObject(spawner);
 		stage_monster_spawner_list_[3].push_back(spawner_component);
 	}
+
+	//Stage 7
+	{
+		spawner = create_spawner(super_dragon_spawner, super_spawner_id, XMFLOAT3{ 204.5f, 6.2f, -47.f }, 1, 0.1f, 4.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[6].push_back(spawner_component);
+	}
 }
 
 void BaseScene::ActivateStageMonsterSpawner(int stage_num)
@@ -782,7 +812,7 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 {
 	Object* player = model_infos_[0]->GetInstance();
 	player->set_name("Player_" + std::to_string(session_id));
-	player->set_position_vector(XMFLOAT3{ -15, 6, 0 });
+	player->set_position_vector(XMFLOAT3{ 205.3f, 6, -91.f });
 	player->set_collide_type(true, true);  // 지면 & 벽 충돌 체크 등록
 	player->set_is_movable(true);
 	player->set_is_player();
@@ -818,6 +848,19 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	player->AddComponent(player_component);
 
 	AddObject(player);
+
+	//TODO: 테스트용 스테이지 7 몬스터 스포너 활성화
+	ActivateStageMonsterSpawner(6);
+	stage_clear_num_ = 7;
+	sc_packet_stage_clear sc;
+	sc.size = sizeof(sc_packet_stage_clear);
+	sc.stage_num = stage_clear_num_;
+	sc.type = S2C_P_STAGE_CLEAR;
+
+	const auto& users = SessionManager::getInstance().getAllSessions();
+	for (auto& u : users) {
+		u.second->do_send(&sc);
+	}
 
 	return player;
 }
@@ -1026,8 +1069,7 @@ void BaseScene::UpdateStageClear()
 		break;
 	case 7:
 		// TODO: 게임클리어!
-		if (catch_monster_num_ < 1)
-			return;
+		return;
 		break;
 	default:
 		break;

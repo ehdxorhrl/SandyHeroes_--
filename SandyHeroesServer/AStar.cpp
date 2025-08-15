@@ -34,6 +34,12 @@ void a_star::ConnectNodes(const std::vector<NodeConnector>& node_connectors)
 
 std::vector<Node*> a_star::AStar(Node* start, Node* goal)
 {
+    if(!start || !goal)
+    {
+        
+        return {};
+	}
+
     for(auto& node_list : kStageNodeBuffers)
     {
         for (auto& node : node_list)

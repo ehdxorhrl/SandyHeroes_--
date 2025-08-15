@@ -121,6 +121,17 @@ Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::u
 
 		ReadStringFromFile(file, load_token);
 	}
+	if (load_token == "<MapNode>:")
+	{
+		XMFLOAT3 position = ReadFromFile<XMFLOAT3>(file);
+		int id = ReadFromFile<int>(file);
+		int neighbors_count = ReadFromFile<int>(file);
+		std::vector<int> neighbors;
+		neighbors.resize(neighbors_count);
+		ReadFromFile<int>(file, neighbors.data(), neighbors_count);
+
+		ReadStringFromFile(file, load_token);
+	}
 
 	if (load_token == "<Mesh>:")
 	{
