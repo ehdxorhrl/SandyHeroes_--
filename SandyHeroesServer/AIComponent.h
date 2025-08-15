@@ -47,6 +47,7 @@ struct SuperState
     bool is_attacking = false;
     bool is_fly_to_sky = false;
     bool is_revolution = false;
+	bool is_move_to_target = false;
     float attack_time = 0.f; // 공격 시간
     float attack_cooldown = 0.f; // 공격 쿨타임
 	float revolution_time = 0.f; // 회전 시간
@@ -174,6 +175,12 @@ static bool InRangeXZ(Object* self, Object* target, float r) { // 범위 계산
     if (!self || !target) return false;
     auto d = target->world_position_vector() - self->world_position_vector();
     d.y = 0.f;
+    return xmath_util_float3::LengthSq(d) <= r * r;
+}
+
+static bool InRange(Object* self, Object* target, float r) { // 범위 계산
+    if (!self || !target) return false;
+    auto d = target->world_position_vector() - self->world_position_vector();
     return xmath_util_float3::LengthSq(d) <= r * r;
 }
 
@@ -924,6 +931,8 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
 static BTNode* Build_Super_Dragon_Tree(Object* self)
 {
     auto state = std::make_shared<SuperState>();
+    constexpr float range = 2.8f; // 근거리 공격 범위
+	constexpr float kSpeed = 8.f; // 이동 속도
     auto hp_ratio = [self]() -> float {
         auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
         if (!monstercomp) return 0.f;
@@ -987,6 +996,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 		if (!movement) return false; 
 
         if (state->is_revolution) return true;
+        if (state->is_move_to_target) return true;
 
         // 하늘로 날아오르기
 		constexpr XMFLOAT3 target_position{ 205.3f, 23.f, -91.f }; // 하늘로 날아오를 목표 위치
@@ -1005,7 +1015,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 				std::cout << "하늘로 날아오르기 시작합니다." << std::endl;
                 state->is_fly_to_sky = true;
                 direction = xmath_util_float3::Normalize(direction);
-                movement->Move(direction, 8.f);
+                movement->Move(direction, kSpeed);
 
                 XMFLOAT3 look = self->look_vector();
                 look = xmath_util_float3::Normalize(look);
@@ -1037,7 +1047,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
             mm.size = sizeof(sc_packet_monster_move);
             mm.type = S2C_P_MONSTER_MOVE;
             mm.id = self->id();
-            mm.speed = 6.f;
+            mm.speed = kSpeed;
             XMFLOAT4X4 xf;
             const XMFLOAT4X4& mat = self->transform_matrix();
             XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
@@ -1054,10 +1064,14 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
     auto revolution = [self, state](float elapsed_time) -> bool {
         auto* ai = Object::GetComponentInChildren<AIComponent>(self);
         if (!ai) return false;
+
+        if (state->is_move_to_target) return true;
+
 		constexpr float max_revolution_time = 6.f; // 회전 시간
         if (state->revolution_time > max_revolution_time)
         {
 			state->is_revolution = false; // 회전 종료
+			state->revolution_time = 0.f; // 회전 시간 초기화
             return true;
         }
         if (!state->is_revolution)
@@ -1103,8 +1117,6 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 
 		self->set_position_vector(next_position); // 오브젝트 위치 업데이트
 
-		std::cout << "회전 중: " << XMConvertToDegrees(angle) << "도" << std::endl;
-
         // 접선 방향(정규화)
         XMFLOAT3 tangent{
             -sinf(angle),  // X
@@ -1144,7 +1156,99 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 
 		return false;
 		};
+    auto move_to_target = [self, state](float elapsed_time) -> bool {
+        auto* target = Set_Target(self);
+        if (!target) return false; // 타겟이 없으면 실패
+        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        if (!ai) return false;
+		auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+		if (!movement) return false;
 
+        if (!state->is_move_to_target)
+        {
+			std::cout << "타겟 방향으로 이동 시작" << std::endl;
+            state->is_move_to_target = true;
+
+			// 애니메이션 상태 변경
+            sc_packet_monster_change_animation mca;
+            mca.size = sizeof(sc_packet_monster_change_animation);
+            mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
+            mca.id = self->id();
+            mca.loop_type = 0; // Loop
+            mca.animation_track = 6; // kFlyDownFast
+            const auto& users = SessionManager::getInstance().getAllSessions();
+            for (auto& u : users) {
+                u.second->do_send(&mca);
+			}
+        }
+
+        if (InRange(self, target, range - 0.5f) && self->position_vector().y < 4.5f)
+        {
+            movement->Stop();
+            state->is_move_to_target = false;
+            return true; // 타겟과의 거리가 충분히 가까우면 true 반환
+        }
+
+        movement->Stop();
+
+        //아니면 타겟방향으로 이동
+		XMFLOAT3 target_position = target->world_position_vector();
+        XMFLOAT3 direction = target_position - self->world_position_vector();
+        direction = xmath_util_float3::Normalize(direction);
+        movement->Move(direction, kSpeed);
+
+        XMFLOAT3 look = self->look_vector();
+		look.y = 0.f; 
+        direction.y = 0.f;
+        direction = xmath_util_float3::Normalize(direction);
+        look = xmath_util_float3::Normalize(look);
+        float angle = xmath_util_float3::AngleBetween(look, direction);
+        if (angle > XM_PI / 180.f * 5.f)
+        {
+            XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, direction);
+            if (cross.y < 0)
+            {
+                angle = -angle;
+            }
+            angle = XMConvertToDegrees(angle);
+            self->Rotate(0.f, angle, 0.f);
+        }
+
+		const auto& users = SessionManager::getInstance().getAllSessions();
+		sc_packet_monster_move mm;
+		mm.size = sizeof(sc_packet_monster_move);
+		mm.type = S2C_P_MONSTER_MOVE;
+		mm.id = self->id();
+		mm.speed = kSpeed;
+		XMFLOAT4X4 xf;
+		const XMFLOAT4X4& mat = self->transform_matrix();
+		XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
+		memcpy(mm.matrix, &xf, sizeof(float) * 16);
+		for (auto& u : users) {
+			u.second->do_send(&mm);
+		}
+
+        return false;
+        };
+    auto bite_attack = [self, state](float elapsed_time) -> bool {
+        auto* target = GetCurrentTarget(self);
+        if (!target) return false; // 타겟이 없으면 실패
+        state->attack_time = 0.f;
+        state->is_attacking = true; // 공격 상태로 변경
+
+        //애니메이션 상태 변경
+        sc_packet_monster_change_animation mca;
+        mca.size = sizeof(sc_packet_monster_change_animation);
+        mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
+        mca.id = self->id();
+        mca.loop_type = 1; // Once
+        mca.animation_track = 7; // kFlyBiteAttackLow
+        const auto& users = SessionManager::getInstance().getAllSessions();
+        for (auto& u : users) {
+            u.second->do_send(&mca);
+        }
+        return true;
+        };
 
     // ───────────────── 트리 구성 ─────────────────
     auto* root = new Selector();
@@ -1155,6 +1259,9 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 		seq_left->children.push_back(new ActionNode(is_bite_attacking)); // 하늘로 날아오르기
 		seq_left->children.push_back(new ActionNode(fly_to_sky)); // 하늘로 날아오르기
 		seq_left->children.push_back(new ActionNode(revolution)); // 회전
+        seq_left->children.push_back(new ActionNode(move_to_target)); 
+        seq_left->children.push_back(new ActionNode(bite_attack));
+
         root->children.push_back(seq_left);
     }
 

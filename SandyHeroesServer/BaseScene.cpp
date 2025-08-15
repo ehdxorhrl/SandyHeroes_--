@@ -199,7 +199,7 @@ void BaseScene::BuildModelInfo()
 	strong_dragon->hierarchy_root()->set_tag("Strong_Dragon");
 
 	ModelInfo* super_dragon = FindModelInfo("Super_Dragon");
-	super_dragon->hierarchy_root()->set_collide_type(true, true);
+	super_dragon->hierarchy_root()->set_collide_type(false, true);
 	super_dragon->hierarchy_root()->set_is_movable(true);
 	super_dragon->hierarchy_root()->set_tag("Super_Dragon");
 
