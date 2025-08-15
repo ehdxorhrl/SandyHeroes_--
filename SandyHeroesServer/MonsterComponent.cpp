@@ -368,9 +368,25 @@ void MonsterComponent::ApplyStatusEffect(StatusEffectType type, float duration, 
 
 }
 
+void MonsterComponent::set_max_shield(float value)
+{
+    max_shield_ = value;
+    if (shield_ > max_shield_) {
+        shield_ = max_shield_; // shield가 max_shield를 초과하지 않도록 조정
+	}
+}
+
 void MonsterComponent::set_shield(float value)
 {
     shield_ = value;
+}
+
+void MonsterComponent::set_max_hp(float value)
+{
+    max_hp_ = value;
+    if (hp_ > max_hp_) {
+        hp_ = max_hp_; // hp가 max_hp를 초과하지 않도록 조정
+	}
 }
 
 void MonsterComponent::set_hp(float value)
@@ -468,6 +484,10 @@ void MonsterComponent::RebuildBehaviorTree_()
         root = Build_Shot_Dragon_Tree(owner_);
         std::cout << "Build_Shot_Dragon_Tree 생성 완료" << std::endl;
         break;
+    case MonsterType::Super_Dragon:
+        root = Build_Super_Dragon_Tree(owner_);
+        break;
+
     default:
         break;
     }

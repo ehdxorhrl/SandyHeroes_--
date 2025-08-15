@@ -87,7 +87,7 @@ bool AIComponent::Move_To_Target(float elapsed_time) {
             }
 
             current_node_idx_ = 0;
-            if (current_node_ == path_[0])
+            if (!path_.empty() && current_node_ == path_[0])
             {
                 if (current_node_ == path_[0])
                 {

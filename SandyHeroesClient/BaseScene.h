@@ -66,9 +66,14 @@ public:
 
 	void SpawnMonsterDamagedParticle(const XMFLOAT3& position, const XMFLOAT4& color);
 
+	//setter
+	void set_stage_clear_num(int value);
+
 	//getter
 	std::list<MonsterComponent*> monster_list() const;
 	int stage_clear_num();
+
+
 	void add_stage_clear_num();
 	void add_catch_monster_num();
 	void add_remote_player(int id, const std::string& name, const XMFLOAT4X4& value);

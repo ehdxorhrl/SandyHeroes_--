@@ -527,7 +527,7 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	CreatePlayerUI();
 
 	//Set Spawn Boxs
-	constexpr int kSpawnBoxCount = 5;
+	constexpr int kSpawnBoxCount = 7;
 	spawn_boxs_.reserve(kSpawnBoxCount);
 	for (int i = 0; i < kSpawnBoxCount; ++i)
 	{
@@ -844,6 +844,14 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		strong_dragon->hierarchy_root()->set_tag("Strong_Dragon");
 		animator = Object::GetComponentInChildren<AnimatorComponent>(strong_dragon->hierarchy_root());
 		animator->set_animation_state(new StrongDragonAnimationState);
+
+		//Strong Dragon Fix(Set CollisionType)
+		ModelInfo* super_dragon = FindModelInfo("Super_Dragon");
+		super_dragon->hierarchy_root()->set_collide_type(true, true);
+		super_dragon->hierarchy_root()->set_is_movable(true);
+		super_dragon->hierarchy_root()->set_tag("Super_Dragon");
+		animator = Object::GetComponentInChildren<AnimatorComponent>(super_dragon->hierarchy_root());
+		animator->set_animation_state(new SuperDragonAnimationState);
 
 		//Create Hit Dragon Spawner
 		ModelInfo* hit_dragon_spawner = new ModelInfo();
@@ -2407,6 +2415,11 @@ void BaseScene::SpawnMonsterDamagedParticle(const XMFLOAT3& position, const XMFL
 	particle_component->Play(50);
 }
 
+void BaseScene::set_stage_clear_num(int value)
+{
+	stage_clear_num_ = value;
+}
+
 int BaseScene::stage_clear_num()
 {
 	return stage_clear_num_;
@@ -2460,7 +2473,6 @@ void BaseScene::add_monster(uint32_t id, const XMFLOAT4X4& matrix, int32_t max_h
 	
 	new_monster->set_transform_matrix(matrix);
 	new_monster->set_id(id);
-	//new_moster->set_tag("Monster");  // 태그 설정
 	
 	auto* monster_component = new MonsterComponent(new_monster);
 	monster_component->set_hp(max_hp);
@@ -2471,7 +2483,6 @@ void BaseScene::add_monster(uint32_t id, const XMFLOAT4X4& matrix, int32_t max_h
 	auto* move_component = new MovementComponent(new_monster);
 	new_monster->AddComponent(move_component);
 	
-	new_monster->set_id(id);
 	
 	AddObject(new_monster);
 

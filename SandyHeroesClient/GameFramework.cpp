@@ -1109,7 +1109,8 @@ void GameFramework::ProcessPacket(char* p)
         break;
     case S2C_P_STAGE_CLEAR:
     {
-        base_scene->add_stage_clear_num();
+		sc_packet_stage_clear* packet = reinterpret_cast<sc_packet_stage_clear*>(p);
+        base_scene->set_stage_clear_num(packet->stage_num);
     }
         break;
     case S2C_P_MONSTER_DAMAGED_PATICLE:

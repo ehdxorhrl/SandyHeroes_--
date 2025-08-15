@@ -93,7 +93,7 @@ void SpawnerComponent::ForceSpawn()
 			monster->InitAfterOwnerSet();
 
 			//monster->set_scene(scene_);
-			std::cout << "현재 몬스터 타입: " << owner_->tag() << std::endl;
+			std::cout << "현재 몬스터 타입: " << new_object->tag() << std::endl;
 		}
 	}
 	
