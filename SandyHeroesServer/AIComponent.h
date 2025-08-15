@@ -931,7 +931,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
 static BTNode* Build_Super_Dragon_Tree(Object* self)
 {
     auto state = std::make_shared<SuperState>();
-    constexpr float range = 2.8f; // 근거리 공격 범위
+    constexpr float kRange = 6.f; // 근거리 공격 범위
 	constexpr float kSpeed = 8.f; // 이동 속도
     auto hp_ratio = [self]() -> float {
         auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
@@ -945,7 +945,6 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         constexpr float end_attack_time = animation_spf * 27.f; // 공격 종료 시간
         if (state->is_attacking) {
             state->attack_time += elapsed_time; // 공격 시간 누적
-            std::cout << "공격 중\n";
             if (state->attack_time > end_attack_time)
             {
                 state->is_attacking = false; // 공격이 끝났으면 상태를 초기화
@@ -1003,7 +1002,6 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         XMFLOAT3 direction = target_position - self->world_position_vector();
         if (xmath_util_float3::Length(direction) < 0.2f) 
         {
-			std::cout << "목표 위치에 도달했습니다." << std::endl;
             state->is_fly_to_sky = false;
             movement->Stop();
             return true; // 목표 위치에 도달하면 true 반환
@@ -1012,7 +1010,6 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         {
             if(!state->is_fly_to_sky) 
             {
-				std::cout << "하늘로 날아오르기 시작합니다." << std::endl;
                 state->is_fly_to_sky = true;
                 direction = xmath_util_float3::Normalize(direction);
                 movement->Move(direction, kSpeed);
@@ -1076,7 +1073,6 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         }
         if (!state->is_revolution)
         {
-			std::cout << "회전 시작" << std::endl;
             state->is_revolution = true; // 회전 시작
             state->revolution_time = 0.f; // 회전 시간 초기화
             // 애니메이션 상태 변경
@@ -1164,9 +1160,11 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 		auto movement = Object::GetComponentInChildren<MovementComponent>(self);
 		if (!movement) return false;
 
+		constexpr float kGroundY = 3.4f; // 지면 높이
+		constexpr float kFlyHeight = 5.f; // 비행 높이
+
         if (!state->is_move_to_target)
         {
-			std::cout << "타겟 방향으로 이동 시작" << std::endl;
             state->is_move_to_target = true;
 
 			// 애니메이션 상태 변경
@@ -1182,7 +1180,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 			}
         }
 
-        if (InRange(self, target, range - 0.5f) && self->position_vector().y < 4.5f)
+        if (InRangeXZ(self, target, kRange + 0.5f) && self->position_vector().y < kGroundY - kFlyHeight)
         {
             movement->Stop();
             state->is_move_to_target = false;
@@ -1193,7 +1191,12 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 
         //아니면 타겟방향으로 이동
 		XMFLOAT3 target_position = target->world_position_vector();
+		target_position.y -= kFlyHeight; // fly 애니메이션을 고려하여 타겟 위치를 약간 낮춤
         XMFLOAT3 direction = target_position - self->world_position_vector();
+		XMFLOAT3 direction_xz = direction;
+		direction_xz.y = 0.f; 
+		direction_xz = xmath_util_float3::Normalize(direction_xz);
+		direction -= direction_xz * kRange; // 타겟 위치에서 약간 뒤로 이동
         direction = xmath_util_float3::Normalize(direction);
         movement->Move(direction, kSpeed);
 
