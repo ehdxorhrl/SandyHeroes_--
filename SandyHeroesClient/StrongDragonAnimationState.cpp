@@ -20,8 +20,13 @@ void StrongDragonAnimationState::Enter(int animation_track, Object* object, Anim
 	if ((int)StrongDragonAnimationTrack::kSpinAttackOnce == animation_track)
 	{
 		animation_loop_type_ = 1; //Once
+		//TODO: 쎄용 공격 사운드 재생 1회
 	}
+	if ((int)StrongDragonAnimationTrack::kSpinAttackLoop == animation_track)
+	{
+		//TODO: 쎄용 공격 사운드 재생 Loop
 
+	}
 }
 
 int StrongDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
@@ -30,6 +35,8 @@ int StrongDragonAnimationState::Run(float elapsed_time, Object* object, bool is_
 	auto velocity_xz = movement->velocity();
 	velocity_xz.y = 0.f;
 	float speed = xmath_util_float3::Length(velocity_xz);
+
+
 
 	switch ((StrongDragonAnimationTrack)animation_track())
 	{
@@ -69,7 +76,11 @@ void StrongDragonAnimationState::Exit(int animation_track, Object* object, Anima
 	{
 		animation_loop_type_ = 0; 
 	}
+	if ((int)StrongDragonAnimationTrack::kSpinAttackLoop == animation_track)
+	{
+		//TODO: 쎄용 공격 사운드 재생 Loop 종료
 
+	}
 }
 
 AnimationState* StrongDragonAnimationState::GetCopy()

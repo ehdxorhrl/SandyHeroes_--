@@ -914,7 +914,7 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	// 총기 부착
 	Object* weapon_frame = player->FindFrame("WeaponR_locator");
 	if (weapon_frame) {
-		weapon_frame->AddChild(FindModelInfo("Classic")->GetInstance());  // 총 모델
+		weapon_frame->AddChild(FindModelInfo("Flamethrower")->GetInstance());  // 총 모델
 		weapon_frame = weapon_frame->child();  // 자식 프레임 가져옴
 
 	}

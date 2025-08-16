@@ -10,6 +10,10 @@ HitDragonAnimationState::HitDragonAnimationState()
 
 void HitDragonAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
 {
+	if ((int)HitDragonAnimationTrack::kSlashLeftAttack == animation_track)
+	{
+		//TODO: SlashLeftAttack 사운드 재생 1회
+	}
 }
 
 int HitDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
