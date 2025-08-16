@@ -319,6 +319,20 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         const auto& users = SessionManager::getInstance().getAllSessions();
 
         for (auto it = fired_thorns.begin(); it != fired_thorns.end();) {
+			auto thorn = *it;
+            auto thorn_position = thorn->world_position_vector();
+            if (xmath_util_float3::LengthSq(thorn_position - self->world_position_vector()) > 10000.f)
+            {
+                thorn->set_is_dead(true);
+                sc_packet_object_set_dead osd;
+                osd.size = sizeof(sc_packet_object_set_dead);
+                osd.type = S2C_P_OBJECT_SET_DEAD;
+                osd.id = thorn->id();
+
+                for (auto& u : users) {
+                    u.second->do_send(&osd);
+                }
+            }
             // 충돌 검사
             auto box = Object::GetComponentInChildren<BoxColliderComponent>(*it);
             for (const auto& user : users) // 플레이어 충돌검사

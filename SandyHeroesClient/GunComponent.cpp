@@ -60,17 +60,12 @@ void GunComponent::Update(float elapsed_time)
 
     for (const auto& bullet : fired_bullet_list_)
     {
-        bullet->Update(elapsed_time);
-        bullet->UpdateWorldMatrix(nullptr);
+        auto bullet_position = bullet->world_position_vector();
+        if (xmath_util_float3::Length(bullet_position - owner_->world_position_vector()) > 100.f)
+        {
+            bullet->set_is_dead(true);
+        }
     }
-	fired_bullet_list_.remove_if([](Object* bullet) {
-		if (bullet->is_dead())
-		{
-            delete bullet;
-			return true;
-		}
-		return false;
-		});
 }
 
 
