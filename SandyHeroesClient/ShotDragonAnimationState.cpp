@@ -2,12 +2,13 @@
 #include "ShotDragonAnimationState.h"
 #include "Object.h"
 #include "MovementComponent.h"
+#include "FMODSoundManager.h"
 
 void ShotDragonAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
 {
 	if ((int)ShotDragonAnimationTrack::kAttack == animation_track)
 	{
-		//TODO: 쏴용 공격 사운드 재생 1회
+		FMODSoundManager::Instance().PlaySound("shot", false, 0.3f);
 	}
 }
 

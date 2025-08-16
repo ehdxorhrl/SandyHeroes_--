@@ -3,6 +3,7 @@
 #include "MovementComponent.h"
 #include "Object.h"
 #include "AnimatorComponent.h"
+#include "FMODSoundManager.h"
 
 StrongDragonAnimationState::StrongDragonAnimationState()
 {
@@ -20,12 +21,12 @@ void StrongDragonAnimationState::Enter(int animation_track, Object* object, Anim
 	if ((int)StrongDragonAnimationTrack::kSpinAttackOnce == animation_track)
 	{
 		animation_loop_type_ = 1; //Once
-		//TODO: 쎄용 공격 사운드 재생 1회
+		OutputDebugString(L"Spin_Sound\n");
+		FMODSoundManager::Instance().PlaySound("spin", false, 0.3f);
 	}
 	if ((int)StrongDragonAnimationTrack::kSpinAttackLoop == animation_track)
 	{
-		//TODO: 쎄용 공격 사운드 재생 Loop
-
+		FMODSoundManager::Instance().PlaySound("spin_loop", true, 0.3f);
 	}
 }
 
@@ -78,8 +79,7 @@ void StrongDragonAnimationState::Exit(int animation_track, Object* object, Anima
 	}
 	if ((int)StrongDragonAnimationTrack::kSpinAttackLoop == animation_track)
 	{
-		//TODO: 쎄용 공격 사운드 재생 Loop 종료
-
+		FMODSoundManager::Instance().StopSound("spin");
 	}
 }
 

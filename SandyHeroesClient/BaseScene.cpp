@@ -627,6 +627,15 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 		sound_comp->Load("grunt", "Resource/Fmod/sound/grunt.wav", false);
 		sound_comp->Load("hit", "Resource/Fmod/sound/hit.wav", false);
 		sound_comp->Load("lazer", "Resource/Fmod/sound/lazer.wav", false);
+
+		sound_comp->Load("wing", "Resource/Fmod/sound/wing.wav", true);
+		sound_comp->Load("spin", "Resource/Fmod/sound/spin.wav", false);
+		sound_comp->Load("spin_loop", "Resource/Fmod/sound/spin_loop.wav", true);
+		sound_comp->Load("bomb", "Resource/Fmod/sound/bomb.wav", false);
+		sound_comp->Load("shot", "Resource/Fmod/sound/shot.wav", false);
+		sound_comp->Load("punch", "Resource/Fmod/sound/punch.wav", false);
+		sound_comp->Load("bite", "Resource/Fmod/sound/bite.wav", false);
+		sound_comp->Load("breath", "Resource/Fmod/sound/breath.wav", false);
 		sound_object->AddComponent(sound_comp);
 		sounds_.push_back(sound_object);
 		AddObject(sound_object);

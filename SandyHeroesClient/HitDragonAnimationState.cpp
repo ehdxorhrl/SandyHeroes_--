@@ -2,6 +2,7 @@
 #include "HitDragonAnimationState.h"
 #include "Object.h"
 #include "MovementComponent.h"
+#include "FMODSoundManager.h"
 
 HitDragonAnimationState::HitDragonAnimationState()
 {
@@ -12,7 +13,7 @@ void HitDragonAnimationState::Enter(int animation_track, Object* object, Animato
 {
 	if ((int)HitDragonAnimationTrack::kSlashLeftAttack == animation_track)
 	{
-		//TODO: SlashLeftAttack 사운드 재생 1회
+		FMODSoundManager::Instance().PlaySound("punch", false, 0.3f);
 	}
 }
 

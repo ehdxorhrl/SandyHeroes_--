@@ -983,7 +983,7 @@ void GameFramework::ProcessPacket(char* p)
             {
                 player_component->set_main_skill_gage(packet->main_skill_gage);
 				player_component->set_dash_gage(packet->dash_cool_time);
-				OutputDebugStringA((std::to_string(packet->dash_cool_time) + "\n").c_str());
+				//OutputDebugStringA((std::to_string(packet->dash_cool_time) + "\n").c_str());
             }
         }
         

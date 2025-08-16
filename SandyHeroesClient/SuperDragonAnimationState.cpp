@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SuperDragonAnimationState.h"
 #include "Object.h"
+#include "FMODSoundManager.h"
 
 SuperDragonAnimationState::SuperDragonAnimationState()
 {
@@ -25,7 +26,7 @@ void SuperDragonAnimationState::Enter(int animation_track, Object* object, Anima
 	case SuperDragonAnimationTrack::kFlyBiteAttackLow:
 		attack_time_ = 0.f; // 공격 시간 초기화
 		is_attack_ = false; // 공격 상태 초기화
-		//TODO: 짱쎄용 물기 사운드 재생 1회
+		FMODSoundManager::Instance().PlaySound("bite", false, 0.3f);
 		break;
 	case SuperDragonAnimationTrack::kFlyFireBreathAttackLow:
 		attack_time_ = 0.f; // 공격 시간 초기화
@@ -75,7 +76,7 @@ int SuperDragonAnimationState::Run(float elapsed_time, Object* object, bool is_e
 		if (!is_attack_ && attack_time_ > start_attack_time)
 		{
 			is_attack_ = true;
-			//TODO: 짱쎄용 브레스 공격 사운드 재생 Loop
+			FMODSoundManager::Instance().PlaySound("breath", false, 0.3f);
 			//TODO: 짱쎄용 브레스 공격 파티클 재생
 			auto breath_frame = object->FindFrame("Breath");
 			if(!breath_frame)
@@ -88,7 +89,6 @@ int SuperDragonAnimationState::Run(float elapsed_time, Object* object, bool is_e
 		if(is_attack_ && attack_time_ > end_attack_time)
 		{
 			is_attack_ = false;
-			//TODO: 짱쎄용 브레스 공격 사운드 재생 Stop
 		}
 
 		if (is_end)
