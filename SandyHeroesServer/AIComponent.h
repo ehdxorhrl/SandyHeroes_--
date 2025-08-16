@@ -37,6 +37,7 @@ struct HitState
 
 struct StrongState
 {
+	bool is_hp_low = false; // 체력이 낮은 상태
     bool is_attacking = false;
     float attack_time = 0.f; // 공격 시간
     float attack_cooldown = 0.f; // 공격 쿨타임
@@ -44,6 +45,7 @@ struct StrongState
 
 struct SuperState
 {
+	bool is_hp_low = false; // 체력이 낮은 상태
     bool is_attacking = false;
     bool is_fly_to_sky = false;
     bool is_revolution = false;
@@ -818,6 +820,14 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
 
 
     auto is_loop_attacking = [self, state](float elapsed_time) -> bool {
+        if (!state->is_hp_low)
+        {
+            state->is_hp_low = true;
+			state->attack_cooldown = 0.f; // 공격 쿨타임 초기화
+            state->attack_time = 0.f; // 공격 시간 초기화
+            state->is_attacking = false; // 공격 상태 초기화
+            return false;
+        }
         if (state->is_attacking) 
         {
             state->attack_time += elapsed_time; // 공격 시간 누적
@@ -931,7 +941,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
 static BTNode* Build_Super_Dragon_Tree(Object* self)
 {
     auto state = std::make_shared<SuperState>();
-    constexpr float kRange = 6.f; // 근거리 공격 범위
+    constexpr float kRange = 7.f; // 근거리 공격 범위
 	constexpr float kSpeed = 8.f; // 이동 속도
     auto hp_ratio = [self]() -> float {
         auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
@@ -1160,8 +1170,8 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 		auto movement = Object::GetComponentInChildren<MovementComponent>(self);
 		if (!movement) return false;
 
-		constexpr float kGroundY = 3.4f; // 지면 높이
-		constexpr float kFlyHeight = 5.f; // 비행 높이
+		constexpr float kGroundY = 3.6f; // 지면 높이
+		constexpr float kFlyHeight = 2.1f; // 비행 높이
 
         if (!state->is_move_to_target)
         {
@@ -1253,13 +1263,95 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         return true;
         };
 
+    auto is_breath_attacking = [self, state](float elapsed_time) -> bool {
+        if (!state->is_hp_low)
+        {
+            state->is_hp_low = true;
+            state->is_attacking = false;
+            state->is_fly_to_sky = false;
+            state->is_revolution = false;
+            state->is_move_to_target = false;
+            state->attack_time = 0.f; // 공격 시간
+            state->attack_cooldown = 0.f; // 공격 쿨타임
+            state->revolution_time = 0.f; // 회전 시간
+            return false;
+        }
+
+        constexpr float animation_spf = 0.03f; // 공격 애니메이션 프레임당 시간
+        constexpr float start_attack_time = animation_spf * 13.f; // 공격 시작 시간
+        constexpr float end_attack_time = animation_spf * 40.f; // 공격 종료 시간
+        if (state->is_attacking) {
+            state->attack_time += elapsed_time; // 공격 시간 누적
+            if (state->attack_time > end_attack_time)
+            {
+                state->is_attacking = false; // 공격이 끝났으면 상태를 초기화
+                state->attack_time = 0.f; // 공격 시간 초기화
+                return !state->is_attacking; //공격 중이 아니면 진행
+            }
+            if (state->attack_time > start_attack_time)
+            {
+                auto head = self->FindFrame("Breath");
+                auto box = Object::GetComponent<BoxColliderComponent>(head);
+                if (!box)
+                {
+                    std::cout << "짱쎄용 Breath에 box collider가 없습니다." << std::endl;
+                    return false;
+                }
+                //충돌 검사
+                const auto& users = SessionManager::getInstance().getAllSessions();
+                for (const auto& user : users)
+                {
+                    if (user.second->get_player_object()->is_dead()) continue; // 플레이어가 죽었으면 건너뛰기
+                    auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(user.second->get_player_object());
+                    if (!player_box) continue; // 플레이어 박스가 없으면 건너뛰기
+                    if (box->animated_box().Intersects(player_box->animated_box()))
+                    {
+                        auto playercomp = Object::GetComponentInChildren<PlayerComponent>(user.second->get_player_object());
+                        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+						playercomp->HitDamage(monstercomp->attack_force());
+                        sc_packet_player_damaged pd;
+                        pd.size = sizeof(sc_packet_player_damaged);
+                        pd.type = S2C_P_PLAYER_DAMAGED;
+                        pd.id = user.second->get_id();
+                        pd.hp = playercomp->hp();
+                        pd.shield = playercomp->shield();
+                        for (auto& u : users)
+						{
+                            u.second->do_send(&pd);
+                        }
+                    }
+                }
+            }
+        }
+        return !state->is_attacking; //공격 중이 아니면 진행
+		};
+    auto breath_attack = [self, state](float elapsed_time) -> bool {
+        auto* target = GetCurrentTarget(self);
+        if (!target) return false; // 타겟이 없으면 실패
+        state->attack_time = 0.f;
+        state->is_attacking = true; // 공격 상태로 변경
+        //애니메이션 상태 변경
+        sc_packet_monster_change_animation mca;
+        mca.size = sizeof(sc_packet_monster_change_animation);
+        mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
+        mca.id = self->id();
+        mca.loop_type = 1; // Once
+        mca.animation_track = 8; // kFlyFireBreathAttackLow
+        const auto& users = SessionManager::getInstance().getAllSessions();
+        for (auto& u : users) 
+        {
+			u.second->do_send(&mca);
+        }
+        return true;
+		};
+
     // ───────────────── 트리 구성 ─────────────────
     auto* root = new Selector();
     // 좌측 시퀀스: HP > 50% 
     {
         auto* seq_left = new Sequence();
         seq_left->children.push_back(new ConditionNode([hp_ratio]() { return hp_ratio() > 0.5f; }));
-		seq_left->children.push_back(new ActionNode(is_bite_attacking)); // 하늘로 날아오르기
+		seq_left->children.push_back(new ActionNode(is_bite_attacking)); 
 		seq_left->children.push_back(new ActionNode(fly_to_sky)); // 하늘로 날아오르기
 		seq_left->children.push_back(new ActionNode(revolution)); // 회전
         seq_left->children.push_back(new ActionNode(move_to_target)); 
@@ -1272,11 +1364,19 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
     {
         auto* seq_right = new Sequence();
         seq_right->children.push_back(new ConditionNode([hp_ratio]() { return hp_ratio() <= 0.5f; }));
+        seq_right->children.push_back(new ActionNode(is_breath_attacking)); // 하늘로 날아오르기
+        seq_right->children.push_back(new ActionNode(fly_to_sky)); // 하늘로 날아오르기
+        seq_right->children.push_back(new ActionNode(revolution)); // 회전
+        seq_right->children.push_back(new ActionNode(move_to_target));
+        seq_right->children.push_back(new ActionNode(breath_attack));
+
         root->children.push_back(seq_right);
     }
 
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_attack_force(60);
+    monstercomp->set_max_hp(5000.f);
+    monstercomp->set_hp(200.f);
 
 	auto movement = Object::GetComponentInChildren<MovementComponent>(self);
 	movement->set_gravity_acceleration(0.f); // 중력 제거
