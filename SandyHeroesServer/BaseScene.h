@@ -39,7 +39,7 @@ public:
 	//TODO: 단일 플레이어 뿐만 아니라 적, 다른 플레이어에 대한 ground 체크도 필요
 	void UpdateObjectIsGround();
 	void UpdateObjectHitWall();
-	void UpdateObjectHitBullet();
+	void UpdateObjectHitBullet(float elapsed_time);
 	void UpdateObjectHitObject();
 	void UpdateStageClear();
 	void UpdateRazerHitEnemy();
@@ -55,7 +55,7 @@ public:
 	void CheckSpawnBoxHitPlayers();
 	void CheckPlayerHitChest();
 	void CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray_direction, int id);
-	void CheckObjectHitFlamethrow(Object* object, int id);
+	void CheckObjectHitFlamethrow(Object* object, int id, float elapsed_time);
 
 	void CheckRazerHitEnemy(RazerComponent* razer_component, MonsterComponent* monster_component);
 

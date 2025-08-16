@@ -794,7 +794,7 @@ void BaseScene::Update(float elapsed_time)
 
 	UpdateObjectIsGround();
 
-	UpdateObjectHitBullet();
+	UpdateObjectHitBullet(elapsed_time);
 
 	UpdateObjectHitObject();
 
@@ -973,7 +973,7 @@ void BaseScene::UpdateObjectHitWall()
 	}
 }
 
-void BaseScene::UpdateObjectHitBullet()
+void BaseScene::UpdateObjectHitBullet(float elapsed_time)
 {
 	if (!is_prepare_ground_checking_)
 	{
@@ -993,7 +993,7 @@ void BaseScene::UpdateObjectHitBullet()
 		}
 		for (const auto& monster : monster_list_)
 		{
-			CheckObjectHitFlamethrow(monster->owner(), player.second->get_id());
+			CheckObjectHitFlamethrow(monster->owner(), player.second->get_id(), elapsed_time);
 		}
 	}
 }
@@ -1876,7 +1876,7 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 
 }
 
-void BaseScene::CheckObjectHitFlamethrow(Object* object, int id)
+void BaseScene::CheckObjectHitFlamethrow(Object* object, int id, float elapsed_time)
 {
 	Object* player_ = SessionManager::getInstance().get(id)->get_player_object();
 
@@ -1908,7 +1908,7 @@ void BaseScene::CheckObjectHitFlamethrow(Object* object, int id)
 				particle_packet.color = particle_color;
 				particle_packet.position = hit_position;
 
-				monster->HitDamage(gun->damage() * (1 + gun->upgrade() * 0.2));
+				monster->HitDamage((gun->damage() * (1 + gun->upgrade() * 0.2)) * elapsed_time);
 
 				if (monster->IsDead())
 				{

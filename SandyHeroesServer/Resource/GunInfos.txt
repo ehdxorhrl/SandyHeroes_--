@@ -3,4 +3,4 @@
 @ specter	big	28	1.6	810	30	2.25	auto	0	400
 @ vandal	big	42	2.0	770	25	2.5	auto	0	710
 @ odin	big	47	2.0	850	28	2.5	burst	4	730
-@ flamethrower	special	1	2.0	1250	150	0	auto	0	1
+@ flamethrower	special	80	2.0	1250	150	0	auto	0	1

@@ -146,7 +146,7 @@ void Session::update(float elapsed_time)
 			{
 				for (const auto& monster : base_scene->monster_list())
 				{
-					base_scene->CheckObjectHitFlamethrow(monster->owner(), id_);
+					base_scene->CheckObjectHitFlamethrow(monster->owner(), id_, elapsed_time);
 				}
 			}
 		}
@@ -414,13 +414,6 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 
 			auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
 			gun->FireBullet(fire_direction_, bullet_mesh, base_scene, id_);
-			if (gun->gun_name() == "flamethrower")
-			{
-				for (const auto& monster : base_scene->monster_list())
-				{
-					base_scene->CheckObjectHitFlamethrow(monster->owner(), id_);
-				}
-			}
 		}
 		break;
 	}
