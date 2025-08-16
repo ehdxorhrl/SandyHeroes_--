@@ -72,7 +72,7 @@ void ChestComponent::HendleCollision(Object* other_object)
 	//scroll->AddComponent(scroll_comp);
 }
 
-void ChestComponent::OpenChest(ScrollType scroll_type)
+void ChestComponent::OpenChest(uint8_t scroll_type, ModelInfo* scroll_model)
 { 
 	if (is_open_)
 	{
@@ -104,6 +104,8 @@ void ChestComponent::OpenChest(ScrollType scroll_type)
 	}
 
 	// 스크롤 1개 생성
+	set_scroll_model(scroll_model);
+
 	Object* scroll = scroll_model_->GetInstance();
 	//스크롤 회전값 및 위치 초기화(월드 -> 상자)
 	scroll->set_transform_matrix(owner_->transform_matrix() * scroll->transform_matrix());
@@ -111,7 +113,10 @@ void ChestComponent::OpenChest(ScrollType scroll_type)
 	auto scroll_comp = Object::GetComponent<ScrollComponent>(scroll);
 	scroll_comp->set_is_active(true);
 	scroll_comp->set_direction(XMFLOAT3(0.0f, 0.0007f, 0.0f)); // 위로 이동
-	scroll_comp->set_type(scroll_type);
+	scroll_comp->set_type(static_cast<ScrollType>(scroll_type));
+
+
+	std::cout << "scroll_type: " << static_cast<int>(scroll_comp->type()) << '\n';
 
 	scroll_object_ = scroll;
 	scene_->AddObject(scroll);

@@ -2662,7 +2662,8 @@ void BaseScene::OpenScrollChest(uint8_t scroll_type, uint8_t chest_num)
 	auto chest_component = Object::GetComponent<ChestComponent>(chest);
 	if (!chest_component) return;
 
-	chest_component->OpenChest(static_cast<ScrollType>(scroll_type));
+	auto scroll_model = FindModelInfo("Scroll_" + std::to_string(scroll_type));
+	chest_component->OpenChest(scroll_type, scroll_model);
 }
 
 void BaseScene::TakeScroll(uint8_t chest_num)
