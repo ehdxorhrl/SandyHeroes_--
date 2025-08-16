@@ -521,7 +521,7 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
             u.second->do_send(&mca);
         }
         // 공격 로직
-		XMFLOAT3 direction = target->world_position_vector() - self->world_position_vector();
+		XMFLOAT3 direction = target->FindFrame("Root_M")->world_position_vector() - self->world_position_vector();
 		direction = xmath_util_float3::Normalize(direction);
 
         BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
@@ -539,6 +539,8 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
 
         MovementComponent* movement = new MovementComponent(thorn_projectile);
         thorn_projectile->AddComponent(movement);
+        XMFLOAT3 thorn_position = self->FindFrame("RigLArmPalm")->world_position_vector();
+
         thorn_projectile->set_position_vector(self->world_position_vector());
         movement->DisableFriction();
         movement->set_gravity_acceleration(0.f);
