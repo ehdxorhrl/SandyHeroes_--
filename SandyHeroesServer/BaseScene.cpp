@@ -539,6 +539,7 @@ void BaseScene::BuildObject()
 			auto chest_component = new ChestComponent(chest, this);
 			//박스당 1개 사용
 			auto scroll_model = FindModelInfo("Scroll_" + std::to_string(scroll_index[i]));
+			std::cout << "Scroll_" + std::to_string(scroll_index[i]) << std::endl;
 			if (!scroll_model) std::cout << "스크롤 모델을 찾기 못했습니다." << std::endl;
 			chest_component->set_scroll_model(scroll_model);
 			chest->AddComponent(chest_component);
@@ -657,10 +658,10 @@ void BaseScene::CreateMonsterSpawner()
 		//AddObject(spawner);
 		//stage_monster_spawner_list_[0].push_back(spawner_component);
 
-		spawner = create_spawner(super_dragon_spawner, super_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
-		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		AddObject(spawner);
-		stage_monster_spawner_list_[0].push_back(spawner_component);
+		//spawner = create_spawner(super_dragon_spawner, super_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
+		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		//AddObject(spawner);
+		//stage_monster_spawner_list_[0].push_back(spawner_component);
 		
 		//spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.f, 2.6f, 11.74f }, 3, 4.f, 4.f);
 		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
@@ -672,15 +673,15 @@ void BaseScene::CreateMonsterSpawner()
 		//AddObject(spawner);
 		//stage_monster_spawner_list_[0].push_back(spawner_component);
 		//
-		spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 27.85f, 6.73f, -8.07f }, 1, 9.f, 5.f);
-		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		AddObject(spawner);
-		stage_monster_spawner_list_[0].push_back(spawner_component);
-		
-		spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 24.53f, 5.31f, 10.05f }, 1, 11.f, 5.f);
-		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		AddObject(spawner);
-		stage_monster_spawner_list_[0].push_back(spawner_component);
+		//spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 27.85f, 6.73f, -8.07f }, 1, 9.f, 5.f);
+		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		//AddObject(spawner);
+		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		//
+		//spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 24.53f, 5.31f, 10.05f }, 1, 11.f, 5.f);
+		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		//AddObject(spawner);
+		//stage_monster_spawner_list_[0].push_back(spawner_component);
 	}
 	
 	//Stage 2
@@ -812,7 +813,8 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 {
 	Object* player = model_infos_[0]->GetInstance();
 	player->set_name("Player_" + std::to_string(session_id));
-	player->set_position_vector(XMFLOAT3{ 205.3f, 6, -91.f });
+	player->set_position_vector(XMFLOAT3{ -15, 6, 0 });
+	//player->set_position_vector(XMFLOAT3{ 205.3f, 6, -91.f });
 	player->set_collide_type(true, true);  // 지면 & 벽 충돌 체크 등록
 	player->set_is_movable(true);
 	player->set_is_player();
@@ -850,17 +852,17 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	AddObject(player);
 
 	//TODO: 테스트용 스테이지 7 몬스터 스포너 활성화
-	ActivateStageMonsterSpawner(6);
-	stage_clear_num_ = 7;
-	sc_packet_stage_clear sc;
-	sc.size = sizeof(sc_packet_stage_clear);
-	sc.stage_num = stage_clear_num_;
-	sc.type = S2C_P_STAGE_CLEAR;
+	//ActivateStageMonsterSpawner(6);
+	//stage_clear_num_ = 7;
+	//sc_packet_stage_clear sc;
+	//sc.size = sizeof(sc_packet_stage_clear);
+	//sc.stage_num = stage_clear_num_;
+	//sc.type = S2C_P_STAGE_CLEAR;
 
-	const auto& users = SessionManager::getInstance().getAllSessions();
-	for (auto& u : users) {
-		u.second->do_send(&sc);
-	}
+	//const auto& users = SessionManager::getInstance().getAllSessions();
+	//for (auto& u : users) {
+	//	u.second->do_send(&sc);
+	//}
 
 	return player;
 }
@@ -1337,78 +1339,74 @@ void BaseScene::CheckPlayerHitWall(Object* object, MovementComponent* movement)
 
 void BaseScene::CheckObjectHitObject(Object* object)
 {
-	//TODO: 몬스터 AI완성 이후 충돌시에 밀리는 기능 추가 및 return; 삭제!!
-	return;
-
-
 	if (!object || object->is_dead()) return;
 
 	auto movement = Object::GetComponentInChildren<MovementComponent>(object);
 	if (!movement) return;
 
-	XMFLOAT3 object_pos = object->world_position_vector();
+	auto selfMesh = Object::GetComponentInChildren<MeshColliderComponent>(object);
+	auto selfBox = Object::GetComponentInChildren<BoxColliderComponent>(object);
 
-	auto mesh_collider = Object::GetComponentInChildren<MeshColliderComponent>(object);
-	if (mesh_collider)
-	{
-		BoundingOrientedBox obb1 = mesh_collider->GetWorldOBB();
+	for (auto& other : ground_check_object_list_) {
+		if (!other || other == object || other->is_dead()) continue;
 
-		for (auto& other : ground_check_object_list_)
-		{
-			if (!other || other == object || other->is_dead()) continue;
+		auto otherMesh = Object::GetComponentInChildren<MeshColliderComponent>(other);
+		auto otherBox = Object::GetComponentInChildren<BoxColliderComponent>(other);
 
-			auto other_box = Object::GetComponentInChildren<BoxColliderComponent>(other);
-			if (!other_box) continue;
+		bool intersect = false;
 
-			if (obb1.Intersects(other_box->animated_box()))
-			{
-				XMFLOAT3 position = object->world_position_vector();
-				constexpr float kGroundYOffset = 0.75f;
-				position.y += kGroundYOffset;
-				XMVECTOR ray_origin = XMLoadFloat3(&position);
-				position.y -= kGroundYOffset;
+		if (selfMesh && otherMesh) {
+			BoundingOrientedBox a = selfMesh->GetWorldOBB();
+			BoundingOrientedBox b = otherMesh->GetWorldOBB();
+			intersect = a.Intersects(b);
+		}
+		else if (selfMesh && otherBox) {
+			BoundingOrientedBox a = selfMesh->GetWorldOBB();
+			intersect = a.Intersects(otherBox->animated_box());
+		}
+		else if (selfBox && otherBox) {
+			intersect = selfBox->animated_box().Intersects(otherBox->animated_box());
+		}
+		else {
+			continue; // 비교 가능한 콜라이더가 없음
+		}
 
-				XMFLOAT3 other_pos = other->world_position_vector();
-				XMFLOAT3 dir = xmath_util_float3::Normalize(object_pos - other_pos);
+		if (!intersect) continue;
 
-				XMVECTOR ray_direction = XMLoadFloat3(&dir);
-				ray_direction = XMVectorSetY(ray_direction, 0);
-				ray_direction = XMVector3Normalize(ray_direction);
+		XMFLOAT3 object_pos = object->world_position_vector();
+		XMFLOAT3 other_pos = other->world_position_vector();
+		XMFLOAT3 dir = xmath_util_float3::Normalize(object_pos - other_pos);
 
-				if (0 == XMVectorGetX(XMVector3Length(ray_direction)))
-					return;
+		constexpr float kGroundYOffset = 0.75f;
+		XMFLOAT3 pos = object_pos; pos.y += kGroundYOffset;
+		XMVECTOR ray_origin = XMLoadFloat3(&pos);
 
-				bool is_collide = false;
-				float distance{ std::numeric_limits<float>::max() };
-				for (auto& mesh_collider : stage_wall_collider_list_[stage_clear_num_])
-				{
-					float t{};
-					if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
-					{
-						if (t < distance)
-						{
-							distance = t;
-						}
-					}
-				}
+		XMVECTOR ray_direction = XMLoadFloat3(&dir);
+		ray_direction = XMVectorSetY(ray_direction, 0);
+		ray_direction = XMVector3Normalize(ray_direction);
+		if (0 == XMVectorGetX(XMVector3Length(ray_direction))) return;
 
-				constexpr float kMinSafeDistance = 1.5f; // 살짝 밀려도 충돌 안나도록 여유
-				if (distance > kMinSafeDistance) // 벽에 안 부딪힌다면 밀기
-				{
-					object->set_position_vector(object_pos + dir * 0.1f);
-
-					// TODO : 몬스터 AI완성 이후 충돌시에 밀리는 기능 추가
-
-					auto monster = Object::GetComponent<MonsterComponent>(object);
-					if (monster)
-					{
-						monster->set_is_pushed(true);
-						monster->set_push_timer(5.0f);
-					}
-				}
-				return;
+		float distance = std::numeric_limits<float>::max();
+		for (auto& mesh_collider : stage_wall_collider_list_[stage_clear_num_]) {
+			float t{};
+			if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t)) {
+				if (t < distance) distance = t;
 			}
 		}
+
+		constexpr float kContactOffset = 0.05f;
+		constexpr float kPushStep = 0.03f;
+		float safe = std::max(0.f, distance - kContactOffset);
+		float step = std::min(kPushStep, safe);
+
+		if (step > 0.f) {
+			object->set_position_vector(object_pos + dir * step);
+			if (auto monster = Object::GetComponent<MonsterComponent>(object)) {
+				monster->set_is_pushed(true);
+				monster->set_push_timer(0.15f); // 0.1~0.2초 정도로 짧게
+			}
+		}
+		return; //
 	}
 }
 

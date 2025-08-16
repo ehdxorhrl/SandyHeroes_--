@@ -353,6 +353,17 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 				}
 		}
 
+		if (is_key_down_['R'])
+		{
+			GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_object_);
+			gun->ReloadBullets();
+			sc_packet_play_reload_sound prs;
+			prs.size = sizeof(sc_packet_play_reload_sound);
+			prs.type = S2C_P_PLAY_RELOAD_SOUND;
+
+			do_send(&prs);
+		}
+
 		//std::cout << "key ÄÚµå: " << static_cast<int>(packet->key) <<
 		//	" is_down: " << (packet->is_down ? "true" : "false") << std::endl;
 
