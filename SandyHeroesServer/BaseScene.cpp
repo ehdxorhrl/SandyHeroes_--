@@ -199,7 +199,7 @@ void BaseScene::BuildModelInfo()
 	strong_dragon->hierarchy_root()->set_tag("Strong_Dragon");
 
 	ModelInfo* super_dragon = FindModelInfo("Super_Dragon");
-	super_dragon->hierarchy_root()->set_collide_type(true, true);
+	super_dragon->hierarchy_root()->set_collide_type(false, false);
 	super_dragon->hierarchy_root()->set_is_movable(true);
 	super_dragon->hierarchy_root()->set_tag("Super_Dragon");
 
@@ -744,7 +744,7 @@ void BaseScene::CreateMonsterSpawner()
 
 	//Stage 7
 	{
-		spawner = create_spawner(super_dragon_spawner, super_spawner_id, XMFLOAT3{ 204.5f, 6.2f, -47.f }, 1, 0.1f, 4.f);
+		spawner = create_spawner(super_dragon_spawner, super_spawner_id, XMFLOAT3{ 204.5f, 3.4f, -47.f }, 1, 0.1f, 4.f);
 		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		AddObject(spawner);
 		stage_monster_spawner_list_[6].push_back(spawner_component);

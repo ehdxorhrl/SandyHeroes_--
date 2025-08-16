@@ -43,6 +43,13 @@ int SuperDragonAnimationState::Run(float elapsed_time, Object* object, bool is_e
 			object->set_is_dead(true);
 		}
 		break;
+	case SuperDragonAnimationTrack::kFlyBiteAttackLow:
+		if (is_end)
+		{
+			ChangeAnimationTrack((int)SuperDragonAnimationTrack::kFlyIdle, object, animator);
+		}
+		break;
+
 	default:
 		break;
 	}
@@ -51,6 +58,10 @@ int SuperDragonAnimationState::Run(float elapsed_time, Object* object, bool is_e
 
 void SuperDragonAnimationState::Exit(int animation_track, Object* object, AnimatorComponent* animator)
 {
+	if((SuperDragonAnimationTrack)animation_track == SuperDragonAnimationTrack::kFlyBiteAttackLow)
+	{
+		animation_loop_type_ = 0; //loop
+	}
 }
 
 AnimationState* SuperDragonAnimationState::GetCopy()
