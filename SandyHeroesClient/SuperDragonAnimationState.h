@@ -20,5 +20,8 @@ public:
 
 	virtual int GetDeadAnimationTrack() const override;
 
+private:
+	float attack_time_ = 0.f; 
+	bool is_attack_ = false; // 공격 중인지 여부
 };
 

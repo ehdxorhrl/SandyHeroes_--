@@ -16,6 +16,13 @@ void BombDragonAnimationState::Enter(int animation_track, Object* object, Animat
 	{
 		animation_loop_type_ = 1; //Once
 	}
+	if ((int)BombDragonAnimationTrack::kExplode == animation_track)
+	{
+		//TODO: 터져용 폭발 사운드 재생 1회
+		//TODO: 폭발 파티클 재생
+		XMFLOAT3 particle_position = object->FindFrame("RigHub")->world_position_vector();
+	}
+
 }
 
 int BombDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
