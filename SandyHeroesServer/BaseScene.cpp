@@ -1123,19 +1123,14 @@ void BaseScene::UpdateStageClear()
 		break;
 	case 3:
 	{	
-		for (auto& object : ground_check_object_list_){
-			if (!object->is_player()) return;
-
-			auto player_collider = Object::GetComponentInChildren<MeshColliderComponent>(object);
-			if (!player_collider) return;
-
-			BoundingOrientedBox player_box = player_collider->GetWorldOBB();
-			if (!stage3_clear_box_.Intersects(player_box))
+		const auto& users = SessionManager::getInstance().getAllSessions();
+		for (auto& user : users){
+			auto player_object = user.second->get_player_object();
+			auto player_box = Object::GetComponent<BoxColliderComponent>(player_object);
+			if (!stage3_clear_box_.Intersects(player_box->animated_box()))
 				return;
 		}
-		std::cout << "밟음" << std::endl;
 	}
-	
 	break;
 	case 4:
 		if (catch_monster_num_ < 1)
