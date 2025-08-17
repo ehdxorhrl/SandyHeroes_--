@@ -504,7 +504,8 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
             u.second->do_send(&mca);
         }
         // 공격 로직
-		XMFLOAT3 direction = target->FindFrame("Root_M")->world_position_vector() - self->world_position_vector();
+        XMFLOAT3 thorn_position = self->FindFrame("RigLArmPalm")->world_position_vector();
+		XMFLOAT3 direction = target->FindFrame("Root_M")->world_position_vector() - thorn_position;
 		direction = xmath_util_float3::Normalize(direction);
 
         BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
@@ -522,9 +523,8 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
 
         MovementComponent* movement = new MovementComponent(thorn_projectile);
         thorn_projectile->AddComponent(movement);
-        XMFLOAT3 thorn_position = self->FindFrame("RigLArmPalm")->world_position_vector();
 
-        thorn_projectile->set_position_vector(self->world_position_vector());
+        thorn_projectile->set_position_vector(thorn_position);
         movement->DisableFriction();
         movement->set_gravity_acceleration(0.f);
         movement->set_max_speed_xz(4.f);
@@ -542,7 +542,6 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         state->attacked = true;
         state->acc = 0.0f;
 
-        //TODO: thorn_projectile 동기화
         sc_packet_shotdragon_attack sa;
         sa.size = sizeof(sc_packet_shotdragon_attack);
         sa.type = S2C_P_SHOTDRAGON_ATTACK;
@@ -551,6 +550,7 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         sa.dx = direction.x;
         sa.dy = direction.y;
         sa.dz = direction.z;
+		sa.position = thorn_position;
 
         std::cout << "thorn_id: " << thorn_projectile->id() << std::endl;
 

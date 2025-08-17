@@ -73,6 +73,7 @@ struct sc_packet_shotdragon_attack {
     uint32_t id;   // 몬스터 id
     uint32_t thorn_id; // 삭제를 위한 thorn id
     float dx, dy, dz;
+	XMFLOAT3 position; 
 };
 
 struct sc_packet_monster_change_animation {

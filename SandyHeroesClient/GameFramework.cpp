@@ -1202,17 +1202,20 @@ void GameFramework::ProcessPacket(char* p)
             XMFLOAT3 direction = XMFLOAT3(packet->dx, packet->dy, packet->dz);
             auto thorn_projectile = base_scene->FindModelInfo("Thorn_Projectile")->GetInstance();
             thorn_projectile->set_is_movable(true);
+
             XMFLOAT3 look = xmath_util_float3::Normalize(thorn_projectile->look_vector());
             XMFLOAT3 rotate_axis = xmath_util_float3::CrossProduct(look, direction);
             float angle = xmath_util_float3::AngleBetween(look, direction);
             XMMATRIX rotation_matrix = XMMatrixRotationAxis(XMLoadFloat3(&rotate_axis), angle);
+
             XMFLOAT4X4 transform_matrix = thorn_projectile->transform_matrix();
             XMStoreFloat4x4(&transform_matrix, rotation_matrix* XMLoadFloat4x4(&transform_matrix));
+
             thorn_projectile->set_transform_matrix(transform_matrix);
+            thorn_projectile->set_position_vector(packet->position);
 
             MovementComponent* movement = new MovementComponent(thorn_projectile);
             thorn_projectile->AddComponent(movement);
-            thorn_projectile->set_position_vector(monster->world_position_vector());
             movement->DisableFriction();
             movement->set_gravity_acceleration(0.f);
             movement->set_max_speed_xz(4.f);

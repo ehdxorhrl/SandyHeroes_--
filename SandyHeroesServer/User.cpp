@@ -85,6 +85,16 @@ void Session::update(float elapsed_time)
 		{
 			player_object_->set_position_vector(original_position);
 		}
+
+		int stage_num = base_scene->stage_clear_num();
+		if (stage_num == 3)
+		{
+			if (player_object_->position_vector().y < -10.f)
+			{
+				player_object_->set_position_vector(XMFLOAT3(63.6f, 5.f, -40.f));
+			}
+		}
+
 	}
 
 	// ´ë½¬
