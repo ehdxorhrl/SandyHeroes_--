@@ -648,21 +648,11 @@ void BaseScene::CreateMonsterSpawner()
 	SpawnerComponent* spawner_component;
 	//Stage 1
 	{
-		spawner = create_spawner(strong_dragon_spawner, strong_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
 		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		AddObject(spawner);
 		stage_monster_spawner_list_[0].push_back(spawner_component);
 
-		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
-		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		AddObject(spawner);
-		stage_monster_spawner_list_[0].push_back(spawner_component);
-
-		spawner = create_spawner(super_dragon_spawner, super_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
-		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		AddObject(spawner);
-		stage_monster_spawner_list_[0].push_back(spawner_component);
-		
 		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.f, 2.6f, 11.74f }, 3, 4.f, 4.f);
 		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		AddObject(spawner);
@@ -901,7 +891,7 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	Object* player = model_infos_[0]->GetInstance();
 	player->set_name("Player_" + std::to_string(session_id));
 	player->set_position_vector(XMFLOAT3{ -15, 6, 0 });
-	player->set_position_vector(XMFLOAT3{ 205.3f, 6, -91.f });
+	//player->set_position_vector(XMFLOAT3{ 205.3f, 6, -91.f });
 	player->set_collide_type(true, true);  // 지면 & 벽 충돌 체크 등록
 	player->set_is_movable(true);
 	player->set_is_player();
@@ -939,17 +929,17 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	AddObject(player);
 
 	//TODO: 테스트용 스테이지 7 몬스터 스포너 활성화
-	ActivateStageMonsterSpawner(6);
-	stage_clear_num_ = 7;
-	sc_packet_stage_clear sc;
-	sc.size = sizeof(sc_packet_stage_clear);
-	sc.stage_num = stage_clear_num_;
-	sc.type = S2C_P_STAGE_CLEAR;
+	//ActivateStageMonsterSpawner(6);
+	//stage_clear_num_ = 7;
+	//sc_packet_stage_clear sc;
+	//sc.size = sizeof(sc_packet_stage_clear);
+	//sc.stage_num = stage_clear_num_;
+	//sc.type = S2C_P_STAGE_CLEAR;
 
-	const auto& users = SessionManager::getInstance().getAllSessions();
-	for (auto& u : users) {
-		u.second->do_send(&sc);
-	}
+	//const auto& users = SessionManager::getInstance().getAllSessions();
+	//for (auto& u : users) {
+	//	u.second->do_send(&sc);
+	//}
 
 	return player;
 }
