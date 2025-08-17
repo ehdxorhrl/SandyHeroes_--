@@ -2671,6 +2671,11 @@ void BaseScene::TakeScroll(uint8_t chest_num)
 
 void BaseScene::PlayCutScene(uint8_t track_num)
 {
+	auto& mesh_list = Object::GetComponentsInChildren<SkinnedMeshComponent>(player_);
+	for (auto& mesh : mesh_list)
+	{
+		mesh->set_is_visible(!mesh->IsVisible());
+	}
 	cut_scene_tracks_[track_num].Play(this);
 }
 

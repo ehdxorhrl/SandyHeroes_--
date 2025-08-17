@@ -900,6 +900,18 @@ void BaseScene::AddObject(Object* object)
 	{
 		razer_list_.push_back(razer_component);
 	}
+
+	if(object->is_movable()) {
+		object->OnDestroy([this](Object* o) {
+			sc_packet_object_set_dead osd{};
+		osd.size = sizeof(sc_packet_object_set_dead);
+		osd.type = S2C_P_OBJECT_SET_DEAD;   // 실제 사용 중인 타입으로 교체
+		osd.id = o->id();
+
+		const auto& users = SessionManager::getInstance().getAllSessions();
+		for (auto& u : users) u.second->do_send(&osd);   // 브로드캐스트
+			});
+	}
 }
 
 void BaseScene::DeleteObject(Object* object)
