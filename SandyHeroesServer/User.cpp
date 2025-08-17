@@ -315,7 +315,8 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 
 		if (is_key_down_[VK_SPACE]) 
 		{
-			constexpr float kFallCheckVelocity = -0.5;
+			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
+			base_scene->CheckObjectIsGround(player_object_);
 			if (player_object_->is_ground())
 			{
 				is_jumpkey_pressed_ = true;

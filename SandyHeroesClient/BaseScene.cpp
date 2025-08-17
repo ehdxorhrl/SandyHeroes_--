@@ -2729,10 +2729,10 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 			particle->set_color({ 0.9f, 0.1f, 0.1f, 0.5f }); // Red
 			break;
 		case ElementType::kElectric:
-			particle->set_color({ 0.1f, 0.9f, 0.1f, 0.5f }); // Yellowish Green
+			particle->set_color({ 0.9f, 0.9f, 0.1f, 0.5f }); // Yellowish Green
 			break;
 		case ElementType::kPoison:
-			particle->set_color({ 0.9f, 0.9f, 0.1f, 0.5f }); // Greenish Yellow
+			particle->set_color({ 0.1f, 0.9f, 0.1f, 0.5f }); // Greenish Yellow
 			break;
 		default:
 			particle->set_color({ 1.0f, 1.0f, 1.0f, 0.5f }); // fallback white
@@ -2752,38 +2752,17 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 void BaseScene::change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t upgrade_level, uint8_t element_type, uint32_t player_id)
 {
 	Object* player = FindObject(player_id);
-	//if(!player || !player->is_player()) std::cout <<"[change_gun] 플레이어를 찾을 수 없음" << std::endl;
-	//
-	//std::cout << "[change_gun] 시작 - gun_id: " << gun_id << ", gun_name: " << gun_name
-	//	<< ", upgrade: " << static_cast<int>(upgrade_level)
-	//	<< ", element: " << static_cast<int>(element_type) << ", 요청 id: " << player_id << std::endl;
 
 	auto it = std::find_if(dropped_guns_.begin(), dropped_guns_.end(),
 		[gun_id](Object* obj) { return obj->id() == gun_id; });
-
-	//if (it == dropped_guns_.end())
-	//{
-	//	std::cout << "[change_gun] 드랍된 총기 ID(" << gun_id << ")를 찾을 수 없음" << std::endl;
-	//	return;
-	//}
 
 	Object* found_gun = *it;
 
 	GunComponent* gun_component = Object::GetComponent<GunComponent>(found_gun);
 	if (!gun_component) return;
-	//{
-	//	std::cout << "[change_gun] 드랍된 총기에서 GunComponent 없음" << std::endl;
-	//	return;
-	//}
 
 	Object* player_gun_frame = player->FindFrame("WeaponR_locator");
 	if (!player_gun_frame) return;
-	//{
-	//	std::cout << "[change_gun] WeaponR_locator 프레임을 찾을 수 없음" << std::endl;
-	//	return;
-	//}
-
-	//std::cout << "[change_gun] 총기 교체 준비 완료. 기존 총기 제거 후 새 총기 장착 시도..." << std::endl;
 
 	// 기존 총기 교체 처리
 	std::vector<std::string> guns{ "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };

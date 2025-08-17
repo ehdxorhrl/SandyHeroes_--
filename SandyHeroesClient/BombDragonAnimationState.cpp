@@ -30,6 +30,12 @@ int BombDragonAnimationState::Run(float elapsed_time, Object* object, bool is_en
 
 	switch ((BombDragonAnimationTrack)animation_track())
 	{
+	case BombDragonAnimationTrack::kSpawn:
+		if (is_end)
+		{
+			ChangeAnimationTrack((int)BombDragonAnimationTrack::kIdle, object, animator);
+		}
+		break;
 	case BombDragonAnimationTrack::kDie:
 		if (is_end)
 		{

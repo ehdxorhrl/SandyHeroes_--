@@ -17,7 +17,7 @@ class BaseScene;
 struct BombState {
     float acc = 0.f;
     bool prepared = false;
-    float fuse = 2.f;
+    float fuse = 0.533f;
 };
 
 struct ShotState {
@@ -41,6 +41,7 @@ struct StrongState
     bool is_attacking = false;
     float attack_time = 0.f; // 공격 시간
     float attack_cooldown = 0.f; // 공격 쿨타임
+	float spawn_time = 0.f; // 소환 시간
 };
 
 struct SuperState
@@ -274,7 +275,6 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
     };  
 
     auto explode = [self]() -> bool {
-        std::cout << "설정완료" << std::endl;
         sc_packet_monster_change_animation mca;
         mca.size = sizeof(sc_packet_monster_change_animation);
         mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
@@ -371,7 +371,6 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
                     for (auto& u : users) {
                         u.second->do_send(&osd);
                     }
-                    //std::cout << "삭제하는 thorn_id: " << osd.id << std::endl;
 
                     // 가시 제거
                     (*it)->set_is_dead(true);
@@ -436,7 +435,6 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
                 if (distance < MAX_DISTANCE)
                     is_collide = true;
 
-                //OutputDebugString(std::wstring(L"MeshColliderComponent Count: " + std::to_wstring(a) + L"\n").c_str());
 
                 if (is_collide)
                 {
@@ -449,7 +447,6 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
                     for (auto& u : users) {
                         u.second->do_send(&osd);
                     }
-                    std::cout << "삭제하는 thorn_id: " << osd.id << std::endl;
 
                     // 가시 제거
                     (*it)->set_is_dead(true);
@@ -468,7 +465,6 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         }
         return true;
     };
-
 
     // 회전
     auto rotate = [self](float elapsed_time) -> bool {
@@ -504,7 +500,7 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
             u.second->do_send(&mca);
         }
         // 공격 로직
-        XMFLOAT3 thorn_position = self->FindFrame("RigLArmPalm")->world_position_vector();
+        XMFLOAT3 thorn_position = self->FindFrame("AttackL")->world_position_vector();
 		XMFLOAT3 direction = target->FindFrame("Root_M")->world_position_vector() - thorn_position;
 		direction = xmath_util_float3::Normalize(direction);
 
@@ -551,8 +547,6 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         sa.dy = direction.y;
         sa.dz = direction.z;
 		sa.position = thorn_position;
-
-        std::cout << "thorn_id: " << thorn_projectile->id() << std::endl;
 
         for (auto& u : users) {
             u.second->do_send(&sa);
@@ -753,6 +747,16 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
 	auto state = std::make_shared<StrongState>();
 	constexpr float range = 3.0f; // 근거리 공격 범위
     constexpr float attack_cool_time = 1.f; // 공격 쿨타임
+
+    auto spawn_wait = [self, state](float elapsed_time) -> bool {
+        constexpr float kSpawnWaitTime = 3.f; // 스폰 대기 시간
+        if (state->spawn_time < kSpawnWaitTime) {
+            state->spawn_time += elapsed_time;
+            return false; // 아직 기다리는 중
+        }
+        return true; // 기다림 완료
+        };
+
     auto hp_ratio = [self]() -> float {
         auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
         if (!monstercomp) return 0.f;
@@ -957,6 +961,10 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
     // ───────────────── 트리 구성 ─────────────────
     auto* root = new Selector();
 
+	auto wait_seq = new Sequence();
+	wait_seq->children.push_back(new ActionNode(spawn_wait)); // 스폰 대기
+	root->children.push_back(wait_seq);
+
     // 좌측 시퀀스: HP > 50% → Move(dash-in-place) → Spin once
     {
         auto* seq_left = new Sequence();
@@ -992,6 +1000,8 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
     auto state = std::make_shared<SuperState>();
     constexpr float kRange = 7.f; // 근거리 공격 범위
 	constexpr float kSpeed = 8.f; // 이동 속도
+
+
     auto hp_ratio = [self]() -> float {
         auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
         if (!monstercomp) return 0.f;

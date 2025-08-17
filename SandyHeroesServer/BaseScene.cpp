@@ -677,13 +677,13 @@ void BaseScene::CreateMonsterSpawner()
 	//Stage 2
 	{
 		//hit 1
-		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 58.91f, 2.97f, 0.28f }, 3, 0.5f, 5.f);
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 58.91f, 2.97f, 0.28f }, 3, 0.5f, 3.f);
 		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		AddObject(spawner);
 		stage_monster_spawner_list_[1].push_back(spawner_component);
 	
 		//hit 2		
-		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 58.91f, 2.97f, 9.13f }, 3, 0.5f, 5.f);
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 58.91f, 2.97f, 9.13f }, 3, 1.0f, 5.f);
 		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		AddObject(spawner);
 		stage_monster_spawner_list_[1].push_back(spawner_component);
@@ -727,12 +727,12 @@ void BaseScene::CreateMonsterSpawner()
 
 	//Stage 3
 	{
-		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 58.0f, 0.704f, -38.536f }, 10, 3.f, 1.f);
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 58.0f, 0.704f, -38.536f }, 5, 3.f, 3.f);
 		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		AddObject(spawner);
 		stage_monster_spawner_list_[2].push_back(spawner_component);
 
-		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 73.398f, 1.62f, -36.27f }, 10, 3.f, 1.f);
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 73.398f, 1.62f, -36.27f }, 5, 1.5f, 5.f);
 		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		AddObject(spawner);
 		stage_monster_spawner_list_[2].push_back(spawner_component);
@@ -748,7 +748,7 @@ void BaseScene::CreateMonsterSpawner()
 
 	//Stage 5
 	{
-		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 109.0f, 0.8f, -160.0f }, 3, 3.f, 5.f);
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 106.6f, 1.26f, -160.1f }, 3, 3.f, 5.f);
 		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		AddObject(spawner);
 		stage_monster_spawner_list_[4].push_back(spawner_component);
@@ -1142,7 +1142,7 @@ void BaseScene::UpdateStageClear()
 			return;
 		break;
 	case 5:
-		if (catch_monster_num_ < 10)
+		if (catch_monster_num_ < 11)
 			return;
 		break;
 	case 6:
@@ -1355,6 +1355,13 @@ void BaseScene::CheckObjectIsGround(Object* object)
 			object->set_is_ground(false);
 			return;
 		}
+		auto movement = Object::GetComponent<MovementComponent>(object);
+		if(movement && movement->velocity().y > 0.01f) {
+			// 만약 y축 속도가 양수라면, 즉 위로 올라가고 있다면
+			// 지면에 닿았다고 판단하지 않음
+			object->set_is_ground(false);
+			return;
+		}
 		position.y -= distance_on_ground;
 		object->set_is_ground(true);
 		object->set_position_vector(position);
@@ -1418,8 +1425,6 @@ void BaseScene::CheckPlayerHitWall(Object* object, MovementComponent* movement)
 	}
 	if (distance < MAX_DISTANCE)
 		is_collide = true;
-
-	//OutputDebugString(std::wstring(L"MeshColliderComponent Count: " + std::to_wstring(a) + L"\n").c_str());
 
 	if (is_collide)
 	{
