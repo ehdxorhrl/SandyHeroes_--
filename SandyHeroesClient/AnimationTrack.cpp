@@ -20,8 +20,10 @@ void AnimationTrack::Start()
 
 void AnimationTrack::Start(AnimationLoopType loop_type, int repeat_count)
 {
-	loop_type_ = loop_type;
+	loop_type_ = loop_type; 
 	repeat_count_ = repeat_count;
+	repeat_counter_ = 0;
+	animation_time_ = 0.f;
 	Start();
 }
 
@@ -50,21 +52,20 @@ void AnimationTrack::PlayTrack(float elapsed_time, std::vector<XMFLOAT4X4>& anim
 			animation_time_ -= animation_set_->total_time();
 		break;
 	case AnimationLoopType::kOnce:
-		if (animation_time_ > animation_set_->total_time())
-		{
+		if (animation_time_ > animation_set_->total_time()) {
+			animation_time_ = animation_set_->total_time();
+			animation_set_->AnimateBoneFrame(animated_transforms, animation_time_, weight);
 			is_end_ = true;
-			animation_time_ = 0.f;
 			return;
 		}
 		break;
 	case AnimationLoopType::kRepeat:
-		if (animation_time_ > animation_set_->total_time())
-		{
+		if (animation_time_ > animation_set_->total_time()) {
 			++repeat_counter_;
-			if (repeat_counter_ >= repeat_count_)
-			{
+			if (repeat_counter_ >= repeat_count_) {
+				animation_time_ = animation_set_->total_time();
+				animation_set_->AnimateBoneFrame(animated_transforms, animation_time_, weight);
 				is_end_ = true;
-				animation_time_ = 0.f;
 				return;
 			}
 			animation_time_ -= animation_set_->total_time();

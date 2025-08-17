@@ -77,7 +77,7 @@ public:
 	XMFLOAT3 local_rotation() const { return local_rotation_; }
 	XMFLOAT3 local_position() const { return local_position_; }	//로컬 좌표계
 	MonsterType monster_type() const { return type_; }
-
+	int animation_state() const { return animation_state_; }
 
 	//setter
 	// 변환행렬 및 각 벡터
@@ -103,6 +103,7 @@ public:
 	void set_is_movable(bool value);
 	void set_tag(const std::string& value);
 	void set_monster_type(MonsterType type);
+	void set_animation_state(int animation_state);
 
 	void AddChild(Object* object);
 	void AddSibling(Object* object);
@@ -248,6 +249,8 @@ protected:
 	bool is_in_view_sector_ = false; // 카메라 절두체 컬링을 통과한 섹터에 있는가?
 
 	std::function<void(Object*)> on_destroy_func_ = nullptr;	//오브젝트가 파괴될 때 호출되는 함수
+
+	int animation_state_{ -1 };
 
 private:
 	// 오브젝트의 실제 월드 행렬(즉, 상위노드의 변환이 전부 적용된)

@@ -861,7 +861,6 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		monster_component->set_target(player_);
 		auto spawner_component = new SpawnerComponent(spawner, this, hit_dragon);
 		spawner_component->AddComponent(monster_component);
-		spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
 		spawner->AddComponent(spawner_component);
 		hit_dragon_spawner->set_hierarchy_root(spawner);
 		model_infos_.emplace_back();
@@ -873,7 +872,6 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		spawner = new Object();
 		spawner_component = new SpawnerComponent(spawner, this, shot_dragon);
 		spawner_component->AddComponent(monster_component->GetCopy());
-		spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
 		spawner->AddComponent(spawner_component);
 		shot_dragon_spawner->set_hierarchy_root(spawner);
 		model_infos_.emplace_back();
@@ -885,7 +883,6 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		spawner = new Object();
 		spawner_component = new SpawnerComponent(spawner, this, bomb_dragon);
 		spawner_component->AddComponent(monster_component->GetCopy());
-		spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
 		spawner->AddComponent(spawner_component);
 		bomb_dragon_spawner->set_hierarchy_root(spawner);
 		model_infos_.emplace_back();
@@ -897,7 +894,6 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		spawner = new Object();
 		spawner_component = new SpawnerComponent(spawner, this, strong_dragon);
 		spawner_component->AddComponent(monster_component->GetCopy());
-		spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
 		spawner->AddComponent(spawner_component);
 		strong_dragon_spawner->set_hierarchy_root(spawner);
 		model_infos_.emplace_back();
@@ -2418,6 +2414,9 @@ void BaseScene::SpawnMonsterDamagedParticle(const XMFLOAT3& position, const XMFL
 void BaseScene::set_stage_clear_num(int value)
 {
 	stage_clear_num_ = value;
+	if (stage_clear_num_ == 4) {
+		cut_scene_tracks_[0].Play(this);
+	}
 }
 
 int BaseScene::stage_clear_num()
@@ -2480,10 +2479,9 @@ void BaseScene::add_monster(uint32_t id, const XMFLOAT4X4& matrix, int32_t max_h
 	monster_component->set_attack_force(attack_force);
 	new_monster->AddComponent(monster_component);
 	
-	auto* move_component = new MovementComponent(new_monster);
-	new_monster->AddComponent(move_component);
-	
-	
+	//auto animator = Object::GetComponent<AnimatorComponent>(new_monster);
+	//if (animator) animator->set_animation_state(0);
+
 	AddObject(new_monster);
 
 }

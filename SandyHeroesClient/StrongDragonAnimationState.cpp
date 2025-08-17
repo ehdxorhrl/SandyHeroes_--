@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "StrongDragonAnimationState.h"
-#include "MovementComponent.h"
 #include "Object.h"
 #include "AnimatorComponent.h"
 
@@ -26,11 +25,6 @@ void StrongDragonAnimationState::Enter(int animation_track, Object* object, Anim
 
 int StrongDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
 {
-	auto movement = Object::GetComponentInChildren<MovementComponent>(object);
-	auto velocity_xz = movement->velocity();
-	velocity_xz.y = 0.f;
-	float speed = xmath_util_float3::Length(velocity_xz);
-
 	switch ((StrongDragonAnimationTrack)animation_track())
 	{
 	case StrongDragonAnimationTrack::kSpawn:

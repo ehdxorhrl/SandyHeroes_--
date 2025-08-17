@@ -648,21 +648,21 @@ void BaseScene::CreateMonsterSpawner()
 	SpawnerComponent* spawner_component;
 	//Stage 1
 	{
-		//spawner = create_spawner(strong_dragon_spawner, strong_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		spawner = create_spawner(strong_dragon_spawner, strong_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
 
 		//spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
 		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		//AddObject(spawner);
 		//stage_monster_spawner_list_[0].push_back(spawner_component);
 
-		//spawner = create_spawner(super_dragon_spawner, super_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
+		//spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 0.2f, 5.f);
 		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		//AddObject(spawner);
 		//stage_monster_spawner_list_[0].push_back(spawner_component);
-		
+		//
 		//spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.f, 2.6f, 11.74f }, 3, 4.f, 4.f);
 		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		//AddObject(spawner);
@@ -722,17 +722,17 @@ void BaseScene::CreateMonsterSpawner()
 		AddObject(spawner);
 		stage_monster_spawner_list_[1].push_back(spawner_component);
 	
-		////bomb 1
-		//spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 50.f, 0.47f, 24.14f }, 2, 14.f, 4.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[1].push_back(spawner_component);
-		//
-		////bomb 2
-		//spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 49.43f, 0.47f, -15.51f }, 2, 14.f, 4.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[1].push_back(spawner_component);
+		//bomb 1
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 50.f, 0.47f, 24.14f }, 2, 14.f, 4.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[1].push_back(spawner_component);
+		
+		//bomb 2
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 49.43f, 0.47f, -15.51f }, 2, 14.f, 4.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[1].push_back(spawner_component);
 	}
 	
 	//Stage 4
@@ -827,7 +827,7 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	// 총기 부착
 	Object* weapon_frame = player->FindFrame("WeaponR_locator");
 	if (weapon_frame) {
-		weapon_frame->AddChild(FindModelInfo("Classic")->GetInstance());  // 총 모델
+		weapon_frame->AddChild(FindModelInfo("Flamethrower")->GetInstance());  // 총 모델
 		weapon_frame = weapon_frame->child();  // 자식 프레임 가져옴
 
 	}
@@ -1033,15 +1033,18 @@ void BaseScene::UpdateStageClear()
 			return;
 		break;
 	case 3:
-	{	for (auto& object : ground_check_object_list_){
-		if (!object->is_player()) return;
-		auto player_collider = Object::GetComponentInChildren<MeshColliderComponent>(object);
-		if (!player_collider) return;
+	{	
+		for (auto& object : ground_check_object_list_){
+			if (!object->is_player()) return;
 
-		BoundingOrientedBox player_box = player_collider->GetWorldOBB();
-		if (!stage3_clear_box_.Intersects(player_box))
-			return;
-	}
+			auto player_collider = Object::GetComponentInChildren<MeshColliderComponent>(object);
+			if (!player_collider) return;
+
+			BoundingOrientedBox player_box = player_collider->GetWorldOBB();
+			if (!stage3_clear_box_.Intersects(player_box))
+				return;
+		}
+		std::cout << "밟음" << std::endl;
 	}
 	
 	break;
@@ -1353,23 +1356,7 @@ void BaseScene::CheckObjectHitObject(Object* object)
 		auto otherMesh = Object::GetComponentInChildren<MeshColliderComponent>(other);
 		auto otherBox = Object::GetComponentInChildren<BoxColliderComponent>(other);
 
-		bool intersect = false;
-
-		if (selfMesh && otherMesh) {
-			BoundingOrientedBox a = selfMesh->GetWorldOBB();
-			BoundingOrientedBox b = otherMesh->GetWorldOBB();
-			intersect = a.Intersects(b);
-		}
-		else if (selfMesh && otherBox) {
-			BoundingOrientedBox a = selfMesh->GetWorldOBB();
-			intersect = a.Intersects(otherBox->animated_box());
-		}
-		else if (selfBox && otherBox) {
-			intersect = selfBox->animated_box().Intersects(otherBox->animated_box());
-		}
-		else {
-			continue; // 비교 가능한 콜라이더가 없음
-		}
+		bool intersect = InRangeXZ(object, other, 0.7f);
 
 		if (!intersect) continue;
 
@@ -2034,4 +2021,11 @@ std::list<WallColliderComponent*> BaseScene::stage_wall_collider_list(int index)
 int BaseScene::stage_clear_num()
 {
 	return stage_clear_num_;
+}
+
+bool BaseScene::InRangeXZ(Object* self, Object* target, float r) { // 범위 계산
+	if (!self || !target) return false;
+	auto d = target->world_position_vector() - self->world_position_vector();
+	d.y = 0.f;
+	return xmath_util_float3::LengthSq(d) <= r * r;
 }

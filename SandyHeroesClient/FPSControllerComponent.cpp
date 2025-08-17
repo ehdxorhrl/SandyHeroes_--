@@ -41,27 +41,30 @@ bool FPSControllerComponent::ProcessInput(UINT message_id, WPARAM w_param, LPARA
 	{
 	case WM_MOUSEMOVE:
 	{
-		POINT mouse_cursor_pos;
-		GetCursorPos(&mouse_cursor_pos);
+		BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->scene());
+		if (base_scene->stage_clear_num() != 4) {
+			POINT mouse_cursor_pos;
+			GetCursorPos(&mouse_cursor_pos);
 
-		RECT client_rect;
-		GetClientRect(client_wnd_, &client_rect);
+			RECT client_rect;
+			GetClientRect(client_wnd_, &client_rect);
 
-		POINT center;
-		center.x = (client_rect.right - client_rect.left) / 2;
-		center.y = (client_rect.bottom - client_rect.top) / 2;
-		mouse_xy_.x = center.x;
-		mouse_xy_.y = center.y;
+			POINT center;
+			center.x = (client_rect.right - client_rect.left) / 2;
+			center.y = (client_rect.bottom - client_rect.top) / 2;
+			mouse_xy_.x = center.x;
+			mouse_xy_.y = center.y;
 
-		ClientToScreen(client_wnd_, &center);
+			ClientToScreen(client_wnd_, &center);
 
-		if (camera_object_)
-		{
-			camera_object_->Rotate((mouse_cursor_pos.y - center.y) * 0.1, 0, 0);
+			if (camera_object_)
+			{
+				camera_object_->Rotate((mouse_cursor_pos.y - center.y) * 0.1, 0, 0);
+			}
+			SetCursorPos(center.x, center.y);
+
+			GameFramework::Instance()->send_mouse_move_packet(mouse_cursor_pos.x, center.x);
 		}
-		SetCursorPos(center.x, center.y);
-
-		GameFramework::Instance()->send_mouse_move_packet(mouse_cursor_pos.x, center.x);
 	}
 		break;
 	case WM_KEYDOWN:

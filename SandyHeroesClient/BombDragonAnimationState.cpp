@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "BombDragonAnimationState.h"
-#include "MovementComponent.h"
 #include "Object.h"
 #include "AnimatorComponent.h"
 
@@ -20,31 +19,9 @@ void BombDragonAnimationState::Enter(int animation_track, Object* object, Animat
 
 int BombDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
 {
-	auto movement = Object::GetComponentInChildren<MovementComponent>(object);
-	auto velocity_xz = movement->velocity();
-	velocity_xz.y = 0.f;
-	float speed = xmath_util_float3::Length(velocity_xz);
 
 	switch ((BombDragonAnimationTrack)animation_track())
 	{
-	case BombDragonAnimationTrack::kSpawn:
-		if (is_end)
-		{
-			ChangeAnimationTrack((int)BombDragonAnimationTrack::kIdle, object, animator);
-		}
-		break;
-	case BombDragonAnimationTrack::kIdle:
-		if (speed > 0.f)
-		{
-			ChangeAnimationTrack((int)BombDragonAnimationTrack::kRun, object, animator);
-		}
-		break;
-	case BombDragonAnimationTrack::kRun:
-		if (IsZero(speed))
-		{
-			ChangeAnimationTrack((int)BombDragonAnimationTrack::kIdle, object, animator);
-		}
-		break;
 	case BombDragonAnimationTrack::kDie:
 		if (is_end)
 		{

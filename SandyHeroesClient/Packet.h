@@ -132,6 +132,7 @@ struct sc_packet_monster_move {
     uint32_t id;
     float speed;
     float matrix[16];
+    uint8_t animation_track;
 };
 
 struct sc_packet_monster_damaged {
@@ -151,6 +152,7 @@ struct sc_packet_monster_info {
     int32_t max_shield;
     int32_t attack_force;
     int32_t monster_type;
+    uint8_t animation_track;
 };
 
 struct sc_packet_monster_damaged_particle

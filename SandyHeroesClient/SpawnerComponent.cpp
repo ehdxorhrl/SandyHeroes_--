@@ -84,6 +84,7 @@ void SpawnerComponent::AddComponent(Component* component)
 void SpawnerComponent::ForceSpawn()
 {
 	Object* new_object{ nullptr };
+
 	if (model_info_)
 	{
 		new_object = model_info_->GetInstance();

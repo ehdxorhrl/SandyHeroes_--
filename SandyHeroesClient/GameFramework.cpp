@@ -810,6 +810,11 @@ SOCKET GameFramework::socket() const
     return socket_;
 }
 
+Scene* GameFramework::scene() const
+{
+    return scene_.get();
+}
+
 void GameFramework::ConnectServer(const char* ip, uint16_t port)
 {
     WSADATA wsaData;
@@ -853,7 +858,7 @@ void GameFramework::send_login_packet()
 void GameFramework::send_mouse_click_packet()
 {
     if (!scene_) return;
-
+    
     BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
     if (!base_scene) return;
 
@@ -1069,7 +1074,7 @@ void GameFramework::ProcessPacket(char* p)
         sc_packet_monster_info* packet = reinterpret_cast<sc_packet_monster_info*>(p);
         XMFLOAT4X4 xf;
         memcpy(&xf, packet->matrix, sizeof(float) * 16);
-        base_scene->add_monster(packet->id, xf, packet->max_hp, packet->max_shield, packet->attack_force, packet->monster_type);
+        base_scene->add_monster(packet->id, xf, packet->max_hp, packet->max_shield, packet->attack_force, packet->monster_type);     
     }
         break;
     case S2C_P_MONSTER_DAMAGED:
@@ -1111,8 +1116,11 @@ void GameFramework::ProcessPacket(char* p)
         XMFLOAT4X4 xf;
         memcpy(&xf, packet->matrix, sizeof(float) * 16);
         monster->set_transform_matrix(xf);
-        auto movement = Object::GetComponentInChildren<MovementComponent>(monster);
-        movement->set_velocity(XMFLOAT3(packet->speed, 0, 0));
+
+        auto animator = Object::GetComponent<AnimatorComponent>(monster);
+        auto animation_state = animator->animation_state();
+        animation_state->ChangeAnimationTrack(packet->animation_track, monster, animator);
+        animation_state->set_animation_loop_type(0); // Loop
     }
         break;
     case S2C_P_GUN_CHANGE:
@@ -1125,6 +1133,7 @@ void GameFramework::ProcessPacket(char* p)
     {
 		sc_packet_stage_clear* packet = reinterpret_cast<sc_packet_stage_clear*>(p);
         base_scene->set_stage_clear_num(packet->stage_num);
+        
     }
         break;
     case S2C_P_MONSTER_DAMAGED_PATICLE:
@@ -1166,6 +1175,8 @@ void GameFramework::ProcessPacket(char* p)
         auto animation_state = animator->animation_state();
         animation_state->ChangeAnimationTrack(packet->animation_track, monster, animator);
         animation_state->set_animation_loop_type(packet->loop_type); // Loop
+        //std::cout << packet->animation_track << std::endl;
+
     }
         break;
     case S2C_P_PLAYER_DAMAGED:
@@ -1219,8 +1230,17 @@ void GameFramework::ProcessPacket(char* p)
         Object* obj = base_scene->FindObject(packet->id);
         if (obj)
         {
-            std::cout << "삭제 ID: " << obj->id() << std::endl;
             obj->set_is_dead(true);
+            //auto animator = Object::GetComponentInChildren<AnimatorComponent>(obj);
+            //if (!animator) { obj->set_is_dead(true); break; }
+            //auto animation_state = animator->animation_state();
+            //if (animation_state)
+            //{
+            //    animation_state->ChangeAnimationTrack(animation_state->GetDeadAnimationTrack(), obj, animator);
+            //    animation_state->set_animation_loop_type(1); // Once
+            //    return;
+            //}
+            
         }
     }
         break;

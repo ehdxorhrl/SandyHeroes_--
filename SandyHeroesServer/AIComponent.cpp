@@ -173,19 +173,33 @@ bool AIComponent::Move_To_Target(float elapsed_time) {
     velocity_xz.y = 0.f;
     float speed = xmath_util_float3::Length(velocity_xz);
 
-    sc_packet_monster_move mm;
-    mm.size = sizeof(sc_packet_monster_move);
-    mm.type = S2C_P_MONSTER_MOVE;
-    mm.id = owner_->id();
-    mm.speed = speed;
-    XMFLOAT4X4 xf;
-    const XMFLOAT4X4& mat = owner_->transform_matrix();
-    XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
-    memcpy(mm.matrix, &xf, sizeof(float) * 16);
+    if (speed > 0) {
+        sc_packet_monster_move mm;
+        mm.size = sizeof(sc_packet_monster_move);
+        mm.type = S2C_P_MONSTER_MOVE;
+        mm.id = owner_->id();
+        mm.speed = speed;
+        XMFLOAT4X4 xf;
+        const XMFLOAT4X4& mat = owner_->transform_matrix();
+        XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
+        memcpy(mm.matrix, &xf, sizeof(float) * 16);
 
-    const auto& users = SessionManager::getInstance().getAllSessions();
-    for (auto& u : users) {
-        u.second->do_send(&mm);
+        switch (owner_->monster_type()) {
+        case MonsterType::Strong_Dragon:
+            mm.animation_track = 3; // kIdle
+            break;
+        case MonsterType::Hit_Dragon:
+            mm.animation_track = 6;
+            break;
+        case MonsterType::Bomb_Dragon:
+            mm.animation_track = 5;
+            break;
+        }
+
+        const auto& users = SessionManager::getInstance().getAllSessions();
+        for (auto& u : users) {
+            u.second->do_send(&mm);
+        }
     }
 
     return true;

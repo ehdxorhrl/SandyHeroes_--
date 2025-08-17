@@ -38,33 +38,6 @@ void MonsterComponent::Update(float elapsed_time)
         return;
     }
 
-    if (hp_ <= 0)
-    {
-        auto animator = Object::GetComponentInChildren<AnimatorComponent>(owner_);
-        if (!animator)
-        {
-            std::string temp = owner_->name() + "�� MonsterComponent ���� �ִϸ��̼� ��� �������� ������ ������ϴ�.";
-            std::wstring debug_str;
-            debug_str.assign(temp.begin(), temp.end());
-
-            OutputDebugString(debug_str.c_str());
-            return;
-        }
-        auto animation_state = animator->animation_state();
-        if (animation_state)
-        {
-            if (animation_state->GetDeadAnimationTrack() == -1)
-            {
-                owner_->set_is_dead(true);
-                return;
-            }
-            animation_state->ChangeAnimationTrack(animation_state->GetDeadAnimationTrack(), owner_, animator);
-            animation_state->set_animation_loop_type(1); // Once
-            is_dead_animationing_ = true;
-            return;
-        }
-    }
-
     if (is_pushed_) {
         push_timer_ -= elapsed_time;
         if (push_timer_ > 0.f) {
@@ -168,6 +141,7 @@ void MonsterComponent::InitAfterOwnerSet() {
     mi.max_hp = hp_;
     mi.max_shield = shield_;
     mi.monster_type = static_cast<int32_t>(owner_->monster_type());
+    mi.animation_track = 0;
 
     //std::cout << mi.type << std::endl;
     //std::cout << mi.attack_force << std::endl;
@@ -213,6 +187,7 @@ void MonsterComponent::HitDamage(float damage)
                 base_scene->add_catch_monster_num();
             }
         }
+        owner_->set_is_dead(true);
     }
 
     sc_packet_monster_damaged md;
