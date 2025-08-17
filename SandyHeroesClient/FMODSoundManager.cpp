@@ -46,7 +46,7 @@ void FMODSoundManager::LoadSound(const std::string& name, const std::string& pat
 {
     if (!system_) return;
 
-    FMOD_MODE mode = loop ? FMOD_LOOP_NORMAL : FMOD_DEFAULT;
+    FMOD_MODE mode = loop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF;
     FMOD::Sound* sound = nullptr;
     FMOD_RESULT result = system_->createSound(path.c_str(), mode, nullptr, &sound);
     if (result == FMOD_OK && sound)

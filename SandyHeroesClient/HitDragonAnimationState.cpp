@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "HitDragonAnimationState.h"
 #include "Object.h"
+#include "MovementComponent.h"
+#include "FMODSoundManager.h"
 
 HitDragonAnimationState::HitDragonAnimationState()
 {
@@ -9,7 +11,10 @@ HitDragonAnimationState::HitDragonAnimationState()
 
 void HitDragonAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
 {
-	std::cout << animation_track << std::endl;
+	if ((int)HitDragonAnimationTrack::kSlashLeftAttack == animation_track)
+	{
+		FMODSoundManager::Instance().PlaySound("punch", false, 0.3f);
+	}
 }
 
 int HitDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)

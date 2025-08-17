@@ -2,6 +2,7 @@
 #include "StrongDragonAnimationState.h"
 #include "Object.h"
 #include "AnimatorComponent.h"
+#include "FMODSoundManager.h"
 
 StrongDragonAnimationState::StrongDragonAnimationState()
 {
@@ -19,8 +20,13 @@ void StrongDragonAnimationState::Enter(int animation_track, Object* object, Anim
 	if ((int)StrongDragonAnimationTrack::kSpinAttackOnce == animation_track)
 	{
 		animation_loop_type_ = 1; //Once
+		OutputDebugString(L"Spin_Sound\n");
+		FMODSoundManager::Instance().PlaySound("spin", false, 0.3f);
 	}
-
+	if ((int)StrongDragonAnimationTrack::kSpinAttackLoop == animation_track)
+	{
+		FMODSoundManager::Instance().PlaySound("spin_loop", true, 0.3f);
+	}
 }
 
 int StrongDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
@@ -63,7 +69,10 @@ void StrongDragonAnimationState::Exit(int animation_track, Object* object, Anima
 	{
 		animation_loop_type_ = 0; 
 	}
-
+	if ((int)StrongDragonAnimationTrack::kSpinAttackLoop == animation_track)
+	{
+		FMODSoundManager::Instance().StopSound("spin");
+	}
 }
 
 AnimationState* StrongDragonAnimationState::GetCopy()

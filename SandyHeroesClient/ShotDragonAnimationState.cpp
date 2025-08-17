@@ -1,9 +1,15 @@
 #include "stdafx.h"
 #include "ShotDragonAnimationState.h"
 #include "Object.h"
+#include "MovementComponent.h"
+#include "FMODSoundManager.h"
 
 void ShotDragonAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
 {
+	if ((int)ShotDragonAnimationTrack::kAttack == animation_track)
+	{
+		FMODSoundManager::Instance().PlaySound("shot", false, 0.3f);
+	}
 }
 
 int ShotDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)

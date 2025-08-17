@@ -504,7 +504,7 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
             u.second->do_send(&mca);
         }
         // 공격 로직
-		XMFLOAT3 direction = target->world_position_vector() - self->world_position_vector();
+		XMFLOAT3 direction = target->FindFrame("Root_M")->world_position_vector() - self->world_position_vector();
 		direction = xmath_util_float3::Normalize(direction);
 
         BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
@@ -522,6 +522,8 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
 
         MovementComponent* movement = new MovementComponent(thorn_projectile);
         thorn_projectile->AddComponent(movement);
+        XMFLOAT3 thorn_position = self->FindFrame("RigLArmPalm")->world_position_vector();
+
         thorn_projectile->set_position_vector(self->world_position_vector());
         movement->DisableFriction();
         movement->set_gravity_acceleration(0.f);
@@ -1261,6 +1263,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 
         XMFLOAT3 look = self->look_vector();
 		look.y = 0.f; 
+        direction = target_position - self->world_position_vector(); // 항상 타겟을 바라보도록
         direction.y = 0.f;
         direction = xmath_util_float3::Normalize(direction);
         look = xmath_util_float3::Normalize(look);
@@ -1431,8 +1434,8 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_attack_force(60);
-    monstercomp->set_max_hp(5000.f);
-    monstercomp->set_hp(200.f);
+	monstercomp->set_hp(2000.f);
+	monstercomp->set_shield(2000.f);
 
 	auto movement = Object::GetComponentInChildren<MovementComponent>(self);
 	movement->set_gravity_acceleration(0.f); // 중력 제거

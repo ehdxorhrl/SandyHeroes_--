@@ -648,17 +648,17 @@ void BaseScene::CreateMonsterSpawner()
 	SpawnerComponent* spawner_component;
 	//Stage 1
 	{
-		//spawner = create_spawner(strong_dragon_spawner, strong_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		spawner = create_spawner(strong_dragon_spawner, strong_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
 
-		//spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
 
-		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
+		spawner = create_spawner(super_dragon_spawner, super_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
 		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		AddObject(spawner);
 		stage_monster_spawner_list_[0].push_back(spawner_component);
@@ -734,6 +734,19 @@ void BaseScene::CreateMonsterSpawner()
 		AddObject(spawner);
 		stage_monster_spawner_list_[1].push_back(spawner_component);
 	}
+
+	//Stage 3
+	{
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 58.0f, 0.704f, -38.536f }, 10, 3.f, 1.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[2].push_back(spawner_component);
+
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 73.398f, 1.62f, -36.27f }, 10, 3.f, 1.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[2].push_back(spawner_component);
+	}
 	
 	//Stage 4
 	{
@@ -742,6 +755,80 @@ void BaseScene::CreateMonsterSpawner()
 		AddObject(spawner);
 		stage_monster_spawner_list_[3].push_back(spawner_component);
 	}
+
+	//Stage 5
+	{
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 109.0f, 0.8f, -160.0f }, 3, 3.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[4].push_back(spawner_component);
+
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 114.0f, 2.7f, -169.0f }, 3, 4.f, 4.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[4].push_back(spawner_component);
+
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 105.5f, 2.4f, -149.5f }, 3, 5.f, 3.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[4].push_back(spawner_component);
+
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 115.54f, 2.73f, -158.6f }, 1, 9.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[4].push_back(spawner_component);
+
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 115.54f, 2.73f, -167.0f }, 1, 11.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[4].push_back(spawner_component);
+	}
+
+	//Stage 6
+	{
+		//1
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 152.636f, 0.83f, -187.529f }, 2, 3.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+
+		//2
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 174.54f, 0.83f, -187.62f }, 2, 4.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+
+		//3
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 177.1f, 0.83f, -179.6f }, 2, 5.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+
+		//4
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 224.0f, 0.83f, -196.4f }, 2, 6.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+
+		//5
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 201.1f, 0.83f, -196.6f }, 2, 7.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+
+		//6
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 161.0f, 0.83f, -149.3f }, 2, 8.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+
+		//7
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 218.0f, 0.83f, -163.6f }, 2, 9.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+	}
+
 
 	//Stage 7
 	{
@@ -794,7 +881,7 @@ void BaseScene::Update(float elapsed_time)
 
 	UpdateObjectIsGround();
 
-	UpdateObjectHitBullet();
+	UpdateObjectHitBullet(elapsed_time);
 
 	UpdateObjectHitObject();
 
@@ -814,7 +901,7 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	Object* player = model_infos_[0]->GetInstance();
 	player->set_name("Player_" + std::to_string(session_id));
 	player->set_position_vector(XMFLOAT3{ -15, 6, 0 });
-	//player->set_position_vector(XMFLOAT3{ 205.3f, 6, -91.f });
+	player->set_position_vector(XMFLOAT3{ 205.3f, 6, -91.f });
 	player->set_collide_type(true, true);  // 지면 & 벽 충돌 체크 등록
 	player->set_is_movable(true);
 	player->set_is_player();
@@ -852,17 +939,17 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	AddObject(player);
 
 	//TODO: 테스트용 스테이지 7 몬스터 스포너 활성화
-	//ActivateStageMonsterSpawner(6);
-	//stage_clear_num_ = 7;
-	//sc_packet_stage_clear sc;
-	//sc.size = sizeof(sc_packet_stage_clear);
-	//sc.stage_num = stage_clear_num_;
-	//sc.type = S2C_P_STAGE_CLEAR;
+	ActivateStageMonsterSpawner(6);
+	stage_clear_num_ = 7;
+	sc_packet_stage_clear sc;
+	sc.size = sizeof(sc_packet_stage_clear);
+	sc.stage_num = stage_clear_num_;
+	sc.type = S2C_P_STAGE_CLEAR;
 
-	//const auto& users = SessionManager::getInstance().getAllSessions();
-	//for (auto& u : users) {
-	//	u.second->do_send(&sc);
-	//}
+	const auto& users = SessionManager::getInstance().getAllSessions();
+	for (auto& u : users) {
+		u.second->do_send(&sc);
+	}
 
 	return player;
 }
@@ -985,7 +1072,7 @@ void BaseScene::UpdateObjectHitWall()
 	}
 }
 
-void BaseScene::UpdateObjectHitBullet()
+void BaseScene::UpdateObjectHitBullet(float elapsed_time)
 {
 	if (!is_prepare_ground_checking_)
 	{
@@ -1005,7 +1092,7 @@ void BaseScene::UpdateObjectHitBullet()
 		}
 		for (const auto& monster : monster_list_)
 		{
-			CheckObjectHitFlamethrow(monster->owner(), player.second->get_id());
+			CheckObjectHitFlamethrow(monster->owner(), player.second->get_id(), elapsed_time);
 		}
 	}
 }
@@ -1873,7 +1960,7 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 
 }
 
-void BaseScene::CheckObjectHitFlamethrow(Object* object, int id)
+void BaseScene::CheckObjectHitFlamethrow(Object* object, int id, float elapsed_time)
 {
 	Object* player_ = SessionManager::getInstance().get(id)->get_player_object();
 
@@ -1905,7 +1992,7 @@ void BaseScene::CheckObjectHitFlamethrow(Object* object, int id)
 				particle_packet.color = particle_color;
 				particle_packet.position = hit_position;
 
-				monster->HitDamage(gun->damage() * (1 + gun->upgrade() * 0.2));
+				monster->HitDamage((gun->damage() * (1 + gun->upgrade() * 0.2)) * elapsed_time);
 
 				if (monster->IsDead())
 				{

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SuperDragonAnimationState.h"
 #include "Object.h"
+#include "FMODSoundManager.h"
 
 SuperDragonAnimationState::SuperDragonAnimationState()
 {
@@ -11,6 +12,7 @@ SuperDragonAnimationState::SuperDragonAnimationState()
 
 void SuperDragonAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
 {
+	
 	switch ((SuperDragonAnimationTrack)animation_track)
 	{
 	case SuperDragonAnimationTrack::kFlyCastSpell:
@@ -21,6 +23,16 @@ void SuperDragonAnimationState::Enter(int animation_track, Object* object, Anima
 	case SuperDragonAnimationTrack::kFlyIdle:
 		animation_loop_type_ = 0; //loop
 		break;
+	case SuperDragonAnimationTrack::kFlyBiteAttackLow:
+		attack_time_ = 0.f; // 공격 시간 초기화
+		is_attack_ = false; // 공격 상태 초기화
+		FMODSoundManager::Instance().PlaySound("bite", false, 0.3f);
+		break;
+	case SuperDragonAnimationTrack::kFlyFireBreathAttackLow:
+		attack_time_ = 0.f; // 공격 시간 초기화
+		is_attack_ = false; // 공격 상태 초기화
+		break;
+
 	default:
 		break;
 	}
@@ -29,6 +41,11 @@ void SuperDragonAnimationState::Enter(int animation_track, Object* object, Anima
 
 int SuperDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
 {
+	attack_time_ += elapsed_time; // 공격 시간 업데이트
+	constexpr float animation_spf = 0.03f; // 공격 애니메이션 프레임당 시간
+	float start_attack_time; // 공격 시작 시간
+	float end_attack_time; // 공격 종료 시간
+
 	switch ((SuperDragonAnimationTrack)animation_track())
 	{
 	case SuperDragonAnimationTrack::kFlyCastSpell:
@@ -44,11 +61,42 @@ int SuperDragonAnimationState::Run(float elapsed_time, Object* object, bool is_e
 		}
 		break;
 	case SuperDragonAnimationTrack::kFlyBiteAttackLow:
+	{
 		if (is_end)
 		{
 			ChangeAnimationTrack((int)SuperDragonAnimationTrack::kFlyIdle, object, animator);
 		}
+	}
 		break;
+	case SuperDragonAnimationTrack::kFlyFireBreathAttackLow:
+	{
+		start_attack_time = animation_spf * 13.f;
+		end_attack_time = animation_spf * 40.f;
+
+		if (!is_attack_ && attack_time_ > start_attack_time)
+		{
+			is_attack_ = true;
+			FMODSoundManager::Instance().PlaySound("breath", false, 0.3f);
+			//TODO: 짱쎄용 브레스 공격 파티클 재생
+			auto breath_frame = object->FindFrame("Breath");
+			if(!breath_frame)
+			{
+				OutputDebugString(L"SuperDragonAnimationState::Run: Breath frame not found.\n");
+			}
+
+		}
+
+		if(is_attack_ && attack_time_ > end_attack_time)
+		{
+			is_attack_ = false;
+		}
+
+		if (is_end)
+		{
+			ChangeAnimationTrack((int)SuperDragonAnimationTrack::kFlyIdle, object, animator);
+		}
+	}
+	break;
 
 	default:
 		break;
