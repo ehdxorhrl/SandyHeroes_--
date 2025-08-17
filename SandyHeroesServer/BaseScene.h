@@ -64,6 +64,8 @@ public:
 	std::list<WallColliderComponent*> stage_wall_collider_list(int index);
 	int stage_clear_num();
 
+	bool InRangeXZ(Object* self, Object* target, float r);
+
 	void ActivateStageMonsterSpawner(int stage_num);
 
 	void add_catch_monster_num();

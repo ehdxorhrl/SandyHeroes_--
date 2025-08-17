@@ -17,7 +17,50 @@ Component* MovementComponent::GetCopy()
 
 void MovementComponent::Update(float elapsed_time)
 {
-    // 클라이언트에서는 물리X
+    float speed = xmath_util_float3::Length(velocity_);
+    XMFLOAT3 direction = xmath_util_float3::Normalize(velocity_);
+    if (speed > max_speed_)
+    {
+        velocity_ = xmath_util_float3::ScalarProduct(direction, max_speed_);
+    }
+
+    XMFLOAT3 velocity_xz{ velocity_.x, 0.f, velocity_.z };
+    XMFLOAT3 direction_xz = xmath_util_float3::Normalize(velocity_xz);
+    float speed_xz = xmath_util_float3::Length(velocity_xz);
+    constexpr float kFrictionAcceleration{ 70.f };
+
+    if (speed_xz > max_speed_xz_)
+    {
+        velocity_.x *= (max_speed_xz_ / speed_xz);
+        velocity_.z *= (max_speed_xz_ / speed_xz);
+    }
+
+    if (is_friction_)
+    {
+        if (is_gravity_)
+        {
+            if (speed_xz < elapsed_time * kFrictionAcceleration)
+            {
+                velocity_ = { 0, velocity_.y, 0 };
+            }
+            else
+            {
+                velocity_ -= direction_xz * elapsed_time * kFrictionAcceleration;
+            }
+        }
+        else
+        {
+            if (speed < elapsed_time * kFrictionAcceleration)
+            {
+                velocity_ = { 0, 0, 0 };
+            }
+            else
+            {
+                velocity_ -= direction * elapsed_time * kFrictionAcceleration;
+            }
+        }
+    }
+    owner_->set_position_vector(owner_->position_vector() + (velocity_ * elapsed_time));
 }
 
 void MovementComponent::EnableGravity()

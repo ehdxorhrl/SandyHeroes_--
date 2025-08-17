@@ -19,25 +19,8 @@ void HitDragonAnimationState::Enter(int animation_track, Object* object, Animato
 
 int HitDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
 {
-	auto movement = Object::GetComponentInChildren<MovementComponent>(object);
-	auto velocity_xz = movement->velocity();
-	velocity_xz.y = 0.f;
-	float speed = xmath_util_float3::Length(velocity_xz);
-
 	switch ((HitDragonAnimationTrack)animation_track())
 	{
-	case HitDragonAnimationTrack::kIdle:
-		if (speed > 0.f)
-		{
-			ChangeAnimationTrack((int)HitDragonAnimationTrack::kRun, object, animator);
-		}
-		break;
-	case HitDragonAnimationTrack::kRun:
-		if (IsZero(speed))
-		{
-			ChangeAnimationTrack((int)HitDragonAnimationTrack::kIdle, object, animator);
-		}
-		break;
 	case HitDragonAnimationTrack::kDie:
 		if (is_end)
 		{
@@ -45,8 +28,10 @@ int HitDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end
 		}
 		break;
 	case HitDragonAnimationTrack::kSlashLeftAttack:
+
 		if (is_end)
 		{
+			std::cout << "kSlashLeftAttack에서 idle로 변환" << std::endl;
 			ChangeAnimationTrack((int)HitDragonAnimationTrack::kIdle, object, animator);
 		}
 		break;

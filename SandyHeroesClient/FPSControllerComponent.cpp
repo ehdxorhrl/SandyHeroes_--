@@ -41,6 +41,10 @@ bool FPSControllerComponent::ProcessInput(UINT message_id, WPARAM w_param, LPARA
 	{
 	case WM_MOUSEMOVE:
 	{
+		//BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->scene());
+		//if (base_scene->stage_clear_num() != 4) {
+		//	
+		//}
 		POINT mouse_cursor_pos;
 		GetCursorPos(&mouse_cursor_pos);
 

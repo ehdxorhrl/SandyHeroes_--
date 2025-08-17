@@ -202,6 +202,7 @@ void Session::send_player_info_packet()
 	ip.position[0] = player_object_->position_vector().x;
 	ip.position[1] = player_object_->position_vector().y;
 	ip.position[2] = player_object_->position_vector().z;
+
 	do_send(&ip);
 }
 
@@ -250,6 +251,17 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 		id_ = id++;	
 
 		send_player_info_packet();
+
+		//GunComponent* gun_component = Object::GetComponent<GunComponent>(gun);
+		//sc_packet_gun_change gc;
+		//gc.size = sizeof(gc);
+		//gc.type = S2C_P_GUN_CHANGE;
+		//gc.id = get_id(); // 클라이언트에서 어떤 플레이어에 해당하는지 식별
+		//gc.gun_id = gun_component->owner()->id();
+		//std::cout << "교체 총 id: " << gun_component->owner()->id() << std::endl;
+		//strcpy_s(gc.gun_name, gun_name.c_str());
+		//gc.upgrade_level = gun_component->upgrade();
+		//gc.element_type = static_cast<int>(gun_component->element());
 
 		sc_packet_enter ep;
 		ep.size = sizeof(ep);

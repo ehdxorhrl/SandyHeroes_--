@@ -46,15 +46,25 @@ void AnimatorComponent::Update(float elapsed_time)
 
 	if (track_state != track_index_)
 	{
-		change_time_ = 0.f;
+		const int dieTrack = animation_state_->GetDeadAnimationTrack(); // 몬스터별 오버라이드 필요
+		const bool toDie = (dieTrack >= 0 && track_state == dieTrack);
+
 		before_track_index_ = track_index_;
 		track_index_ = track_state;
-		if (before_track_index_ == -1)
-		{
-			before_track_index_ = track_index_;
+
+		if (toDie) {
+			// ★ 죽음은 '즉시 전환': 블렌딩 생략 + Once로 강제 시작
+			change_time_ = max_change_time_;                 // weight=1.0로 바로 신규 트랙만 재생
+			animation_tracks_[before_track_index_].Pause();  // 안전: 이전 트랙 중지
+			animation_tracks_[track_index_].Start(AnimationLoopType::kOnce);
 		}
-		animation_tracks_[track_index_].Start((AnimationLoopType)animation_state_->animation_loop_type());
-		animation_tracks_[before_track_index_].Start((AnimationLoopType)animation_state_->animation_loop_type());
+		else {
+			// 기존 블렌딩 전환
+			change_time_ = 0.f;
+			if (before_track_index_ == -1) before_track_index_ = track_index_;
+			animation_tracks_[track_index_].Start((AnimationLoopType)animation_state_->animation_loop_type());
+			animation_tracks_[before_track_index_].Start((AnimationLoopType)animation_state_->animation_loop_type());
+		}
 	}
 
 	XMFLOAT3 before_root_bone_position = root_bone_frame_->position_vector();

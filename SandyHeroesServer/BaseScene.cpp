@@ -987,6 +987,18 @@ void BaseScene::AddObject(Object* object)
 	{
 		razer_list_.push_back(razer_component);
 	}
+
+	if(object->is_movable()) {
+		object->OnDestroy([this](Object* o) {
+			sc_packet_object_set_dead osd{};
+		osd.size = sizeof(sc_packet_object_set_dead);
+		osd.type = S2C_P_OBJECT_SET_DEAD;   // 실제 사용 중인 타입으로 교체
+		osd.id = o->id();
+
+		const auto& users = SessionManager::getInstance().getAllSessions();
+		for (auto& u : users) u.second->do_send(&osd);   // 브로드캐스트
+			});
+	}
 }
 
 void BaseScene::DeleteObject(Object* object)
@@ -1120,15 +1132,18 @@ void BaseScene::UpdateStageClear()
 			return;
 		break;
 	case 3:
-	{	for (auto& object : ground_check_object_list_){
-		if (!object->is_player()) return;
-		auto player_collider = Object::GetComponentInChildren<MeshColliderComponent>(object);
-		if (!player_collider) return;
+	{	
+		for (auto& object : ground_check_object_list_){
+			if (!object->is_player()) return;
 
-		BoundingOrientedBox player_box = player_collider->GetWorldOBB();
-		if (!stage3_clear_box_.Intersects(player_box))
-			return;
-	}
+			auto player_collider = Object::GetComponentInChildren<MeshColliderComponent>(object);
+			if (!player_collider) return;
+
+			BoundingOrientedBox player_box = player_collider->GetWorldOBB();
+			if (!stage3_clear_box_.Intersects(player_box))
+				return;
+		}
+		std::cout << "밟음" << std::endl;
 	}
 	
 	break;
@@ -1440,23 +1455,7 @@ void BaseScene::CheckObjectHitObject(Object* object)
 		auto otherMesh = Object::GetComponentInChildren<MeshColliderComponent>(other);
 		auto otherBox = Object::GetComponentInChildren<BoxColliderComponent>(other);
 
-		bool intersect = false;
-
-		if (selfMesh && otherMesh) {
-			BoundingOrientedBox a = selfMesh->GetWorldOBB();
-			BoundingOrientedBox b = otherMesh->GetWorldOBB();
-			intersect = a.Intersects(b);
-		}
-		else if (selfMesh && otherBox) {
-			BoundingOrientedBox a = selfMesh->GetWorldOBB();
-			intersect = a.Intersects(otherBox->animated_box());
-		}
-		else if (selfBox && otherBox) {
-			intersect = selfBox->animated_box().Intersects(otherBox->animated_box());
-		}
-		else {
-			continue; // 비교 가능한 콜라이더가 없음
-		}
+		bool intersect = InRangeXZ(object, other, 0.7f);
 
 		if (!intersect) continue;
 
@@ -1471,7 +1470,7 @@ void BaseScene::CheckObjectHitObject(Object* object)
 		XMVECTOR ray_direction = XMLoadFloat3(&dir);
 		ray_direction = XMVectorSetY(ray_direction, 0);
 		ray_direction = XMVector3Normalize(ray_direction);
-		if (0 == XMVectorGetX(XMVector3Length(ray_direction))) return;
+		if (0 == XMVectorGetX(XMVector3Length(ray_direction))) continue;
 
 		float distance = std::numeric_limits<float>::max();
 		for (auto& mesh_collider : stage_wall_collider_list_[stage_clear_num_]) {
@@ -1490,10 +1489,10 @@ void BaseScene::CheckObjectHitObject(Object* object)
 			object->set_position_vector(object_pos + dir * step);
 			if (auto monster = Object::GetComponent<MonsterComponent>(object)) {
 				monster->set_is_pushed(true);
-				monster->set_push_timer(0.15f); // 0.1~0.2초 정도로 짧게
+				monster->set_push_timer(0.15f);
 			}
 		}
-		return; //
+		break; //
 	}
 }
 
@@ -1686,17 +1685,15 @@ void BaseScene::CheckSpawnBoxHitPlayers()
 				// 스폰 활성화 처리
 				if (stage_clear_num_ == 4)
 				{
-					//auto& mesh_list = Object::GetComponentsInChildren<SkinnedMeshComponent>(object);
-					//for (auto& mesh : mesh_list)
-					//{
-					//	mesh->set_is_visible(!mesh->IsVisible());
-					//}
-					//auto controller = Object::GetComponent<FPSControllerComponent>(object);
-					//if (controller)
-					//	controller->Stop();
-					//cut_scene_tracks_[0].Play(this);
+					sc_packet_play_cut_scene pcs;
+					pcs.size = sizeof(sc_packet_play_cut_scene);
+					pcs.type = S2C_P_PLAY_CUT_SCENE;
+					pcs.cut_scene_track = 0;
 
-					//컷신을 틀도록 패킷 전송
+					const auto& users = SessionManager::getInstance().getAllSessions();
+					for (const auto& u : users) {
+						u.second->do_send(&pcs);
+					}
 				}
 				
 				ActivateStageMonsterSpawner(stage_clear_num_ - 1);
@@ -2121,4 +2118,11 @@ std::list<WallColliderComponent*> BaseScene::stage_wall_collider_list(int index)
 int BaseScene::stage_clear_num()
 {
 	return stage_clear_num_;
+}
+
+bool BaseScene::InRangeXZ(Object* self, Object* target, float r) { // 범위 계산
+	if (!self || !target) return false;
+	auto d = target->world_position_vector() - self->world_position_vector();
+	d.y = 0.f;
+	return xmath_util_float3::LengthSq(d) <= r * r;
 }

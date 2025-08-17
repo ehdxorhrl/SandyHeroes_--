@@ -63,6 +63,8 @@ public:
 	HWND main_wnd() const;
 	XMFLOAT2 client_size() const;
 	SOCKET socket() const; // 소켓
+	Scene* scene() const;
+
 
 	//서버 연결
 	void ConnectServer(const char* ip, uint16_t port);
@@ -78,7 +80,6 @@ public:
 	//void CheckRecv();
 	void RecvThreadProc();
 	void do_send(void* p);
-
 
 private:
 	static GameFramework* kGameFramework;

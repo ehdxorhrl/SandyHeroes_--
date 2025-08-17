@@ -1039,7 +1039,6 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		monster_component->set_target(player_);
 		auto spawner_component = new SpawnerComponent(spawner, this, hit_dragon);
 		spawner_component->AddComponent(monster_component);
-		spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
 		spawner->AddComponent(spawner_component);
 		hit_dragon_spawner->set_hierarchy_root(spawner);
 		model_infos_.emplace_back();
@@ -1051,7 +1050,6 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		spawner = new Object();
 		spawner_component = new SpawnerComponent(spawner, this, shot_dragon);
 		spawner_component->AddComponent(monster_component->GetCopy());
-		spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
 		spawner->AddComponent(spawner_component);
 		shot_dragon_spawner->set_hierarchy_root(spawner);
 		model_infos_.emplace_back();
@@ -1063,7 +1061,6 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		spawner = new Object();
 		spawner_component = new SpawnerComponent(spawner, this, bomb_dragon);
 		spawner_component->AddComponent(monster_component->GetCopy());
-		spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
 		spawner->AddComponent(spawner_component);
 		bomb_dragon_spawner->set_hierarchy_root(spawner);
 		model_infos_.emplace_back();
@@ -1075,7 +1072,6 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		spawner = new Object();
 		spawner_component = new SpawnerComponent(spawner, this, strong_dragon);
 		spawner_component->AddComponent(monster_component->GetCopy());
-		spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
 		spawner->AddComponent(spawner_component);
 		strong_dragon_spawner->set_hierarchy_root(spawner);
 		model_infos_.emplace_back();
@@ -2659,10 +2655,9 @@ void BaseScene::add_monster(uint32_t id, const XMFLOAT4X4& matrix, int32_t max_h
 	monster_component->set_attack_force(attack_force);
 	new_monster->AddComponent(monster_component);
 	
-	auto* move_component = new MovementComponent(new_monster);
-	new_monster->AddComponent(move_component);
-	
-	
+	//auto animator = Object::GetComponent<AnimatorComponent>(new_monster);
+	//if (animator) animator->set_animation_state(0);
+
 	AddObject(new_monster);
 
 }
@@ -2851,6 +2846,16 @@ void BaseScene::TakeScroll(uint8_t chest_num)
 	auto chest_component = Object::GetComponent<ChestComponent>(chest);
 	if (!chest_component) return;
 	chest_component->TakeScroll();
+}
+
+void BaseScene::PlayCutScene(uint8_t track_num)
+{
+	auto& mesh_list = Object::GetComponentsInChildren<SkinnedMeshComponent>(player_);
+	for (auto& mesh : mesh_list)
+	{
+		mesh->set_is_visible(!mesh->IsVisible());
+	}
+	cut_scene_tracks_[track_num].Play(this);
 }
 
 

@@ -130,6 +130,9 @@ public:
 
     bool Move_To_Target(float dt);                       // 경로 쿨타임/추적(이동/회전/패킷)
 
+    bool Rotate_To_Target(float elapsed_time, Object* target);
+
+    void Send_Move_Packet(float elapsed_time, float speed);
 private:
     BTNode* behavior_tree_root_ = nullptr;
     int current_node_idx_{ 0 };
@@ -143,6 +146,16 @@ private:
     // 내가 점유 중인 노드 id(해제용), 잠시 양보 타이머
     int   last_owned_node_id_{ -1 };
     float yield_timer_{ 0.f };
+
+    XMFLOAT3 last_sent_pos_{ FLT_MAX, FLT_MAX, FLT_MAX }; // 첫 프레임 강제 전송용 sentinel
+    XMFLOAT3 last_sent_dir_xz_{ 0.f, 0.f, 1.f };
+    float    since_last_send_s_ = 9999.f; // 전송 간 누적 시간(초)
+
+    // 튜닝 파라미터(원하면 public setter로 빼도 좋습니다)
+    float net_dist_start_m_ = 0.1f; // 위치 변화 임계(10cm)
+    float net_yaw_start_deg_ = 2.0f;  // yaw 변화 임계(2도)
+    float net_min_interval_s_ = 0.01f; // 최소 전송 간격(20ms)
+    float net_max_interval_s_ = 0.03f; // 최대 전송 간격(60ms)
 };
 
 static Object* GetCurrentTarget(Object* self) {
@@ -248,6 +261,7 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
             mca.id = self->id();
             mca.loop_type = 0;
             mca.animation_track = 2; // kGoingToExplode
+            self->set_animation_state(2);
 
             const auto& users = SessionManager::getInstance().getAllSessions();
             for (auto& u : users) {
@@ -267,6 +281,7 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
         mca.id = self->id();
         mca.loop_type = 1;
         mca.animation_track = 3; // kExplode
+        self->set_animation_state(3);
 
         const auto& users = SessionManager::getInstance().getAllSessions();
         for (auto& u : users) {
@@ -458,45 +473,12 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
     // 회전
     auto rotate = [self](float elapsed_time) -> bool {
         auto* target = Set_Target(self);
-        if (!target) return false; // 타켓이 없으면 종료
+        if (!target) return false; // 타켓이 없으면 종료    
 
-        auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        if (!ai) return false;
 
-        XMFLOAT3 look = self->look_vector();
-        look.y = 0.f;
-        look = xmath_util_float3::Normalize(look);
-        XMFLOAT3 direction = target->world_position_vector() - self->world_position_vector();
-        direction.y = 0.f;
-        direction = xmath_util_float3::Normalize(direction);
-        float angle = xmath_util_float3::AngleBetween(look, direction);
-        if (angle > XM_PI / 180.f * 5.f)
-        {
-            //회전 방향 연산
-            XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, direction);
-            if (cross.y < 0)
-            {
-                angle = -angle;
-            }
-            angle = XMConvertToDegrees(angle);
-            self->Rotate(0.f, angle, 0.f);
-        }
-
-        sc_packet_monster_move mm;
-        mm.size = sizeof(sc_packet_monster_move);
-        mm.type = S2C_P_MONSTER_MOVE;
-        mm.id = self ->id();
-        mm.speed = 0;
-        XMFLOAT4X4 xf;
-        const XMFLOAT4X4& mat = self->transform_matrix();
-        XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
-        memcpy(mm.matrix, &xf, sizeof(float) * 16);
-
-        const auto& users = SessionManager::getInstance().getAllSessions();
-        for (auto& u : users) {
-            u.second->do_send(&mm);
-        }
-
-        return true;
+        return ai->Rotate_To_Target(elapsed_time, target);
     };
 
     // 가시 발사
@@ -515,6 +497,7 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         mca.id = self->id();
         mca.loop_type = 0;
         mca.animation_track = 3; // kAttack
+        self->set_animation_state(3);
 
         const auto& users = SessionManager::getInstance().getAllSessions();
         for (auto& u : users) {
@@ -599,25 +582,27 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
 
 static BTNode* Build_Hit_Dragon_Tree(Object* self)
 {
-    constexpr float range = 1.1f; // 근거리 공격 범위
+    constexpr float range = 0.95f; // 근거리 공격 범위
 	constexpr float attack_cool_time = 1.f; // 공격 쿨타임
 	auto state = std::make_shared<HitState>();
+
+
 
     // 근거리 공격 시퀀스
     auto is_attacking = [self, state](float elapsed_time) -> bool {
 		constexpr float animation_spf = 0.03f; // 공격 애니메이션 프레임당 시간
 		constexpr float start_attack_time = animation_spf * 7.f; // 공격 시작 시간
-		constexpr float end_attack_time = animation_spf * 14.f; // 공격 종료 시간
+		constexpr float end_attack_time = animation_spf * 20.f; // 공격 종료 시간
 
         if(state->is_attacking) {
 
             state->attack_time += elapsed_time;
 
-            std::cout << "state->is_attacking 진입" << std::endl;
-            std::cout << "state->attack_time 시간: " << state->attack_time << std::endl;
+            //std::cout << "state->is_attacking 진입" << std::endl;
+            //std::cout << "state->attack_time 시간: " << state->attack_time << std::endl;
             if (state->attack_time > end_attack_time)
             {
-                std::cout << "end_attack_time 진입" << std::endl;
+                //std::cout << "end_attack_time 진입" << std::endl;
 				state->is_attacking = false; // 공격이 끝났으면 상태를 초기화
                 state->attack_time = 0.f; // 공격 시간 초기화
                 return !state->is_attacking; //공격 중이 아니면 진행
@@ -625,8 +610,8 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
 
             if (state->attack_time > start_attack_time)
             {
-                std::cout << "start_attack_time 진입" << std::endl;
-                std::cout << "state->attack_time 시간: " << state->attack_time << std::endl;
+                //std::cout << "start_attack_time 진입" << std::endl;
+                //std::cout << "state->attack_time 시간: " << state->attack_time << std::endl;
                 auto left_arm = self->FindFrame("RigLArm2");
                 auto box = Object::GetComponent<BoxColliderComponent>(left_arm);
                 if (!box)
@@ -643,7 +628,7 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
                     if (!player_box) continue; // 플레이어 박스가 없으면 건너뛰기
                     if (box->animated_box().Intersects(player_box->animated_box())) 
                     {
-                        std::cout << "때려용 공격 성공" << std::endl;
+                        //std::cout << "때려용 공격 성공" << std::endl;
                         auto playercomp = Object::GetComponentInChildren<PlayerComponent>(user.second->get_player_object());
                         auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
                         playercomp->HitDamage(monstercomp->attack_force());
@@ -661,6 +646,7 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
                 }
             }
 		}
+
         return !state->is_attacking; //공격 중이 아니면 진행
         };
     auto is_end_cooldown = [self, state](float elapsed_time) -> bool {
@@ -671,7 +657,8 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
         }
         return false; // 아직 쿨타임이 끝나지 않음
 		};
-    auto is_in_range = [self](float elapsed_time) -> bool {
+    auto is_in_range = [self, state](float elapsed_time) -> bool {
+
         auto target = GetCurrentTarget(self);
         return InRangeXZ(self, target, range);
 		};
@@ -710,6 +697,7 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
 		mca.id = self->id();
 		mca.loop_type = 1; // Once
 		mca.animation_track = 7; // kSlashLeftAttack
+        self->set_animation_state(7);
 		const auto& users = SessionManager::getInstance().getAllSessions();
 		for (auto& u : users) {
 			u.second->do_send(&mca);
@@ -719,7 +707,10 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
     };
 
 	// 플레이어를 향해 이동
-    auto move_to_player = [self](float elapsed_time) -> bool {
+    auto move_to_player = [self, state](float elapsed_time) -> bool {
+        if (state->is_attacking) {
+            return false;
+        }
         auto* target = Set_Target(self);
         if (!target) return false; 
 
@@ -867,6 +858,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
             mca.id = self->id();
             mca.loop_type = 1; // Once
             mca.animation_track = 4; // kSpinAttackOnce
+            self->set_animation_state(4);
             const auto& users = SessionManager::getInstance().getAllSessions();
             for (auto& u : users) {
                 u.second->do_send(&mca);
@@ -954,6 +946,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
         mca.id = self->id();
         mca.loop_type = 0; // Loop
         mca.animation_track = 5; // kSpinAttackLoop
+        self->set_animation_state(5);
         const auto& users = SessionManager::getInstance().getAllSessions();
         for (auto& u : users) {
             u.second->do_send(&mca);
@@ -1101,6 +1094,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
                 mca.id = self->id();
                 mca.loop_type = 0; // Loop
                 mca.animation_track = 4; // kFlyUpFast
+                self->set_animation_state(4);
                 const auto& users = SessionManager::getInstance().getAllSessions();
                 for (auto& u : users) {
                     u.second->do_send(&mca);
@@ -1244,6 +1238,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
             for (auto& u : users) {
                 u.second->do_send(&mca);
 			}
+            self->set_animation_state(8);
         }
 
         if (InRangeXZ(self, target, kRange + 0.5f) && self->position_vector().y < kGroundY - kFlyHeight)
@@ -1313,6 +1308,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         mca.id = self->id();
         mca.loop_type = 1; // Once
         mca.animation_track = 7; // kFlyBiteAttackLow
+        self->set_animation_state(7);
         const auto& users = SessionManager::getInstance().getAllSessions();
         for (auto& u : users) {
             u.second->do_send(&mca);
@@ -1387,18 +1383,24 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         if (!target) return false; // 타겟이 없으면 실패
         state->attack_time = 0.f;
         state->is_attacking = true; // 공격 상태로 변경
-        //애니메이션 상태 변경
-        sc_packet_monster_change_animation mca;
-        mca.size = sizeof(sc_packet_monster_change_animation);
-        mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-        mca.id = self->id();
-        mca.loop_type = 1; // Once
-        mca.animation_track = 8; // kFlyFireBreathAttackLow
-        const auto& users = SessionManager::getInstance().getAllSessions();
-        for (auto& u : users) 
-        {
-			u.second->do_send(&mca);
+
+        if (self->animation_state() != 8) {
+            //애니메이션 상태 변경
+            sc_packet_monster_change_animation mca;
+            mca.size = sizeof(sc_packet_monster_change_animation);
+            mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
+            mca.id = self->id();
+            mca.loop_type = 1; // Once
+            mca.animation_track = 8; // kFlyFireBreathAttackLow
+            self->set_animation_state(8);
+
+            const auto& users = SessionManager::getInstance().getAllSessions();
+            for (auto& u : users)
+            {
+                u.second->do_send(&mca);
+            }
         }
+   
         return true;
 		};
 

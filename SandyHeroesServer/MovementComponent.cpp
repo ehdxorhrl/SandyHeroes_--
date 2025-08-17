@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "MovementComponent.h"
+#include "SessionManager.h"
 #include "Object.h"
 
 MovementComponent::MovementComponent(Object* owner) : Component(owner)
@@ -145,6 +146,30 @@ void MovementComponent::Jump(float speed, float max_height)
 void MovementComponent::Stop()
 {
     velocity_ = XMFLOAT3{ 0.f, 0.f, 0.f };
+
+    sc_packet_monster_change_animation mca;
+    mca.size = sizeof(sc_packet_monster_change_animation);
+    mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
+    mca.id = owner_->id();
+    mca.loop_type = 0; // Once
+
+    switch (owner_->monster_type()) {
+    case MonsterType::Strong_Dragon:
+    case MonsterType::Shot_Dragon:
+        mca.animation_track = 0; // kIdle
+        break;
+    case MonsterType::Hit_Dragon:
+        mca.animation_track = 4;
+        break;
+    case MonsterType::Bomb_Dragon:
+    case MonsterType::Super_Dragon:
+        mca.animation_track = 1; // kFlyIdle
+        break;
+    }
+    const auto& users = SessionManager::getInstance().getAllSessions();
+    for (auto& u : users) {
+        u.second->do_send(&mca);
+    }
 }
 
 void MovementComponent::set_gravity_acceleration(float value)

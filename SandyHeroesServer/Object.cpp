@@ -303,6 +303,11 @@ void Object::set_monster_type(MonsterType type)
 	type_ = type;
 }
 
+void Object::set_animation_state(int animation_state)
+{
+	animation_state_ = animation_state;
+}
+
 void Object::AddChild(Object* object)
 {
 	object->parent_ = this;
