@@ -93,6 +93,7 @@ void SkinnedMeshComponent::AttachBoneFrames(const std::vector<std::string>& bone
 	if (is_attached_bone_frames_)
 		return;
 
+	bone_frames_.clear();
 	bone_frames_.reserve(bone_names.size());
 
 	Object* hierarchy_root = owner_->GetHierarchyRoot();
@@ -104,4 +105,12 @@ void SkinnedMeshComponent::AttachBoneFrames(const std::vector<std::string>& bone
 	}
 
 	is_attached_bone_frames_ = true;
+
+	for (int i = 0; i < bone_frames_.size(); ++i)
+	{
+		if (bone_frames_[i] == nullptr)
+		{
+			is_attached_bone_frames_ = false;
+		}
+	}
 }

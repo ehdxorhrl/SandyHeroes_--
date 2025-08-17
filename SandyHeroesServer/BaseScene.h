@@ -74,6 +74,8 @@ public:
 	void add_stage_clear_num() { ++stage_clear_num_; }
 	const std::list<MonsterComponent*>& monster_list() const;
 
+	void set_is_activate_spawner(bool is_activate) { is_activate_spawner_ = is_activate; }
+
 private:
 	//스테이지별 몬스터 스포너 리스트
 	std::array<std::list<SpawnerComponent*>, kStageMaxCount> stage_monster_spawner_list_;

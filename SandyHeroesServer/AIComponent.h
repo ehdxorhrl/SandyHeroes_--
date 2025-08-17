@@ -1206,7 +1206,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         // 하늘로 날아오르기
 		constexpr XMFLOAT3 target_position{ 205.3f, 23.f, -91.f }; // 하늘로 날아오를 목표 위치
         XMFLOAT3 direction = target_position - self->world_position_vector();
-        if (xmath_util_float3::Length(direction) < 0.2f) 
+        if (xmath_util_float3::Length(direction) < 0.5f) 
         {
             state->is_fly_to_sky = false;
             movement->Stop();
@@ -1589,7 +1589,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_attack_force(60);
 	monstercomp->set_hp(2000.f);
-	monstercomp->set_shield(20.f);
+	monstercomp->set_shield(2000.f);
 
 	auto movement = Object::GetComponentInChildren<MovementComponent>(self);
 	movement->set_gravity_acceleration(0.f); // 중력 제거

@@ -405,7 +405,7 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 		{
 			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
 			base_scene->add_stage_clear_num();
-			base_scene->ActivateStageMonsterSpawner(base_scene->stage_clear_num() - 1);
+			base_scene->set_is_activate_spawner(false);
 			sc_packet_stage_clear sc;
 			sc.size = sizeof(sc_packet_stage_clear);
 			sc.stage_num = base_scene->stage_clear_num();
