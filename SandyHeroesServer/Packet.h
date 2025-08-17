@@ -33,7 +33,7 @@ constexpr char S2C_P_SHOTDRAGON_ATTACK = 27;
 constexpr char S2C_P_STAGE_CLEAR = 55;
 constexpr char S2C_P_OBJECT_SET_DEAD = 56;
 constexpr char S2C_P_PLAY_RELOAD_SOUND = 57;
-
+constexpr char S2C_P_PLAY_CUT_SCENE = 58;
 
 constexpr char C2S_P_LOGIN = 101;
 constexpr char C2S_P_KEYBOARD_INPUT = 102;
@@ -47,6 +47,12 @@ constexpr char PRESS_OFF = 0;
 constexpr char PRESS_ON = 1;
 
 #pragma pack (push,1)
+
+struct sc_packet_play_cut_scene {
+    uint8_t size;
+    uint8_t type; // S2C_P_PLAY_CUT_SCENE
+    uint8_t cut_scene_track; // 애니메이션 트랙
+};
 
 struct sc_packet_play_reload_sound {
     uint8_t size;

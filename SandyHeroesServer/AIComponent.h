@@ -130,6 +130,9 @@ public:
 
     bool Move_To_Target(float dt);                       // 경로 쿨타임/추적(이동/회전/패킷)
 
+    bool Rotate_To_Target(float elapsed_time, Object* target);
+
+    void Send_Move_Packet(float elapsed_time, float speed);
 private:
     BTNode* behavior_tree_root_ = nullptr;
     int current_node_idx_{ 0 };
@@ -143,6 +146,16 @@ private:
     // 내가 점유 중인 노드 id(해제용), 잠시 양보 타이머
     int   last_owned_node_id_{ -1 };
     float yield_timer_{ 0.f };
+
+    XMFLOAT3 last_sent_pos_{ FLT_MAX, FLT_MAX, FLT_MAX }; // 첫 프레임 강제 전송용 sentinel
+    XMFLOAT3 last_sent_dir_xz_{ 0.f, 0.f, 1.f };
+    float    since_last_send_s_ = 9999.f; // 전송 간 누적 시간(초)
+
+    // 튜닝 파라미터(원하면 public setter로 빼도 좋습니다)
+    float net_dist_start_m_ = 0.1f; // 위치 변화 임계(10cm)
+    float net_yaw_start_deg_ = 2.0f;  // yaw 변화 임계(2도)
+    float net_min_interval_s_ = 0.01f; // 최소 전송 간격(20ms)
+    float net_max_interval_s_ = 0.03f; // 최대 전송 간격(60ms)
 };
 
 static Object* GetCurrentTarget(Object* self) {
@@ -460,46 +473,12 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
     // 회전
     auto rotate = [self](float elapsed_time) -> bool {
         auto* target = Set_Target(self);
-        if (!target) return false; // 타켓이 없으면 종료
+        if (!target) return false; // 타켓이 없으면 종료    
 
-        auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        if (!ai) return false;
 
-        XMFLOAT3 look = self->look_vector();
-        look.y = 0.f;
-        look = xmath_util_float3::Normalize(look);
-        XMFLOAT3 direction = target->world_position_vector() - self->world_position_vector();
-        direction.y = 0.f;
-        direction = xmath_util_float3::Normalize(direction);
-        float angle = xmath_util_float3::AngleBetween(look, direction);
-        if (angle > XM_PI / 180.f * 5.f)
-        {
-            //회전 방향 연산
-            XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, direction);
-            if (cross.y < 0)
-            {
-                angle = -angle;
-            }
-            angle = XMConvertToDegrees(angle);
-            self->Rotate(0.f, angle, 0.f);
-        }
-
-        sc_packet_monster_move mm;
-        mm.size = sizeof(sc_packet_monster_move);
-        mm.type = S2C_P_MONSTER_MOVE;
-        mm.id = self ->id();
-        mm.speed = 0;
-        mm.animation_track = 3;
-        XMFLOAT4X4 xf;
-        const XMFLOAT4X4& mat = self->transform_matrix();
-        XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
-        memcpy(mm.matrix, &xf, sizeof(float) * 16);
-
-        const auto& users = SessionManager::getInstance().getAllSessions();
-        for (auto& u : users) {
-            u.second->do_send(&mm);
-        }
-
-        return true;
+        return ai->Rotate_To_Target(elapsed_time, target);
     };
 
     // 가시 발사

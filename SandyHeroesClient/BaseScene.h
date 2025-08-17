@@ -88,7 +88,7 @@ public:
 	void change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t upgrade_level, uint8_t element_type, uint32_t player_id);
 	void OpenScrollChest(uint8_t scroll_type, uint8_t chest_num);
 	void TakeScroll(uint8_t chest_num);
-
+	void PlayCutScene(uint8_t track_num);
 private:
 	//static constexpr int kStageMaxCount{ 8 };	// 게임 스테이지 총 개수
 

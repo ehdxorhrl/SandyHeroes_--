@@ -1231,19 +1231,26 @@ void GameFramework::ProcessPacket(char* p)
         if (obj)
         {
             obj->set_is_dead(true);
-            //auto animator = Object::GetComponentInChildren<AnimatorComponent>(obj);
-            //if (!animator) { obj->set_is_dead(true); break; }
-            //auto animation_state = animator->animation_state();
-            //if (animation_state)
-            //{
-            //    animation_state->ChangeAnimationTrack(animation_state->GetDeadAnimationTrack(), obj, animator);
-            //    animation_state->set_animation_loop_type(1); // Once
-            //    return;
-            //}
+            auto animator = Object::GetComponentInChildren<AnimatorComponent>(obj);
+            if (!animator) { obj->set_is_dead(true); break; }
+            auto animation_state = animator->animation_state();
+            if (animation_state)
+            {
+                animation_state->ChangeAnimationTrack(animation_state->GetDeadAnimationTrack(), obj, animator);
+                animation_state->set_animation_loop_type(1); // Once
+                return;
+            }
             
         }
     }
         break;
+    case S2C_P_PLAY_CUT_SCENE:
+    {
+        auto packet = reinterpret_cast<sc_packet_play_cut_scene*>(p);
+        base_scene->PlayCutScene(packet->cut_scene_track);
+    }
+        break;
+
     default:
         break;
     }

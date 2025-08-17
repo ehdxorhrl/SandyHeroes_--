@@ -2414,9 +2414,6 @@ void BaseScene::SpawnMonsterDamagedParticle(const XMFLOAT3& position, const XMFL
 void BaseScene::set_stage_clear_num(int value)
 {
 	stage_clear_num_ = value;
-	if (stage_clear_num_ == 4) {
-		cut_scene_tracks_[0].Play(this);
-	}
 }
 
 int BaseScene::stage_clear_num()
@@ -2670,6 +2667,11 @@ void BaseScene::TakeScroll(uint8_t chest_num)
 	auto chest_component = Object::GetComponent<ChestComponent>(chest);
 	if (!chest_component) return;
 	chest_component->TakeScroll();
+}
+
+void BaseScene::PlayCutScene(uint8_t track_num)
+{
+	cut_scene_tracks_[track_num].Play(this);
 }
 
 
