@@ -884,6 +884,8 @@ void BaseScene::Update(float elapsed_time)
 	CheckSpawnBoxHitPlayers();
 
 	CheckPlayerHitChest();
+
+	TickNoClipTimers(elapsed_time);
 }
 
 Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
@@ -988,6 +990,7 @@ void BaseScene::AddObject(Object* object)
 		osd.size = sizeof(sc_packet_object_set_dead);
 		osd.type = S2C_P_OBJECT_SET_DEAD;   // 실제 사용 중인 타입으로 교체
 		osd.id = o->id();
+		osd.monster_type = o->monster_type();
 
 		const auto& users = SessionManager::getInstance().getAllSessions();
 		for (auto& u : users) u.second->do_send(&osd);   // 브로드캐스트
@@ -1458,10 +1461,59 @@ void BaseScene::CheckObjectHitObject(Object* object)
 		auto otherMesh = Object::GetComponentInChildren<MeshColliderComponent>(other);
 		auto otherBox = Object::GetComponentInChildren<BoxColliderComponent>(other);
 
-		bool intersect = InRangeXZ(object, other, 0.7f);
+		bool self_is_player = (Object::GetComponentInChildren<PlayerComponent>(object) != nullptr);
+		bool other_is_player = (Object::GetComponentInChildren<PlayerComponent>(other) != nullptr);
+		if (self_is_player && other_is_player) continue;
 
-		if (!intersect) continue;
+		// 근접 판정
+		if (!InRangeXZ(object, other, 0.9f)) continue;
 
+		// -------- 몬스터-몬스터 교착 해소: 잠깐 통과 --------
+		if (Object::GetComponentInChildren<MonsterComponent>(object) &&
+			Object::GetComponentInChildren<MonsterComponent>(other)) {
+
+			uint64_t key = PairKey_(object->id(), other->id());
+
+			// 이미 노클립 중이면 이번 쌍은 스킵
+			if (noclip_monmon_.find(key) != noclip_monmon_.end()) {
+				continue;
+			}
+
+			// 교착 감지: 아주 가깝고, 연결축 방향 상대속도가 거의 0
+			XMFLOAT3 aPos = object->world_position_vector();
+			XMFLOAT3 bPos = other->world_position_vector();
+			XMFLOAT3 link = aPos - bPos;  link.y = 0.f;
+
+			if (xmath_util_float3::LengthSq(link) > 1e-6f) {
+				XMFLOAT3 dir = xmath_util_float3::Normalize(link);
+
+				auto mvA = Object::GetComponentInChildren<MovementComponent>(object);
+				auto mvB = Object::GetComponentInChildren<MovementComponent>(other);
+				float relAlong = 0.f;
+				if (mvA && mvB) {
+					XMFLOAT3 vA = mvA->velocity();
+					XMFLOAT3 vB = mvB->velocity();          // velocity() 사용 가능 확인됨
+					float sA = xmath_util_float3::Dot(vA, dir);
+					float sB = -xmath_util_float3::Dot(vB, dir);
+					relAlong = std::fabs(sA) + std::fabs(sB);
+				}
+
+				const bool tightNear = InRangeXZ(object, other, noclip_monmon_radius_ * 0.9f);
+				if (tightNear && relAlong < 0.10f) {
+					// 짧게 서로 통과 허용
+					noclip_monmon_[key] = noclip_monmon_duration_;
+					continue; // 이번 프레임 충돌/푸시 스킵
+				}
+			}
+			else {
+				continue; // 사실상 같은 위치 -> 이 쌍은 스킵
+			}
+		}
+		// ----------------------------------------------------
+
+		
+
+		// 밀기 방향/벽까지 안전 거리 계산
 		XMFLOAT3 object_pos = object->world_position_vector();
 		XMFLOAT3 other_pos = other->world_position_vector();
 		XMFLOAT3 dir = xmath_util_float3::Normalize(object_pos - other_pos);
@@ -1473,7 +1525,9 @@ void BaseScene::CheckObjectHitObject(Object* object)
 		XMVECTOR ray_direction = XMLoadFloat3(&dir);
 		ray_direction = XMVectorSetY(ray_direction, 0);
 		ray_direction = XMVector3Normalize(ray_direction);
-		if (0 == XMVectorGetX(XMVector3Length(ray_direction))) continue;
+		if (0 == XMVectorGetX(XMVector3Length(ray_direction))) continue; // zero-dir은 대상만 스킵
+
+
 
 		float distance = std::numeric_limits<float>::max();
 		for (auto& mesh_collider : stage_wall_collider_list_[stage_clear_num_]) {
@@ -1484,9 +1538,43 @@ void BaseScene::CheckObjectHitObject(Object* object)
 		}
 
 		constexpr float kContactOffset = 0.05f;
-		constexpr float kPushStep = 0.03f;
+		constexpr float kPushStep = 0.03f; // 프레임 고정 스텝(간단)
 		float safe = std::max(0.f, distance - kContactOffset);
 		float step = std::min(kPushStep, safe);
+
+		XMFLOAT3 link = object_pos - other_pos; link.y = 0.f;
+		const float eps = 1e-6f;
+
+		// 플레이어에 대해서는 정면 밀기 금지하고 측면으로 비켜가기
+		if (other_is_player) {
+			XMFLOAT3 right;
+			if (xmath_util_float3::LengthSq(link) <= eps) {
+				// 완전 겹침: 오브젝트의 로컬 right 또는 고정 축 사용
+				XMFLOAT3 look = object->look_vector(); look.y = 0.f;
+				look = xmath_util_float3::Normalize(look);
+				right = XMFLOAT3{ look.z, 0.f, -look.x };     // 로컬 right
+			}
+			else {
+				right = xmath_util_float3::Normalize(XMFLOAT3{ link.z, 0.f, -link.x });
+			}
+			XMFLOAT3 left = XMFLOAT3{ -right.x, 0.f, -right.z };
+
+			auto freeDist = [&](const XMFLOAT3& side)->float {
+				XMVECTOR ro = XMLoadFloat3(&XMFLOAT3{ object_pos.x, object_pos.y + 0.75f, object_pos.z });
+				XMVECTOR rd = XMVector3Normalize(XMLoadFloat3(&XMFLOAT3{ side.x, 0.f, side.z }));
+				float d = std::numeric_limits<float>::max(), t{};
+				for (auto& mc : stage_wall_collider_list_[stage_clear_num_])
+					if (mc->CollisionCheckByRay(ro, rd, t)) d = std::min(d, t);
+				return d;
+			};
+
+			XMFLOAT3 side = (freeDist(right) >= freeDist(left)) ? right : left;
+			object->set_position_vector(object_pos + side * step);
+			if (auto m = Object::GetComponent<MonsterComponent>(object)) { m->set_is_pushed(true); m->set_push_timer(0.15f); }
+			break;
+		}
+
+		if (0 == XMVectorGetX(XMVector3Length(ray_direction))) continue;
 
 		if (step > 0.f) {
 			object->set_position_vector(object_pos + dir * step);
@@ -1495,7 +1583,8 @@ void BaseScene::CheckObjectHitObject(Object* object)
 				monster->set_push_timer(0.15f);
 			}
 		}
-		break; //
+
+		break; // 이번 프레임엔 한 번만 밀기
 	}
 }
 
@@ -2127,6 +2216,15 @@ void BaseScene::CheckRazerHitEnemy(RazerComponent* razer_component, MonsterCompo
 			}
 
 		}
+	}
+}
+
+void BaseScene::TickNoClipTimers(float elapsed_time)
+{
+	for (auto it = noclip_monmon_.begin(); it != noclip_monmon_.end(); ) {
+		it->second -= elapsed_time;
+		if (it->second <= 0.f) it = noclip_monmon_.erase(it);
+		else ++it;
 	}
 }
 

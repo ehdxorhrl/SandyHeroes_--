@@ -21,6 +21,7 @@ constexpr char S2C_P_GUN_CHANGE = 11;
 constexpr char S2C_P_SCROLL_INFO = 12;
 constexpr char S2C_P_TAKE_SCROLL = 13;
 constexpr char S2C_P_PLAY_MAINSKILL = 14;
+constexpr char S2C_P_PLAYER_CHANGE_ANIMATION = 15;
 
 constexpr char S2C_P_MONSTER_INFO = 21;		// 몬스터 생성
 constexpr char S2C_P_MONSTER_MOVE = 22;     // 몬스터 무브
@@ -49,6 +50,15 @@ constexpr char PRESS_ON = 1;
 
 #pragma pack (push,1)
 
+struct sc_packet_player_change_animation {
+    uint8_t size;
+    uint8_t type;  // S2C_P_PLAYER_CHANGE_ANIMATION
+    uint32_t id;   // 플레이어 id
+    uint8_t animation_track; // 애니메이션 트랙
+    uint8_t loop_type; // 애니메이션 횟수
+    float vx, vy, vz;
+};
+
 struct sc_packet_play_cut_scene {
     uint8_t size;
     uint8_t type; // S2C_P_PLAY_CUT_SCENE
@@ -66,6 +76,7 @@ struct sc_packet_object_set_dead {
     uint8_t size;
     uint8_t type;  // S2C_P_OBJECT_SET_DEAD
     uint32_t id;    // object id
+    uint8_t monster_type;
 };
 
 struct sc_packet_shotdragon_attack {

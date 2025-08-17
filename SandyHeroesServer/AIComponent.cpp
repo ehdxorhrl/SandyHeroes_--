@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "AIComponent.h"
 #include "Object.h"
 #include "MonsterComponent.h"
@@ -21,7 +21,7 @@ AIComponent::AIComponent(const AIComponent& other) : Component(other.owner_)
 
 AIComponent::~AIComponent()
 {
-    delete behavior_tree_root_; // ¸Þ¸ð¸® ´©¼ö ¹æÁö
+    delete behavior_tree_root_; // ë©”ëª¨ë¦¬ ëˆ„ìˆ˜ ë°©ì§€
 
     if (last_owned_node_id_ != -1) AIComponent::s_node_owner_[last_owned_node_id_] = 0;
     AIComponent::s_desire_next_.erase(owner_->id());
@@ -46,137 +46,109 @@ void AIComponent::SetBehaviorTree(BTNode* root)
 }
 
 
-bool AIComponent::Move_To_Target(float elapsed_time) {
-    auto* monster = Object::GetComponentInChildren<MonsterComponent>(owner_);
-    if (!monster) return false;
 
-    auto* movement = Object::GetComponentInChildren<MovementComponent>(owner_);
-    if (!movement) return false;
+bool AIComponent::Move_To_Target(float elapsed_time) 
+{
+    auto* monstercomponent = Object::GetComponentInChildren<MonsterComponent>(owner_);
+    if (!monstercomponent) return false;
 
-    // (A) ¾çº¸ ÁßÀÌ¸é Á¤Áö
-    if (yield_timer_ > 0.f) {
-        yield_timer_ -= elapsed_time;
-        movement->Stop();
-        return true;
-    }
+    auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
 
-    XMFLOAT3 look = owner_->look_vector(); look.y = 0.f;
-    look = xmath_util_float3::Normalize(look);
+    if (movement)
+    {
+        XMFLOAT3 look = owner_->look_vector();
+        look.y = 0.f;
+        look = xmath_util_float3::Normalize(look);
 
-    // ±âÁ¸ A* Àç°è»ê ºí·Ï Á÷ÈÄ(°æ·Î »ý¼º ¿Ï·á ÈÄ)¿¡ 'Ã¹ Á¡À¯' µî·Ï
-    constexpr float kAstarCoolTime = 0.2f;
-    astar_delta_cool_time_ += elapsed_time;
-    if (astar_delta_cool_time_ > kAstarCoolTime) {
-        astar_delta_cool_time_ = 0.f;
+        constexpr float kAstarCoolTime = 0.2f;
+        astar_delta_cool_time_ += elapsed_time;
+        if (astar_delta_cool_time_ > kAstarCoolTime)
+        {
+            astar_delta_cool_time_ = 0.f;
 
-        auto base_scene = dynamic_cast<BaseScene*>(monster->scene());
-        const auto& nodes = kStageNodeBuffers[base_scene->stage_clear_num()];
-        Node* start_node = nullptr; Node* goal_node = nullptr;
-        float bestStart = FLT_MAX, bestGoal = FLT_MAX;
+            auto base_scene = dynamic_cast<BaseScene*>(monstercomponent->scene());
+            const auto& current_stage_node_buffer = kStageNodeBuffers[base_scene->stage_clear_num()];
+            Node* start_node = nullptr;
+            Node* goal_node = nullptr;
+            float start_min_distance_sq = FLT_MAX;
+            float goal_min_distance_sq = FLT_MAX;
+            for (const auto& node : current_stage_node_buffer)
+            {
+                float start_distance_sq = xmath_util_float3::LengthSq(node.position - owner_->world_position_vector());
+                if (start_distance_sq < start_min_distance_sq)
+                {
+                    start_min_distance_sq = start_distance_sq;
+                    start_node = const_cast<Node*>(&node);
+                }
+                float target_distance_sq = xmath_util_float3::LengthSq(node.position - monstercomponent->target()->world_position_vector());
+                if (target_distance_sq < goal_min_distance_sq)
+                {
+                    goal_min_distance_sq = target_distance_sq;
+                    goal_node = const_cast<Node*>(&node);
+                }
+            }
+            path_ = a_star::AStar(start_node, goal_node);
+            monstercomponent->UpdateTargetPath();
 
-        for (const auto& n : nodes) {
-            float dS = xmath_util_float3::LengthSq(n.position - owner_->world_position_vector());
-            if (dS < bestStart) { bestStart = dS; start_node = const_cast<Node*>(&n); }
-            float dG = xmath_util_float3::LengthSq(n.position - monster->target()->world_position_vector());
-            if (dG < bestGoal) { bestGoal = dG; goal_node = const_cast<Node*>(&n); }
-        }
+            for (const auto& node : path_)
+            {
+                node->position.y = 0.f;
+            }
 
-        path_ = a_star::AStar(start_node, goal_node);
-        monster->UpdateTargetPath();
-        for (auto* n : path_) n->position.y = 0.f;
-
-        // ---- [NEW] ¾ÆÁ÷ current_node_°¡ ¾øÀ¸¸é '°¡Àå °¡±î¿î ³ëµå' Á¡À¯ ½ÃÀÛ
-        if (!current_node_ && start_node) {
-            current_node_ = start_node;
-            AIComponent::s_node_owner_[current_node_->id] = owner_->id();
-            last_owned_node_id_ = current_node_->id;
-        }
-
-        current_node_idx_ = 0;
-        if (!path_.empty() && current_node_ == path_[0]) ++current_node_idx_;
-    }
-
-    // ´ÙÀ½ ¸ñÀû ³ëµå °áÁ¤
-    XMFLOAT3 direction{};
-    int my_current_id = current_node_ ? current_node_->id : -1;
-
-    if (path_.size() <= static_cast<size_t>(current_node_idx_)) {
-        direction = monster->target()->world_position_vector() - owner_->world_position_vector();
-    }
-    else {
-        // ----- ´ÙÀ½ ³ëµå
-        Node* next = path_[current_node_idx_];
-        int next_id = next ? next->id : -1;
-
-        // (B) "³ª´Â ´ÙÀ½¿¡ next_id·Î °¡°í ½Í´Ù" ±â·Ï
-        if (next_id != -1) AIComponent::s_desire_next_[owner_->id()] = next_id;
-
-        // (C) ±³Âø Å½Áö: next°¡ ´Ù¸¥ ¾ÖÀÇ ÇöÀç ³ëµåÀÌ°í,
-        //     ±× ´Ù¸¥ ¾ÖÀÇ '´ÙÀ½'ÀÌ ³» ÇöÀç ³ëµå¶ó¸é -> Á¤¸é ±³Âø
-        if (next_id != -1) {
-            auto itOcc = AIComponent::s_node_owner_.find(next_id);
-            if (itOcc != AIComponent::s_node_owner_.end() && itOcc->second != 0 && itOcc->second != owner_->id()) {
-                int other = itOcc->second;
-                int other_desire = -1;
-                auto itDes = AIComponent::s_desire_next_.find(other);
-                if (itDes != AIComponent::s_desire_next_.end()) other_desire = itDes->second;
-
-                if (other_desire == my_current_id && my_current_id != -1) {
-                    // ¿ì¼±¼øÀ§: id°¡ Å« ÂÊÀÌ ¾çº¸(¿øÇÏ¸é ¹Ý´ë·Î ¹Ù²ãµµ µÊ)
-                    if (owner_->id() > other) {
-                        // ÇÑ Ä­ µÚ·Î(backoff): ÀÌÀü ³ëµå°¡ ÀÖÀ¸¸é µÚ·Î ¹°·¯³², ¾øÀ¸¸é Àá±ñ Á¤Áö
-                        if (current_node_idx_ > 0) {
-                            --current_node_idx_;
-                            current_node_ = path_[current_node_idx_];
-                            // Á¡À¯ °»½Å
-                            if (last_owned_node_id_ != -1) AIComponent::s_node_owner_[last_owned_node_id_] = 0;
-                            AIComponent::s_node_owner_[current_node_->id] = owner_->id();
-                            last_owned_node_id_ = current_node_->id;
-                        }
-                        movement->Stop();
-                        yield_timer_ = 0.5f; // 0.3~0.7 »çÀÌ·Î Æ©´× °¡´É
-                        return true;
-                    }
+            current_node_idx_ = 0;
+            if (current_node_ == path_[0])
+            {
+                if (current_node_ == path_[0])
+                {
+                    ++current_node_idx_;
                 }
             }
         }
 
-        // Á¤»ó ÁøÇà
-        auto pos_xz = owner_->world_position_vector(); pos_xz.y = 0.f;
-        direction = next->position - pos_xz;
+        XMFLOAT3 direction;
+        if (path_.size() <= current_node_idx_ || path_.size() <= 2 )
+        {
+            direction = monstercomponent->target()->world_position_vector() - owner_->world_position_vector();
+        }
+        else
+        {
+            auto position_xz = owner_->world_position_vector();
+            position_xz.y = 0.f;
 
-        // ³ëµå µµÂø Ã³¸®(Á¡À¯ °»½Å)
-        float dist = xmath_util_float3::Length(direction);
-        if (dist < 0.2f) {
-            current_node_ = next;
-            if (last_owned_node_id_ != -1) AIComponent::s_node_owner_[last_owned_node_id_] = 0;
-            AIComponent::s_node_owner_[current_node_->id] = owner_->id();
-            last_owned_node_id_ = current_node_->id;
+            direction = path_[current_node_idx_]->position - position_xz;
+            float distance = xmath_util_float3::Length(direction);
 
-            ++current_node_idx_;
+            if (distance < 0.2f)
+            {
+                current_node_ = path_[current_node_idx_];
+                ++current_node_idx_;
+            }
+        }
+
+        direction.y = 0.f;
+        direction = xmath_util_float3::Normalize(direction);
+        float angle = xmath_util_float3::AngleBetween(look, direction);
+        if (angle > XM_PI / 180.f * 5.f)
+        {
+            XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, direction);
+            if (cross.y < 0)
+            {
+                angle = -angle;
+            }
+            angle = XMConvertToDegrees(angle);
+            owner_->Rotate(0.f, angle, 0.f);
+        }
+
+        movement->MoveXZ(direction.x, direction.z, 5.f);
+
+        auto velocity_xz = movement->velocity();
+        velocity_xz.y = 0.f;
+        float speed = xmath_util_float3::Length(velocity_xz);
+
+        if (speed > 0) {
+            Send_Move_Packet(elapsed_time, speed);
         }
     }
-
-    // È¸Àü + ÀÌµ¿(±âÁ¸)
-    direction.y = 0.f;
-    direction = xmath_util_float3::Normalize(direction);
-    float angle = xmath_util_float3::AngleBetween(look, direction);
-    if (angle > XM_PI / 180.f * 5.f) {
-        XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, direction);
-        if (cross.y < 0) angle = -angle;
-        angle = XMConvertToDegrees(angle);
-        owner_->Rotate(0.f, angle, 0.f);
-    }
-    movement->MoveXZ(direction.x, direction.z, 5.f);
-
-    auto velocity_xz = movement->velocity();
-    velocity_xz.y = 0.f;
-    float speed = xmath_util_float3::Length(velocity_xz);
-
-    if (speed > 0) {
-        Send_Move_Packet(elapsed_time, speed);
-    }
-
     return true;
 }
 
@@ -197,7 +169,7 @@ bool AIComponent::Rotate_To_Target(float elapsed_time, Object* target) {
     float angle = xmath_util_float3::AngleBetween(look, direction);
     if (angle > XM_PI / 180.f * 5.f)
     {
-        //È¸Àü ¹æÇâ ¿¬»ê
+        //íšŒì „ ë°©í–¥ ì—°ì‚°
         XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, direction);
         if (cross.y < 0)
         {
