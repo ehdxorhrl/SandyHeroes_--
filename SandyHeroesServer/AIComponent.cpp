@@ -96,7 +96,7 @@ bool AIComponent::Move_To_Target(float elapsed_time)
             }
 
             current_node_idx_ = 0;
-            if (current_node_ == path_[0])
+            if (!path_.empty() && current_node_ == path_[0])
             {
                 if (current_node_ == path_[0])
                 {
@@ -205,8 +205,10 @@ void AIComponent::Send_Move_Packet(float elapsed_time, float speed)
         mm.animation_track = 6; break;
     case MonsterType::Bomb_Dragon:   
         mm.animation_track = 5; break;
-    default:                         
-        mm.animation_track = 3; break;
+	case MonsterType::Super_Dragon:
+        mm.animation_track = 5; break;
+    default:                  
+        break;
     }
     
     const auto& users = SessionManager::getInstance().getAllSessions();

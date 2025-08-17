@@ -1216,6 +1216,10 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         {
             if(!state->is_fly_to_sky) 
             {
+                if (state->is_hp_low)
+                {
+					std::cout << "짱쎄용 fly_to_sky 시작" << std::endl;
+                }
                 state->is_fly_to_sky = true;
                 direction = xmath_util_float3::Normalize(direction);
                 movement->Move(direction, kSpeed);
@@ -1252,6 +1256,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
             mm.type = S2C_P_MONSTER_MOVE;
             mm.id = self->id();
             mm.speed = kSpeed;
+			mm.animation_track = 4; // kFlyUpFast
             XMFLOAT4X4 xf;
             const XMFLOAT4X4& mat = self->transform_matrix();
             XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
@@ -1347,6 +1352,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         mm.type = S2C_P_MONSTER_MOVE;
         mm.id = self->id();
         mm.speed = 6.f;
+		mm.animation_track = 5; // kFlyRightFast
         XMFLOAT4X4 xf;
         const XMFLOAT4X4& mat = self->transform_matrix();
         XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
@@ -1385,7 +1391,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
             for (auto& u : users) {
                 u.second->do_send(&mca);
 			}
-            self->set_animation_state(8);
+            self->set_animation_state(6);
         }
 
         if (InRangeXZ(self, target, kRange + 0.5f) && self->position_vector().y < kGroundY - kFlyHeight)
@@ -1432,6 +1438,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 		mm.type = S2C_P_MONSTER_MOVE;
 		mm.id = self->id();
 		mm.speed = kSpeed;
+		mm.animation_track = 6; // kFlyDownFast
 		XMFLOAT4X4 xf;
 		const XMFLOAT4X4& mat = self->transform_matrix();
 		XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
@@ -1556,7 +1563,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
     // 좌측 시퀀스: HP > 50% 
     {
         auto* seq_left = new Sequence();
-        seq_left->children.push_back(new ConditionNode([shield]() { return shield() > 0.5f; }));
+        seq_left->children.push_back(new ConditionNode([shield]() { return shield() > 0.1f; }));
 		seq_left->children.push_back(new ActionNode(is_bite_attacking)); 
 		seq_left->children.push_back(new ActionNode(fly_to_sky)); // 하늘로 날아오르기
 		seq_left->children.push_back(new ActionNode(revolution)); // 회전
@@ -1569,8 +1576,8 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
     // 우측 시퀀스: HP ≤ 50%
     {
         auto* seq_right = new Sequence();
-        seq_right->children.push_back(new ConditionNode([shield]() { return shield() <= 0.5f; }));
-        seq_right->children.push_back(new ActionNode(is_breath_attacking)); // 하늘로 날아오르기
+        seq_right->children.push_back(new ConditionNode([shield]() { return shield() <= 0.1f; }));
+        seq_right->children.push_back(new ActionNode(is_breath_attacking));
         seq_right->children.push_back(new ActionNode(fly_to_sky)); // 하늘로 날아오르기
         seq_right->children.push_back(new ActionNode(revolution)); // 회전
         seq_right->children.push_back(new ActionNode(move_to_target));
@@ -1582,7 +1589,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_attack_force(60);
 	monstercomp->set_hp(2000.f);
-	monstercomp->set_shield(2000.f);
+	monstercomp->set_shield(20.f);
 
 	auto movement = Object::GetComponentInChildren<MovementComponent>(self);
 	movement->set_gravity_acceleration(0.f); // 중력 제거

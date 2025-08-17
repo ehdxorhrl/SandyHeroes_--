@@ -966,6 +966,15 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		auto ui_head_socket = hit_dragon->hierarchy_root()->FindFrame("Ui_Head");
 		auto monster_hp_ui = FindModelInfo("Monster_Hp_UI");
 		ui_head_socket->AddChild(monster_hp_ui->GetInstance());
+		auto mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(hit_dragon->hierarchy_root());
+		for (auto& mesh_component : mesh_component_list)
+		{
+			auto material = mesh_component->GetMaterial();
+			if (material)
+			{
+				material->DeleteMeshComponent(mesh_component);
+			}
+		}
 
 		auto animator = Object::GetComponentInChildren<AnimatorComponent>(hit_dragon->hierarchy_root());
 		animator->set_animation_state(new HitDragonAnimationState);
@@ -977,7 +986,15 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		shot_dragon->hierarchy_root()->set_tag("Shot_Dragon");
 		ui_head_socket = shot_dragon->hierarchy_root()->FindFrame("Ui_Head");
 		ui_head_socket->AddChild(monster_hp_ui->GetInstance());
-
+		mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(shot_dragon->hierarchy_root());
+		for (auto& mesh_component : mesh_component_list)
+		{
+			auto material = mesh_component->GetMaterial();
+			if (material)
+			{
+				material->DeleteMeshComponent(mesh_component);
+			}
+		}
 		animator = Object::GetComponentInChildren<AnimatorComponent>(shot_dragon->hierarchy_root());
 		animator->set_animation_state(new ShotDragonAnimationState);
 
@@ -988,6 +1005,15 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		bomb_dragon->hierarchy_root()->set_tag("Bomb_Dragon");
 		ui_head_socket = bomb_dragon->hierarchy_root()->FindFrame("Ui_Head");
 		ui_head_socket->AddChild(monster_hp_ui->GetInstance());
+		mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(bomb_dragon->hierarchy_root());
+		for (auto& mesh_component : mesh_component_list)
+		{
+			auto material = mesh_component->GetMaterial();
+			if (material)
+			{
+				material->DeleteMeshComponent(mesh_component);
+			}
+		}
 		animator = Object::GetComponentInChildren<AnimatorComponent>(bomb_dragon->hierarchy_root());
 		animator->set_animation_state(new BombDragonAnimationState);
 
@@ -1000,7 +1026,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		strong_dragon->hierarchy_root()->set_tag("Strong_Dragon");
 		strong_dragon->hierarchy_root()->AddChild(boss_hp_ui->GetInstance());
 		strong_dragon->hierarchy_root()->AddChild(FindModelInfo("Strong_Dragon_Icon")->GetInstance());
-		auto mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(strong_dragon->hierarchy_root());
+		mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(strong_dragon->hierarchy_root());
 		for (auto& mesh_component : mesh_component_list)
 		{
 			auto material = mesh_component->GetMaterial();
