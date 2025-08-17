@@ -38,6 +38,9 @@ public:
     void set_gravity_acceleration(float value);
     void set_max_speed_xz(float value);
     void set_max_speed(float value);
+	void set_velocity(const XMFLOAT3& velocity){
+        velocity_ = velocity;
+	}
 
     //getter
     XMFLOAT3 velocity() const;

@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "FMODSoundManager.h"
 #include <fmod_errors.h>
 #include <iostream>
@@ -79,6 +80,6 @@ void FMODSoundManager::StopSound(const std::string& name)
     auto it = channels_.find(name);
     if (it != channels_.end() && it->second)
     {
-        it->second->stop();
+        FMOD_RESULT result = it->second->stop();
     }
 }

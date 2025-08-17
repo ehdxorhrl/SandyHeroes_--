@@ -11,6 +11,11 @@ StrongDragonAnimationState::StrongDragonAnimationState()
 
 }
 
+StrongDragonAnimationState::~StrongDragonAnimationState()
+{
+	Exit(animation_track(), nullptr, nullptr);
+}
+
 void StrongDragonAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
 {
 	if ((int)StrongDragonAnimationTrack::kSpawn == animation_track)
@@ -20,7 +25,6 @@ void StrongDragonAnimationState::Enter(int animation_track, Object* object, Anim
 	if ((int)StrongDragonAnimationTrack::kSpinAttackOnce == animation_track)
 	{
 		animation_loop_type_ = 1; //Once
-		OutputDebugString(L"Spin_Sound\n");
 		FMODSoundManager::Instance().PlaySound("spin", false, 0.3f);
 	}
 	if ((int)StrongDragonAnimationTrack::kSpinAttackLoop == animation_track)
@@ -71,7 +75,7 @@ void StrongDragonAnimationState::Exit(int animation_track, Object* object, Anima
 	}
 	if ((int)StrongDragonAnimationTrack::kSpinAttackLoop == animation_track)
 	{
-		FMODSoundManager::Instance().StopSound("spin");
+		FMODSoundManager::Instance().StopSound("spin_loop");
 	}
 }
 

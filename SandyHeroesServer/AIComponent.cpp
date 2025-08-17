@@ -227,10 +227,14 @@ void AIComponent::Send_Move_Packet(float elapsed_time, float speed)
     memcpy(mm.matrix, &xf, sizeof(float) * 16);
     
     switch (owner_->monster_type()) {
-    case MonsterType::Strong_Dragon: mm.animation_track = 3; break;
-    case MonsterType::Hit_Dragon:    mm.animation_track = 6; break;
-    case MonsterType::Bomb_Dragon:   mm.animation_track = 5; break;
-    default:                         mm.animation_track = 3; break;
+    case MonsterType::Strong_Dragon: 
+        mm.animation_track = 3; break;
+    case MonsterType::Hit_Dragon:   
+        mm.animation_track = 6; break;
+    case MonsterType::Bomb_Dragon:   
+        mm.animation_track = 5; break;
+    default:                         
+        mm.animation_track = 3; break;
     }
     
     const auto& users = SessionManager::getInstance().getAllSessions();

@@ -891,7 +891,9 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	Object* player = model_infos_[0]->GetInstance();
 	player->set_name("Player_" + std::to_string(session_id));
 	player->set_position_vector(XMFLOAT3{ -15, 6, 0 });
-	//player->set_position_vector(XMFLOAT3{ 205.3f, 6, -91.f });
+	//player->set_position_vector(XMFLOAT3{ 205.3f, 6, -91.f }); 7스테이지
+	player->set_position_vector(XMFLOAT3{ 63.45f, 2.15f, -127.68f }); //4스테이지
+
 	player->set_collide_type(true, true);  // 지면 & 벽 충돌 체크 등록
 	player->set_is_movable(true);
 	player->set_is_player();
@@ -928,18 +930,18 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 
 	AddObject(player);
 
-	//TODO: 테스트용 스테이지 7 몬스터 스포너 활성화
-	//ActivateStageMonsterSpawner(6);
-	//stage_clear_num_ = 7;
-	//sc_packet_stage_clear sc;
-	//sc.size = sizeof(sc_packet_stage_clear);
-	//sc.stage_num = stage_clear_num_;
-	//sc.type = S2C_P_STAGE_CLEAR;
-
-	//const auto& users = SessionManager::getInstance().getAllSessions();
-	//for (auto& u : users) {
-	//	u.second->do_send(&sc);
-	//}
+	//TODO: 테스트용 스테이지 몬스터 스포너 활성화
+	constexpr int kStateClearNum = 4;
+	ActivateStageMonsterSpawner(kStateClearNum - 1);
+	stage_clear_num_ = kStateClearNum;
+	sc_packet_stage_clear sc;
+	sc.size = sizeof(sc_packet_stage_clear);
+	sc.stage_num = stage_clear_num_;
+	sc.type = S2C_P_STAGE_CLEAR;
+	const auto& users = SessionManager::getInstance().getAllSessions();
+	for (auto& u : users) {
+		u.second->do_send(&sc);
+	}
 
 	return player;
 }

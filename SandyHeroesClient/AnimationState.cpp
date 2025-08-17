@@ -3,6 +3,10 @@
 #include "Object.h"
 #include "AnimatorComponent.h"
 
+AnimationState::~AnimationState()
+{
+}
+
 int AnimationState::GetDeadAnimationTrack() const
 {
 	// 죽는 애니메이션이 없으면 -1을 리턴

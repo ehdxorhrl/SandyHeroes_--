@@ -8,7 +8,7 @@ class StrongDragonAnimationState :
 {
 public:
 	StrongDragonAnimationState();
-	virtual ~StrongDragonAnimationState() {}
+	virtual ~StrongDragonAnimationState();
 
 	virtual void Enter(int animation_track, Object* object, AnimatorComponent* animator) override;
 	virtual int Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator) override;
