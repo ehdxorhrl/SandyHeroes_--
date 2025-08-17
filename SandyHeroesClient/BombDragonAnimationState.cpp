@@ -3,6 +3,7 @@
 #include "MovementComponent.h"
 #include "Object.h"
 #include "AnimatorComponent.h"
+#include "FMODSoundManager.h"
 
 BombDragonAnimationState::BombDragonAnimationState()
 {
@@ -18,7 +19,7 @@ void BombDragonAnimationState::Enter(int animation_track, Object* object, Animat
 	}
 	if ((int)BombDragonAnimationTrack::kExplode == animation_track)
 	{
-		//TODO: 터져용 폭발 사운드 재생 1회
+		FMODSoundManager::Instance().PlaySound("bomb", false, 0.3f);
 		//TODO: 폭발 파티클 재생
 		XMFLOAT3 particle_position = object->FindFrame("RigHub")->world_position_vector();
 	}

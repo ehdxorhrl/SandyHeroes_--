@@ -648,40 +648,40 @@ void BaseScene::CreateMonsterSpawner()
 	SpawnerComponent* spawner_component;
 	//Stage 1
 	{
-		//spawner = create_spawner(strong_dragon_spawner, strong_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		spawner = create_spawner(strong_dragon_spawner, strong_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
 
-		//spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
 
-		//spawner = create_spawner(super_dragon_spawner, super_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		spawner = create_spawner(super_dragon_spawner, super_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 1, 0.2f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
 		
-		//spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.f, 2.6f, 11.74f }, 3, 4.f, 4.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
-		//
-		//spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.84f, 1.24f, -9.07f }, 3, 5.f, 3.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
-		//
-		//spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 27.85f, 6.73f, -8.07f }, 1, 9.f, 5.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
-		//
-		//spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 24.53f, 5.31f, 10.05f }, 1, 11.f, 5.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[0].push_back(spawner_component);
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.f, 2.6f, 11.74f }, 3, 4.f, 4.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
+		
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 16.84f, 1.24f, -9.07f }, 3, 5.f, 3.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
+		
+		spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 27.85f, 6.73f, -8.07f }, 1, 9.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
+		
+		spawner = create_spawner(shot_dragon_spawner, shot_spawner_id, XMFLOAT3{ 24.53f, 5.31f, 10.05f }, 1, 11.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[0].push_back(spawner_component);
 	}
 	
 	//Stage 2
@@ -722,17 +722,30 @@ void BaseScene::CreateMonsterSpawner()
 		AddObject(spawner);
 		stage_monster_spawner_list_[1].push_back(spawner_component);
 	
-		////bomb 1
-		//spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 50.f, 0.47f, 24.14f }, 2, 14.f, 4.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[1].push_back(spawner_component);
-		//
-		////bomb 2
-		//spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 49.43f, 0.47f, -15.51f }, 2, 14.f, 4.f);
-		//spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
-		//AddObject(spawner);
-		//stage_monster_spawner_list_[1].push_back(spawner_component);
+		//bomb 1
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 50.f, 0.47f, 24.14f }, 2, 14.f, 4.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[1].push_back(spawner_component);
+		
+		//bomb 2
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 49.43f, 0.47f, -15.51f }, 2, 14.f, 4.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[1].push_back(spawner_component);
+	}
+
+	//Stage 3
+	{
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 58.0f, 0.704f, -38.536f }, 10, 3.f, 1.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[2].push_back(spawner_component);
+
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 73.398f, 1.62f, -36.27f }, 10, 3.f, 1.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[2].push_back(spawner_component);
 	}
 	
 	//Stage 4
@@ -742,6 +755,80 @@ void BaseScene::CreateMonsterSpawner()
 		AddObject(spawner);
 		stage_monster_spawner_list_[3].push_back(spawner_component);
 	}
+
+	//Stage 5
+	{
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 109.0f, 0.8f, -160.0f }, 3, 3.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[4].push_back(spawner_component);
+
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 114.0f, 2.7f, -169.0f }, 3, 4.f, 4.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[4].push_back(spawner_component);
+
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 105.5f, 2.4f, -149.5f }, 3, 5.f, 3.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[4].push_back(spawner_component);
+
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 115.54f, 2.73f, -158.6f }, 1, 9.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[4].push_back(spawner_component);
+
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 115.54f, 2.73f, -167.0f }, 1, 11.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[4].push_back(spawner_component);
+	}
+
+	//Stage 6
+	{
+		//1
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 152.636f, 0.83f, -187.529f }, 2, 3.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+
+		//2
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 174.54f, 0.83f, -187.62f }, 2, 4.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+
+		//3
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 177.1f, 0.83f, -179.6f }, 2, 5.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+
+		//4
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 224.0f, 0.83f, -196.4f }, 2, 6.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+
+		//5
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 201.1f, 0.83f, -196.6f }, 2, 7.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+
+		//6
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 161.0f, 0.83f, -149.3f }, 2, 8.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+
+		//7
+		spawner = create_spawner(bomb_dragon_spawner, bomb_spawner_id, XMFLOAT3{ 218.0f, 0.83f, -163.6f }, 2, 9.f, 5.f);
+		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
+		AddObject(spawner);
+		stage_monster_spawner_list_[5].push_back(spawner_component);
+	}
+
 
 	//Stage 7
 	{
