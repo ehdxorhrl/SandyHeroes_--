@@ -556,6 +556,14 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 		ParticleComponent* monster_particle_component = new ParticleComponent(monster_particle, device, 1000, ParticleComponent::Sphere, monster_particle_material);
 		monster_particle_component->set_scene(this);
 		monster_particle->AddComponent(monster_particle_component);
+
+		Object* dragon_breathing_particle = new Object();
+		monster_particle_component = new ParticleComponent(monster_particle, device, 1000, ParticleComponent::BigCone, monster_particle_material);
+		monster_particle_component->set_color(XMFLOAT4{ 1.0f, 0.f, 0.0f, 1.0f });
+		monster_particle_component->set_scene(this);
+		dragon_breathing_particle->AddComponent(monster_particle_component);
+		dragon_particle_ = monster_particle_component;
+		AddObject(dragon_breathing_particle);
 	}
 
 	BuildModelInfo(device);

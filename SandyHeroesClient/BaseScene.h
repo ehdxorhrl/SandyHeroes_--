@@ -76,6 +76,7 @@ public:
 	//getter
 	std::list<MonsterComponent*> monster_list() const;
 	int stage_clear_num();
+	ParticleComponent* dragon_particle() const { return dragon_particle_; }
 
 
 	void add_stage_clear_num();
@@ -100,6 +101,8 @@ private:
 
 	//스테이지별 몬스터 스포너 리스트
 	std::array<std::list<SpawnerComponent*>, kStageMaxCount> stage_monster_spawner_list_;
+
+	ParticleComponent* dragon_particle_{ nullptr };	//드래곤 파티클
 
 	// 몬스터 잡은 횟수
 	int catch_monster_num_{ 0 };

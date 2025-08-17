@@ -1471,8 +1471,12 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         };
 
     auto is_breath_attacking = [self, state](float elapsed_time) -> bool {
+        auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+        if (!movement) return false;
+
         if (!state->is_hp_low)
         {
+            movement->set_velocity(XMFLOAT3{ 0.f,0.f,0.f });
             state->is_hp_low = true;
             state->is_attacking = false;
             state->is_fly_to_sky = false;

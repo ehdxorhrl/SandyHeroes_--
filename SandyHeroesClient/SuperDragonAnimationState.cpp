@@ -2,6 +2,10 @@
 #include "SuperDragonAnimationState.h"
 #include "Object.h"
 #include "FMODSoundManager.h"
+#include "AnimatorComponent.h"
+#include "GameFramework.h"
+#include "BaseScene.h"
+#include "ParticleComponent.h"
 
 SuperDragonAnimationState::SuperDragonAnimationState()
 {
@@ -83,7 +87,17 @@ int SuperDragonAnimationState::Run(float elapsed_time, Object* object, bool is_e
 			{
 				OutputDebugString(L"SuperDragonAnimationState::Run: Breath frame not found.\n");
 			}
-
+			auto base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->scene());
+			if (base_scene)
+			{
+				auto particle = base_scene->dragon_particle();
+				if (particle)
+				{
+					particle->set_hit_position(breath_frame->world_position_vector());
+					particle->set_direction_pivot_object(breath_frame);
+					particle->Play(200);
+				}
+			}
 		}
 
 		if(is_attack_ && attack_time_ > end_attack_time)
