@@ -141,11 +141,19 @@ void MonsterComponent::ApplyStatusEffect(StatusEffectType type, float duration, 
 void MonsterComponent::set_shield(float value)
 {
     shield_ = value;
+    if (shield_ > max_shield_)
+    {
+        max_shield_ = shield_;
+	}
 }
 
 void MonsterComponent::set_hp(float value)
 {
     hp_ = value;
+    if(hp_ > max_hp_)
+    {
+        max_hp_ = hp_;
+	}
 }
 
 void MonsterComponent::set_attack_force(float value)

@@ -11,6 +11,10 @@ int AnimationState::GetDeadAnimationTrack() const
 
 void AnimationState::ChangeAnimationTrack(int animation_track, Object* object, AnimatorComponent* animator)
 {
+	if (animation_track_ == animation_track)
+	{
+		return; // 현재 애니메이션 트랙과 변경하려는 트랙이 같으면 아무것도 하지 않음
+	}
 	Exit(animation_track_, object, animator);
 	Enter(animation_track, object, animator);
 	animation_track_ = animation_track;

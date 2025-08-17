@@ -149,6 +149,22 @@ void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* comma
 	meshes_.push_back(std::make_unique<UIMesh>(ui_x, ui_y, ui_width, ui_height));
 	meshes_.back().get()->set_name("PlayerHpBar");
 
+	//Boss Hp, Shield Bar
+	ui_width = client_size.x / 16.f * 10.f;
+	ui_height = client_size.y / 9.f * 0.4f;
+	ui_x = client_size.x / 16.f * 3.f;
+	ui_y = client_size.y / 9.f * 0.5f;
+	meshes_.push_back(std::make_unique<UIMesh>(ui_x, ui_y, ui_width, ui_height));
+	meshes_.back().get()->set_name("BossHpBar");
+
+	//Boss Head Icon
+	ui_width = client_size.x / 16.f * 1.2f;
+	ui_height = client_size.x / 16.f * 1.2f;
+	ui_x = client_size.x / 16.f * 1.3f;
+	ui_y = client_size.y / 9.f * 0.5f;
+	meshes_.push_back(std::make_unique<UIMesh>(ui_x, ui_y, ui_width, ui_height));
+	meshes_.back().get()->set_name("BossHeadIcon");
+
 	//Scroll
 	constexpr float scroll_width = 150.f;
 	constexpr float scroll_height = 250.f;
@@ -320,6 +336,22 @@ void BaseScene::BuildMaterial(ID3D12Device* device, ID3D12GraphicsCommandList* c
 	material = new Material{ "Star", (int)ShaderType::kUI };
 	textures_.push_back(std::make_unique<Texture>());
 	textures_.back()->name = "Star";
+	textures_.back()->type = TextureType::kAlbedoMap;
+	material->AddTexture(textures_.back().get());
+	materials_.emplace_back();
+	materials_.back().reset(material);
+
+	material = new Material{ "Strong", (int)ShaderType::kUI };
+	textures_.push_back(std::make_unique<Texture>());
+	textures_.back()->name = "strong";
+	textures_.back()->type = TextureType::kAlbedoMap;
+	material->AddTexture(textures_.back().get());
+	materials_.emplace_back();
+	materials_.back().reset(material);
+
+	material = new Material{ "Super", (int)ShaderType::kUI };
+	textures_.push_back(std::make_unique<Texture>());
+	textures_.back()->name = "super";
 	textures_.back()->type = TextureType::kAlbedoMap;
 	material->AddTexture(textures_.back().get());
 	materials_.emplace_back();
@@ -522,7 +554,7 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	//Add player to scene
 	AddObject(player);
 
-	CreateMonsterSpawner();
+	//CreateMonsterSpawner();
 
 	CreatePlayerUI();
 
@@ -801,6 +833,120 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			});
 	}
 
+	//Create Boss hp, shield UI
+	{
+		ModelInfo* boss_hp_ui = new ModelInfo();
+		boss_hp_ui->set_model_name("Boss_Hp_UI");
+		auto progress_bar_background = new Object();
+		auto hp_bar = new Object();
+		auto shield_bar = new Object();
+		progress_bar_background->set_name("ProgressBarBackground");
+		hp_bar->set_name("HpBar");
+		shield_bar->set_name("ShieldBar");
+		progress_bar_background->AddChild(hp_bar);
+		progress_bar_background->AddChild(shield_bar);
+		boss_hp_ui->set_hierarchy_root(progress_bar_background);
+		model_infos_.emplace_back();
+		model_infos_.back().reset(boss_hp_ui);
+
+		auto ui_background_material = Scene::FindMaterial("ProgressBarBackground", materials_);
+		auto ui_hpbar_material = Scene::FindMaterial("HpBar", materials_);
+		auto ui_shieldbar_material = Scene::FindMaterial("ShieldBar", materials_);
+
+		auto ui_mesh = Scene::FindMesh("BossHpBar", meshes_);
+		auto ui_size = static_cast<UIMesh*>(ui_mesh)->ui_size();
+
+		auto ui_background_component = new UiMeshComponent(progress_bar_background,
+			ui_mesh, ui_background_material, this);
+		ui_background_material->DeleteMeshComponent(ui_background_component);
+		progress_bar_background->AddComponent(ui_background_component);
+		ui_background_component->set_ui_layer(UiLayer::kTwo);
+		ui_background_component->set_is_static(true);
+
+		auto ui_hpbar_component = new UiMeshComponent(hp_bar,
+			ui_mesh, ui_hpbar_material, this);
+		ui_hpbar_material->DeleteMeshComponent(ui_hpbar_component);
+		hp_bar->AddComponent(ui_hpbar_component);
+		ui_hpbar_component->set_ui_layer(UiLayer::kOne);
+		ui_hpbar_component->set_ui_ratio({ 0.95f, 0.85f });
+		ui_hpbar_component->set_is_static(true);
+		ui_hpbar_component->set_position_offset({ ui_size.x * 0.025f, ui_size.y * 0.075f });
+
+		ProgressBarComponent* progress_bar = new ProgressBarComponent(hp_bar);
+		hp_bar->AddComponent(progress_bar);
+		progress_bar->set_get_current_value_func([](Object* object) -> float
+			{
+				auto root = object->GetHierarchyRoot();
+				auto monster_component = Object::GetComponentInChildren<MonsterComponent>(root);
+				return monster_component->hp();
+			});
+		progress_bar->set_get_max_value_func([](Object* object) -> float
+			{
+				auto root = object->GetHierarchyRoot();
+				auto monster_component = Object::GetComponentInChildren<MonsterComponent>(root);
+				return monster_component->max_hp();
+			});
+
+		auto ui_shieldbar_component = new UiMeshComponent(shield_bar,
+			ui_mesh, ui_shieldbar_material, this);
+		ui_shieldbar_material->DeleteMeshComponent(ui_shieldbar_component);
+		shield_bar->AddComponent(ui_shieldbar_component);
+		ui_shieldbar_component->set_ui_ratio({ 0.95f, 0.85f });
+		ui_shieldbar_component->set_is_static(true);
+		ui_shieldbar_component->set_position_offset({ ui_size.x * 0.025f, ui_size.y * 0.075f });
+
+		progress_bar = new ProgressBarComponent(shield_bar);
+		shield_bar->AddComponent(progress_bar);
+		progress_bar->set_get_current_value_func([](Object* object) -> float
+			{
+				auto root = object->GetHierarchyRoot();
+				auto monster_component = Object::GetComponentInChildren<MonsterComponent>(root);
+				return monster_component->shield();
+			});
+		progress_bar->set_get_max_value_func([](Object* object) -> float
+			{
+				auto root = object->GetHierarchyRoot();
+				auto monster_component = Object::GetComponentInChildren<MonsterComponent>(root);
+				return monster_component->max_shield();
+			});
+	}
+
+	//Create Boss Head Icon
+	{
+		ModelInfo* strong_dragon_icon = new ModelInfo();
+		strong_dragon_icon->set_model_name("Strong_Dragon_Icon");
+		auto strong_dragon_icon_object = new Object();
+		strong_dragon_icon->set_hierarchy_root(strong_dragon_icon_object);
+		model_infos_.emplace_back();
+		model_infos_.back().reset(strong_dragon_icon);
+
+		auto ui_mesh = Scene::FindMesh("BossHeadIcon", meshes_);
+		auto ui_material = Scene::FindMaterial("Strong", materials_);
+
+		auto ui_component = new UiMeshComponent(strong_dragon_icon_object,
+			ui_mesh, ui_material, this);
+		ui_material->DeleteMeshComponent(ui_component);
+		strong_dragon_icon_object->AddComponent(ui_component);
+		ui_component->set_is_static(true);
+
+		ModelInfo* super_dragon_icon = new ModelInfo();
+		super_dragon_icon->set_model_name("Super_Dragon_Icon");
+		auto super_dragon_icon_object = new Object();
+		super_dragon_icon->set_hierarchy_root(super_dragon_icon_object);
+		model_infos_.emplace_back();
+		model_infos_.back().reset(super_dragon_icon);
+
+		auto super_ui_mesh = Scene::FindMesh("BossHeadIcon", meshes_);
+		auto super_ui_material = Scene::FindMaterial("Super", materials_);
+
+		auto super_ui_component = new UiMeshComponent(super_dragon_icon_object,
+			super_ui_mesh, super_ui_material, this);
+		super_ui_material->DeleteMeshComponent(super_ui_component);
+		super_dragon_icon_object->AddComponent(super_ui_component);
+		super_ui_component->set_is_static(true);
+
+	}
+
 	//Fix Monster(Add Hp UI, Set CollisionType), Create Spawner Models
 	{
 		//Hit Dragon Fix(Add Hp UI, Set CollisionType)
@@ -833,15 +979,27 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		bomb_dragon->hierarchy_root()->set_tag("Bomb_Dragon");
 		ui_head_socket = bomb_dragon->hierarchy_root()->FindFrame("Ui_Head");
 		ui_head_socket->AddChild(monster_hp_ui->GetInstance());
-
 		animator = Object::GetComponentInChildren<AnimatorComponent>(bomb_dragon->hierarchy_root());
 		animator->set_animation_state(new BombDragonAnimationState);
+
+		auto boss_hp_ui = FindModelInfo("Boss_Hp_UI");
 
 		//Strong Dragon Fix(Set CollisionType)
 		ModelInfo* strong_dragon = FindModelInfo("Strong_Dragon");
 		strong_dragon->hierarchy_root()->set_collide_type(true, true);
 		strong_dragon->hierarchy_root()->set_is_movable(true);
 		strong_dragon->hierarchy_root()->set_tag("Strong_Dragon");
+		strong_dragon->hierarchy_root()->AddChild(boss_hp_ui->GetInstance());
+		strong_dragon->hierarchy_root()->AddChild(FindModelInfo("Strong_Dragon_Icon")->GetInstance());
+		auto mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(strong_dragon->hierarchy_root());
+		for (auto& mesh_component : mesh_component_list)
+		{
+			auto material = mesh_component->GetMaterial();
+			if (material )
+			{
+				material->DeleteMeshComponent(mesh_component);
+			}
+		}
 		animator = Object::GetComponentInChildren<AnimatorComponent>(strong_dragon->hierarchy_root());
 		animator->set_animation_state(new StrongDragonAnimationState);
 
@@ -850,6 +1008,17 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		super_dragon->hierarchy_root()->set_collide_type(true, true);
 		super_dragon->hierarchy_root()->set_is_movable(true);
 		super_dragon->hierarchy_root()->set_tag("Super_Dragon");
+		super_dragon->hierarchy_root()->AddChild(boss_hp_ui->GetInstance());
+		super_dragon->hierarchy_root()->AddChild(FindModelInfo("Super_Dragon_Icon")->GetInstance());
+		mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(super_dragon->hierarchy_root());
+		for (auto& mesh_component : mesh_component_list)
+		{
+			auto material = mesh_component->GetMaterial();
+			if (material)
+			{
+				material->DeleteMeshComponent(mesh_component);
+			}
+		}
 		animator = Object::GetComponentInChildren<AnimatorComponent>(super_dragon->hierarchy_root());
 		animator->set_animation_state(new SuperDragonAnimationState);
 
@@ -2475,6 +2644,7 @@ void BaseScene::add_monster(uint32_t id, const XMFLOAT4X4& matrix, int32_t max_h
 	new_monster->set_id(id);
 	
 	auto* monster_component = new MonsterComponent(new_monster);
+	
 	monster_component->set_hp(max_hp);
 	monster_component->set_shield(max_shield);
 	monster_component->set_attack_force(attack_force);

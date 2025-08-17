@@ -1268,6 +1268,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 
         XMFLOAT3 look = self->look_vector();
 		look.y = 0.f; 
+        direction = target_position - self->world_position_vector(); // 항상 타겟을 바라보도록
         direction.y = 0.f;
         direction = xmath_util_float3::Normalize(direction);
         look = xmath_util_float3::Normalize(look);
@@ -1431,8 +1432,8 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_attack_force(60);
-    monstercomp->set_max_hp(5000.f);
-    monstercomp->set_hp(200.f);
+	monstercomp->set_hp(2000.f);
+	monstercomp->set_shield(2000.f);
 
 	auto movement = Object::GetComponentInChildren<MovementComponent>(self);
 	movement->set_gravity_acceleration(0.f); // 중력 제거
