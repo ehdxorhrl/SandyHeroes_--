@@ -276,6 +276,9 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
     };  
 
     auto explode = [self]() -> bool {
+        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+		if (!monstercomp) return false; 
+
         sc_packet_monster_change_animation mca;
         mca.size = sizeof(sc_packet_monster_change_animation);
         mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
@@ -294,12 +297,12 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
             const auto& player_object = player.second->get_player_object();
             if (InRangeXZ(self, player_object, 2.0f)) {
                 auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player_object);
-                auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
                 playercomp->HitDamage(monstercomp->attack_force());
             }
         }
         
-        self->set_is_dead(true);
+        monstercomp->HitDamage(9999.f);
+
         return true;
     };
 
@@ -320,7 +323,8 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
     monstercomp->set_attack_force(50);
     monstercomp->set_shield(150);
     monstercomp->set_hp(100);
-    //auto* movement = Object::GetComponentInChildren<MovementComponent>(self);
+    auto* movement = Object::GetComponentInChildren<MovementComponent>(self);
+    movement->set_max_speed_xz(3.8f);
 
     return root;
 }
@@ -738,15 +742,18 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
 
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_attack_force(15);
+	monstercomp->set_shield(80);
+	monstercomp->set_hp(150);
+
     auto* movement = Object::GetComponentInChildren<MovementComponent>(self);
-    movement->set_max_speed_xz(2.5f);
+    movement->set_max_speed_xz(3.f);
     return root;
 }
 
 static BTNode* Build_Strong_Dragon_Tree(Object* self)
 {
 	auto state = std::make_shared<StrongState>();
-	constexpr float range = 3.0f; // 근거리 공격 범위
+	constexpr float range = 1.6f; // 근거리 공격 범위
     constexpr float attack_cool_time = 1.f; // 공격 쿨타임
 
     auto spawn_wait = [self, state](float elapsed_time) -> bool {
@@ -758,10 +765,10 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
         return false; // 기다림 완료
         };
 
-    auto hp_ratio = [self]() -> float {
+    auto shield = [self]() -> float {
         auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
         if (!monstercomp) return 0.f;
-        return monstercomp->hp() / monstercomp->max_hp();
+        return monstercomp->shield();
     };
 
     //스핀 공격 1회 시퀀스
@@ -833,7 +840,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
 		auto movement = Object::GetComponentInChildren<MovementComponent>(self);
 		if (!movement) return false;
 
-        bool is_range = InRangeXZ(self, target, range - 0.1f);
+        bool is_range = InRangeXZ(self, target, range - 0.2f);
         if (is_range)
         {
             movement->Stop();
@@ -1099,7 +1106,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
     // 좌측 시퀀스: HP > 50% → Move(dash-in-place) → Spin once
     {
         auto* seq_left = new Sequence();
-        seq_left->children.push_back(new ConditionNode([hp_ratio]() { return hp_ratio() > 0.5f; }));
+        seq_left->children.push_back(new ConditionNode([shield]() { return shield() > 0.1f; }));
         seq_left->children.push_back(new ActionNode(is_attacking));
         seq_left->children.push_back(new ActionNode(move_to_player_dash_in_place));
 		seq_left->children.push_back(new ActionNode(is_end_cooldown));
@@ -1111,7 +1118,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
     // 우측 시퀀스: HP ≤ 50% → Move for 3s(spin loop) → Dash(spin loop)
     {
         auto* seq_right = new Sequence();
-        seq_right->children.push_back(new ConditionNode([hp_ratio]() { return hp_ratio() <= 0.5f; }));
+        seq_right->children.push_back(new ConditionNode([shield]() { return shield() <= 0.1f; }));
         seq_right->children.push_back(new ActionNode(is_loop_attacking));
         seq_right->children.push_back(new ActionNode(chase_target));
         //seq_right->children.push_back(new ActionNode(spin_attack_loop));
@@ -1119,9 +1126,14 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
     }
 
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
-    monstercomp->set_shield(500.f);
-    monstercomp->set_hp(90.f);
+    monstercomp->set_shield(1000.f);
+    monstercomp->set_hp(1000.f);
     monstercomp->set_attack_force(40);
+
+	auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+    if (movement) {
+        movement->set_max_speed_xz(3.f);
+	}
 
     return root;
 }
@@ -1133,10 +1145,10 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 	constexpr float kSpeed = 8.f; // 이동 속도
 
 
-    auto hp_ratio = [self]() -> float {
+    auto shield = [self]() -> float {
         auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
         if (!monstercomp) return 0.f;
-        return monstercomp->hp() / monstercomp->max_hp();
+        return monstercomp->shield();
         };
 
     auto is_bite_attacking = [self, state](float elapsed_time) -> bool {
@@ -1550,7 +1562,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
     // 좌측 시퀀스: HP > 50% 
     {
         auto* seq_left = new Sequence();
-        seq_left->children.push_back(new ConditionNode([hp_ratio]() { return hp_ratio() > 0.5f; }));
+        seq_left->children.push_back(new ConditionNode([shield]() { return shield() > 0.5f; }));
 		seq_left->children.push_back(new ActionNode(is_bite_attacking)); 
 		seq_left->children.push_back(new ActionNode(fly_to_sky)); // 하늘로 날아오르기
 		seq_left->children.push_back(new ActionNode(revolution)); // 회전
@@ -1563,7 +1575,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
     // 우측 시퀀스: HP ≤ 50%
     {
         auto* seq_right = new Sequence();
-        seq_right->children.push_back(new ConditionNode([hp_ratio]() { return hp_ratio() <= 0.5f; }));
+        seq_right->children.push_back(new ConditionNode([shield]() { return shield() <= 0.5f; }));
         seq_right->children.push_back(new ActionNode(is_breath_attacking)); // 하늘로 날아오르기
         seq_right->children.push_back(new ActionNode(fly_to_sky)); // 하늘로 날아오르기
         seq_right->children.push_back(new ActionNode(revolution)); // 회전

@@ -387,8 +387,20 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 			do_send(&prs);
 		}
 
-		//std::cout << "key ÄÚµå: " << static_cast<int>(packet->key) <<
-		//	" is_down: " << (packet->is_down ? "true" : "false") << std::endl;
+		if (is_key_down_['0'])
+		{
+			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
+			base_scene->add_stage_clear_num();
+			base_scene->ActivateStageMonsterSpawner(base_scene->stage_clear_num() - 1);
+			sc_packet_stage_clear sc;
+			sc.size = sizeof(sc_packet_stage_clear);
+			sc.stage_num = base_scene->stage_clear_num();
+			sc.type = S2C_P_STAGE_CLEAR;
+			const auto& users = SessionManager::getInstance().getAllSessions();
+			for (auto& u : users) {
+				u.second->do_send(&sc);
+			}
+		}
 
 		break;
 	}

@@ -26,6 +26,8 @@ public:
 	void SetMonsterType(MonsterType type) { monster_type_ = type; }
 
 	void ActivateSpawn(); // 스폰 시작
+	void DeactivateSpawn() { is_spawn_ = false; } // 스폰 중지
+
 
 	void AddComponent(std::unique_ptr<Component> component);
 	void AddComponent(Component* component);

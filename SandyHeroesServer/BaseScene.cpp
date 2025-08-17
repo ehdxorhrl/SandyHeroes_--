@@ -758,7 +758,7 @@ void BaseScene::CreateMonsterSpawner()
 		AddObject(spawner);
 		stage_monster_spawner_list_[4].push_back(spawner_component);
 
-		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 105.5f, 2.4f, -149.5f }, 3, 5.f, 3.f);
+		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 106.71f, 2.7f, -151.02f }, 3, 5.f, 3.f);
 		spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
 		AddObject(spawner);
 		stage_monster_spawner_list_[4].push_back(spawner_component);
@@ -892,7 +892,9 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	player->set_name("Player_" + std::to_string(session_id));
 	player->set_position_vector(XMFLOAT3{ -15, 6, 0 });
 	//player->set_position_vector(XMFLOAT3{ 205.3f, 6, -91.f }); 7스테이지
-	player->set_position_vector(XMFLOAT3{ 63.45f, 2.15f, -127.68f }); //4스테이지
+	//player->set_position_vector(XMFLOAT3{ 63.45f, 2.15f, -127.68f }); //4스테이지
+	//player->set_position_vector(XMFLOAT3{ 180.6f, 3.15f, -179.79f }); //6스테이지
+	player->set_position_vector(XMFLOAT3{ 198.61f, 6.f, -146.07f }); // 7스테이지 텔포 테스트
 
 	player->set_collide_type(true, true);  // 지면 & 벽 충돌 체크 등록
 	player->set_is_movable(true);
@@ -931,7 +933,7 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	AddObject(player);
 
 	//TODO: 테스트용 스테이지 몬스터 스포너 활성화
-	constexpr int kStateClearNum = 4;
+	constexpr int kStateClearNum = 6;
 	ActivateStageMonsterSpawner(kStateClearNum - 1);
 	stage_clear_num_ = kStateClearNum;
 	sc_packet_stage_clear sc;
@@ -1104,7 +1106,6 @@ void BaseScene::UpdateObjectHitObject()
 
 void BaseScene::UpdateStageClear()
 {
-
 	if (!is_prepare_ground_checking_)
 	{
 		PrepareGroundChecking();
@@ -1120,7 +1121,7 @@ void BaseScene::UpdateStageClear()
 			return;
 		break;
 	case 2:
-		if (catch_monster_num_ < 10)
+		if (catch_monster_num_ < 14)
 			return;
 		break;
 	case 3:
@@ -1143,20 +1144,18 @@ void BaseScene::UpdateStageClear()
 			return;
 		break;
 	case 6:
-		for (auto& object : ground_check_object_list_)
+	{
+		const auto& users = SessionManager::getInstance().getAllSessions();
+		for (auto& user : users)
 		{
-			auto movement = Object::GetComponentInChildren<MovementComponent>(object);
-			CheckPlayerHitPyramid(object);
+			auto player_object = user.second->get_player_object();
+			CheckPlayerHitPyramid(player_object);
 		}
-		if (get_key_num_ == 3)
+		if (get_key_num_ != 3)
 		{
-			auto& mesh_list = stage_wall_collider_list_[stage_clear_num_];
-			mesh_list.remove_if([](MeshColliderComponent* collider) {
-				return collider->mesh() && collider->mesh()->name() == "Cube";
-				});
-			++stage_clear_num_;
-			get_key_num_ = 0;
+			return;
 		}
+	}
 		break;
 	case 7:
 		// TODO: 게임클리어!
@@ -1171,6 +1170,18 @@ void BaseScene::UpdateStageClear()
 	mesh_list.remove_if([](MeshColliderComponent* collider) {
 		return collider->mesh() && collider->mesh()->name() == "Cube";
 		});
+
+	//몬스터 삭제
+	for (auto& monster : monster_list_)
+	{
+		if (monster->owner()->is_dead()) continue;
+		monster->HitDamage(9999.f);
+	}
+	// 스테이지 몬스터 스포너 비활성화
+	for (auto& spawner : stage_monster_spawner_list_[stage_clear_num_])
+	{
+		spawner->DeactivateSpawn();
+	}
 
 	std::cout << "현재 스테이지: " << stage_clear_num_ << std::endl;
 	std::cout << "잡은 몬스터 수: " << catch_monster_num_ << std::endl;
@@ -1617,39 +1628,50 @@ void BaseScene::CheckPlayerHitPyramid(Object* object)
 {
 	if (stage_clear_num_ != 6) return; // 스테이지 6에서만 체크
 	
-	auto mesh_collider = Object::GetComponentInChildren<MeshColliderComponent>(object);
-	if (!mesh_collider) return;
-	
-	BoundingOrientedBox player_obb = mesh_collider->GetWorldOBB();
-	
-	for (auto& pyramid_collider : checking_maps_mesh_collider_list_[6])
+	auto box = Object::GetComponentInChildren<BoxColliderComponent>(object);
+	if (!box) return;
+		
+	constexpr float kKeyCount = 3;
+	std::vector<Object*> key_objects;
+	key_objects.reserve(kKeyCount);
+	auto state_6_object = FindObject("STAGE6");
+	if (!state_6_object) return;
+	key_objects.push_back(state_6_object->FindFrame("Key_00"));
+	key_objects.push_back(state_6_object->FindFrame("Key_01"));
+	key_objects.push_back(state_6_object->FindFrame("Key_02"));
+
+	for (int i = 0; i < key_objects.size(); ++i)
 	{
-		if (!pyramid_collider || !pyramid_collider->mesh()) continue;
-	
-		auto name = pyramid_collider->mesh()->name();
-	
-		if (name != "Pyramid_01") continue;
-		BoundingOrientedBox pyramid_obb = pyramid_collider->GetWorldOBB();
-	
-		if (player_obb.Intersects(pyramid_obb))
+		if (!key_objects[i])
 		{
-			// 피라미드 획득 처리
+			std::cout << "[DEBUG] Key object is nullptr at index: " << i << std::endl;
+			continue;
+		}
+		if (key_objects[i]->is_dead())
+		{
+			continue;
+		}
+
+		auto key_box = Object::GetComponent<BoxColliderComponent>(key_objects[i]);
+		if (!key_box) continue;
+
+		if (box->animated_box().Intersects(key_box->animated_box()))
+		{
 			get_key_num_++;
-	
-			// 피라미드 제거 (Scene과 충돌 리스트에서 제거)
-			Object* pyramid_object = pyramid_collider->owner();
-			MeshComponent* mesh_component = Object::GetComponent<MeshComponent>(pyramid_object);
-			MeshColliderComponent* mesh_collider_component = Object::GetComponent<MeshColliderComponent>(pyramid_object);
-			//mesh_component->set_is_visible(false); // 대신 피라미드 제거 패킷
-			//DeleteObject(pyramid_object); // Scene::DeleteObject 호출 포함됨
-			auto& mesh_list = checking_maps_mesh_collider_list_[6];
-			mesh_list.remove_if([&](MeshColliderComponent* collider) {
-				return collider == mesh_collider_component;
-				});
-	
-			break;
+			key_objects[i]->set_is_dead(true); // 키 오브젝트 제거
+
+			std::cout << "키 획득: " << get_key_num_ << std::endl;
+
+			sc_packet_delete_pyramid packet;
+			packet.id = i;
+
+			auto& users = SessionManager::getInstance().getAllSessions();
+			for (const auto& user : users) {
+				user.second->do_send(&packet);
+			}
 		}
 	}
+
 }
 
 void BaseScene::CheckSpawnBoxHitPlayers()
@@ -1687,10 +1709,21 @@ void BaseScene::CheckSpawnBoxHitPlayers()
 						u.second->do_send(&pcs);
 					}
 				}
+
+				if(stage_clear_num_ == 7) // 플레이어 최종 스테이지로 텔레포트
+				{
+					XMFLOAT3 tp_position{ 205.3f, 6, -91.f }; 
+					const auto& users = SessionManager::getInstance().getAllSessions();
+					for (const auto& u : users) {
+						auto player_object = u.second->get_player_object();
+						if (!player_object) continue;
+						player_object->set_position_vector(tp_position);
+					}
+				}
 				
 				ActivateStageMonsterSpawner(stage_clear_num_ - 1);
 				is_activate_spawner_ = true;
-				std::cout << "진입완료" << std::endl;
+				std::cout << "스포너 활성화" << std::endl;
 				return; // 한 명이라도 충돌했으면 나가기
 			}
 		}

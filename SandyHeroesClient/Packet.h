@@ -34,6 +34,7 @@ constexpr char S2C_P_STAGE_CLEAR = 55;
 constexpr char S2C_P_OBJECT_SET_DEAD = 56;
 constexpr char S2C_P_PLAY_RELOAD_SOUND = 57;
 constexpr char S2C_P_PLAY_CUT_SCENE = 58;
+constexpr char S2C_P_PYRAMID_DELETE = 59; // 피라미드 삭제
 
 constexpr char C2S_P_LOGIN = 101;
 constexpr char C2S_P_KEYBOARD_INPUT = 102;
@@ -230,6 +231,12 @@ struct sc_packet_create_bullet {
     uint32_t id;
     float dx, dy, dz; // dx, dy, dz
     uint8_t loaded_bullets;  // 남은 총알
+};
+
+struct sc_packet_delete_pyramid {
+    uint8_t size = sizeof(sc_packet_delete_pyramid);
+    uint8_t type = S2C_P_PYRAMID_DELETE;  // S2C_P_PYRAMID_DELETE
+    uint32_t id;   // 피라미드 id 3개있음 (0, 1, 2)
 };
 
 struct cs_packet_login {

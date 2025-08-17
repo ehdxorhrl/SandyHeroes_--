@@ -69,6 +69,7 @@ public:
 	void ActivateStageMonsterSpawner(int stage_num);
 
 	void add_catch_monster_num();
+	void add_stage_clear_num() { ++stage_clear_num_; }
 	const std::list<MonsterComponent*>& monster_list() const;
 
 private:

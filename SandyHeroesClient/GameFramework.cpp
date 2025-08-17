@@ -1252,7 +1252,13 @@ void GameFramework::ProcessPacket(char* p)
         base_scene->PlayCutScene(packet->cut_scene_track);
     }
         break;
+    case S2C_P_PYRAMID_DELETE:
+    {
+		auto packet = reinterpret_cast<sc_packet_delete_pyramid*>(p);
 
+		base_scene->DeleteKeyObject(packet->id);
+    }
+        break;
     default:
         break;
     }

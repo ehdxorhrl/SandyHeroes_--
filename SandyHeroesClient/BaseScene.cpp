@@ -2048,6 +2048,29 @@ void BaseScene::DeleteDeadObjects()
 	Scene::DeleteDeadObjects();
 }
 
+void BaseScene::DeleteKeyObject(int idx)
+{
+	constexpr float kKeyCount = 3;
+	std::vector<Object*> key_objects;
+	key_objects.reserve(kKeyCount);
+	auto state_6_object = FindObject("STAGE6");
+	if (!state_6_object) return;
+	key_objects.push_back(state_6_object->FindFrame("Key_00"));
+	key_objects.push_back(state_6_object->FindFrame("Key_01"));
+	key_objects.push_back(state_6_object->FindFrame("Key_02"));
+
+	if (key_objects[idx] && !key_objects[idx]->is_dead())
+	{
+		auto mesh_component = Object::GetComponent<MeshComponent>(key_objects[idx]);
+		if (mesh_component)
+		{
+			mesh_component->set_is_visible(false);
+		}
+		key_objects[idx]->set_is_dead(true);
+	}
+
+}
+
 
 
 

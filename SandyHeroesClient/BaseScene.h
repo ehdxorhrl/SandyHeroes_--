@@ -47,6 +47,8 @@ public:
 	virtual void DeleteObject(Object* object) override;
 	virtual void DeleteDeadObjects() override;
 
+	void DeleteKeyObject(int idx);	//키 오브젝트 삭제
+
 	void UpdateObjectIsGround();
 	void UpdateObjectHitWall();
 	void UpdateObjectHitBullet();
