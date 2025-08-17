@@ -1166,6 +1166,23 @@ void GameFramework::ProcessPacket(char* p)
         }
     }
         break;
+    case S2C_P_PLAYER_CHANGE_ANIMATION:
+    {
+        auto packet = reinterpret_cast<sc_packet_player_change_animation*>(p);
+        Object* player = base_scene->FindObject(packet->id);
+        if (!player) break;
+        auto animator = Object::GetComponent<AnimatorComponent>(player);
+        auto animation_state = animator->animation_state();
+        //animation_state->ChangeAnimationTrack((int)packet->animation_track, player, animator);
+        animation_state->ChangeAnimationTrack(1, player, animator);
+        animation_state->set_animation_loop_type(packet->loop_type); // Loop
+        
+        auto movement = Object::GetComponentInChildren<MovementComponent>(player);
+        if (!movement) break;
+        movement->set_velocity(XMFLOAT3(packet->vx, packet->vy, packet->vz));
+
+    }
+    break;
     case S2C_P_MONSTER_CHANGE_ANIMATION:
     {
         auto packet = reinterpret_cast<sc_packet_monster_change_animation*>(p);
@@ -1173,10 +1190,9 @@ void GameFramework::ProcessPacket(char* p)
         if (!monster) break;
         auto animator = Object::GetComponent<AnimatorComponent>(monster);
         auto animation_state = animator->animation_state();
-        animation_state->ChangeAnimationTrack(packet->animation_track, monster, animator);
+        animation_state->ChangeAnimationTrack((int)packet->animation_track, monster, animator);
         animation_state->set_animation_loop_type(packet->loop_type); // Loop
         //std::cout << packet->animation_track << std::endl;
-
     }
         break;
     case S2C_P_PLAYER_DAMAGED:
@@ -1230,6 +1246,7 @@ void GameFramework::ProcessPacket(char* p)
         Object* obj = base_scene->FindObject(packet->id);
         if (obj)
         {
+            if (packet->monster_type == 3) break;
             auto animator = Object::GetComponentInChildren<AnimatorComponent>(obj);
             if (!animator) { obj->set_is_dead(true); break; }
             auto animation_state = animator->animation_state();

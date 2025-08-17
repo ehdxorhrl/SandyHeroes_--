@@ -147,15 +147,9 @@ private:
     int   last_owned_node_id_{ -1 };
     float yield_timer_{ 0.f };
 
-    XMFLOAT3 last_sent_pos_{ FLT_MAX, FLT_MAX, FLT_MAX }; // 첫 프레임 강제 전송용 sentinel
-    XMFLOAT3 last_sent_dir_xz_{ 0.f, 0.f, 1.f };
-    float    since_last_send_s_ = 9999.f; // 전송 간 누적 시간(초)
-
-    // 튜닝 파라미터(원하면 public setter로 빼도 좋습니다)
-    float net_dist_start_m_ = 0.1f; // 위치 변화 임계(10cm)
-    float net_yaw_start_deg_ = 2.0f;  // yaw 변화 임계(2도)
-    float net_min_interval_s_ = 0.01f; // 최소 전송 간격(20ms)
-    float net_max_interval_s_ = 0.03f; // 최대 전송 간격(60ms)
+    bool     direct_mode_ = false;     // 현재 '직접 추격' 모드인가
+    float    direct_mode_cooldown_ = 0.f; // 모드 전환 쿨타임
+    XMFLOAT3 last_dir_{ 0.f, 0.f, 1.f };  // 방향 스무딩용
 };
 
 static Object* GetCurrentTarget(Object* self) {
@@ -319,7 +313,8 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
     monstercomp->set_attack_force(50);
     monstercomp->set_shield(150);
     monstercomp->set_hp(100);
-    //auto* movement = Object::GetComponentInChildren<MovementComponent>(self);
+    auto* movement = Object::GetComponentInChildren<MovementComponent>(self);
+    movement->set_max_speed_xz(2.5f);
 
     return root;
 }
@@ -744,7 +739,7 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_attack_force(15);
     auto* movement = Object::GetComponentInChildren<MovementComponent>(self);
-    movement->set_max_speed_xz(2.5f);
+    movement->set_max_speed_xz(3.5f);
     return root;
 }
 

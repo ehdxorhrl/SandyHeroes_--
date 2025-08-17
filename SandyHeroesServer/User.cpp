@@ -345,6 +345,20 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 				{
 					dash_velocity_ += look;
 				}
+
+				sc_packet_player_change_animation pca;
+				pca.size = sizeof(sc_packet_player_change_animation);
+				pca.type = S2C_P_PLAYER_CHANGE_ANIMATION;
+				pca.id = id_;
+				pca.animation_track = 1;
+				pca.loop_type = 1;
+
+				std::cout << (int)pca.animation_track << std::endl;
+
+				const auto& users = SessionManager::getInstance().getAllSessions();
+				for (auto& u : users) {
+					u.second->do_send(&pca);
+				}
 			}
 		}
 

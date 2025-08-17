@@ -3,6 +3,30 @@
 #include "Object.h"
 #include "MovementComponent.h"
 #include "AnimatorComponent.h"
+#include "SessionManager.h"
+
+void send_player_animation(uint8_t animation_track, Object* object) {
+
+	auto movement = Object::GetComponentInChildren<MovementComponent>(object);
+	auto velocity = movement->velocity();
+
+	sc_packet_player_change_animation pca;
+	pca.size = sizeof(sc_packet_player_change_animation);
+	pca.type = S2C_P_PLAYER_CHANGE_ANIMATION;
+	pca.id = object->id();
+	pca.animation_track = animation_track;
+	pca.loop_type = 1;
+	pca.vx = velocity.x;
+	pca.vy = velocity.y;
+	pca.vz = velocity.z;
+
+	std::cout << animation_track << std::endl;
+
+	const auto& users = SessionManager::getInstance().getAllSessions();
+	for (auto& u : users) {
+		u.second->do_send(&pca);
+	}
+}
 
 void PlayerAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
 {
@@ -25,56 +49,6 @@ int PlayerAnimationState::Run(Object* object, bool is_end, AnimatorComponent* an
 	auto movement = Object::GetComponentInChildren<MovementComponent>(object);
 	auto velocity_xz = movement->velocity();
 	velocity_xz.y = 0.f;
-
-	switch ((PlayerAnimationTrack)animation_track())
-	{
-	case PlayerAnimationTrack::kIdle:
-	{
-		if (xmath_util_float3::Length(velocity_xz) > 0)
-		{
-			ChangeAnimationTrack((int)PlayerAnimationTrack::kRun, object, animator);
-		}
-		if (movement->velocity().y > 0.f)
-		{
-			ChangeAnimationTrack((int)PlayerAnimationTrack::kJump, object, animator);
-		}
-		if (xmath_util_float3::Length(velocity_xz) >= kPlayerDashSpeed)
-		{
-			ChangeAnimationTrack((int)PlayerAnimationTrack::kDash, object, animator);
-		}
-
-	}
-	break;
-	case PlayerAnimationTrack::kRun:
-		if (IsZero(xmath_util_float3::Length(velocity_xz)))
-		{
-			ChangeAnimationTrack((int)PlayerAnimationTrack::kIdle, object, animator);
-		}
-		if (xmath_util_float3::Length(velocity_xz) >= kPlayerDashSpeed)
-		{
-			ChangeAnimationTrack((int)PlayerAnimationTrack::kDash, object, animator);
-		}
-		break;
-	case PlayerAnimationTrack::kJump:
-		if (object->is_ground())
-		{
-			ChangeAnimationTrack((int)PlayerAnimationTrack::kIdle, object, animator);
-		}
-		if (xmath_util_float3::Length(velocity_xz) >= kPlayerDashSpeed)
-		{
-			ChangeAnimationTrack((int)PlayerAnimationTrack::kDash, object, animator);
-
-		}
-		break;
-	case PlayerAnimationTrack::kDash:
-		if (xmath_util_float3::Length(velocity_xz) < kPlayerDashSpeed)
-		{
-			ChangeAnimationTrack((int)PlayerAnimationTrack::kRun, object, animator);
-		}
-		break;
-	default:
-		break;
-	}
 
 	return animation_track();
 }

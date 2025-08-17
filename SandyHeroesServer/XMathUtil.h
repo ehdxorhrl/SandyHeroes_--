@@ -103,6 +103,9 @@ namespace xmath_util_float3
 		return v.x * v.x + v.y * v.y + v.z * v.z;
 	}
 
+	inline float Dot(const XMFLOAT3& a, const XMFLOAT3& b) {
+		return XMVectorGetX(XMVector3Dot(XMLoadFloat3(&a), XMLoadFloat3(&b)));
+	}
 }
 
 namespace xmath_util_float4

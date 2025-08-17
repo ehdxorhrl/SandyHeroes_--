@@ -59,6 +59,8 @@ public:
 
 	void CheckRazerHitEnemy(RazerComponent* razer_component, MonsterComponent* monster_component);
 
+	void TickNoClipTimers(float elapsed_time); // Update()에서 호출
+
 
 	std::list<MeshColliderComponent*> checking_maps_mesh_collider_list(int index);
 	std::list<WallColliderComponent*> stage_wall_collider_list(int index);
@@ -104,6 +106,8 @@ private:
 	std::array<std::list<GroundColliderComponent*>, 8> stage_ground_collider_list_;	//스테이지 바닥 콜라이더 리스트
 	std::array<std::list<WallColliderComponent*>, 8> stage_wall_collider_list_;	//스테이지 벽 콜라이더 리스트
 
+	std::unordered_map<uint64_t, float> noclip_monmon_;
+
 	std::vector<Object*> dropped_guns_;
 
 	std::vector<Object*> chests_;
@@ -112,8 +116,19 @@ private:
 
 	BoundingOrientedBox stage3_clear_box_;
 
+	// 튜닝
+	float noclip_monmon_radius_ = 1.0f;   // 몬스터-몬스터 근접 판단 반경(XZ)
+	float noclip_monmon_duration_ = 1.0f;  // 충돌 무시 지속 시간
+
 	bool is_prepare_ground_checking_ = false;
 	//std::array<std::list<MeshColliderComponent*>, kStageMaxCount> checking_maps_mesh_collider_list_;	//맵 바닥체크를 위한 메쉬 콜라이더 리스트 배열
+
+	// 쌍 키: (minId<<32) | maxId  형태로 대칭키 생성
+	static inline uint64_t PairKey_(int a, int b) {
+		uint32_t x = (uint32_t)std::min(a, b);
+		uint32_t y = (uint32_t)std::max(a, b);
+		return (uint64_t(x) << 32) | uint64_t(y);
+	}
 
 };
 
