@@ -36,6 +36,8 @@ public:
 
 	void ActivateStageMonsterSpawner(int stage_num);
 
+	void ShowClearRogo();
+
 	virtual bool ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time) override;
 	virtual const std::list<MeshComponent*>& GetShadowMeshList(int index) override;
 

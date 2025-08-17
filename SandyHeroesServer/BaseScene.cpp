@@ -896,7 +896,7 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	//player->set_position_vector(XMFLOAT3{ 205.3f, 6, -91.f }); 7스테이지
 	//player->set_position_vector(XMFLOAT3{ 63.45f, 2.15f, -127.68f }); //4스테이지
 	//player->set_position_vector(XMFLOAT3{ 180.6f, 3.15f, -179.79f }); //6스테이지
-	//player->set_position_vector(XMFLOAT3{ 198.61f, 6.f, -146.07f }); // 7스테이지 텔포 테스트
+	player->set_position_vector(XMFLOAT3{ 198.61f, 6.f, -146.07f }); // 7스테이지 텔포 테스트
 
 	player->set_collide_type(true, true);  // 지면 & 벽 충돌 체크 등록
 	player->set_is_movable(true);
@@ -935,17 +935,17 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	AddObject(player);
 
 	//TODO: 테스트용 스테이지 몬스터 스포너 활성화
-	//constexpr int kStateClearNum = 6;
-	//ActivateStageMonsterSpawner(kStateClearNum - 1);
-	//stage_clear_num_ = kStateClearNum;
-	//sc_packet_stage_clear sc;
-	//sc.size = sizeof(sc_packet_stage_clear);
-	//sc.stage_num = stage_clear_num_;
-	//sc.type = S2C_P_STAGE_CLEAR;
-	//const auto& users = SessionManager::getInstance().getAllSessions();
-	//for (auto& u : users) {
-	//	u.second->do_send(&sc);
-	//}
+	constexpr int kStateClearNum = 6;
+	ActivateStageMonsterSpawner(kStateClearNum - 1);
+	stage_clear_num_ = kStateClearNum;
+	sc_packet_stage_clear sc;
+	sc.size = sizeof(sc_packet_stage_clear);
+	sc.stage_num = stage_clear_num_;
+	sc.type = S2C_P_STAGE_CLEAR;
+	const auto& users = SessionManager::getInstance().getAllSessions();
+	for (auto& u : users) {
+		u.second->do_send(&sc);
+	}
 
 	return player;
 }
@@ -1161,6 +1161,20 @@ void BaseScene::UpdateStageClear()
 	}
 		break;
 	case 7:
+		if (catch_monster_num_ == 1)
+		{
+			if (!is_game_clear_)
+			{
+				is_game_clear_ = true;
+				sc_packet_game_clear packet{};
+
+				auto& users = SessionManager::getInstance().getAllSessions();
+				for (auto& user : users)
+				{
+					user.second->do_send(&packet);
+				}
+			}
+		}
 		// TODO: 게임클리어!
 		return;
 		break;

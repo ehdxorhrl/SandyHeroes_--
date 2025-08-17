@@ -935,10 +935,44 @@ void GameFramework::send_mouse_move_packet(int x1, int x2)
 
     if (now - last_mouse_packet_time_ < mouse_packet_interval_)
         return;
+
+    BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
+    if (!base_scene) return;
+
+    Object* player = base_scene->player(); // BaseScene에 player_ 멤버가 존재함
+    if (!player) return;
+
+    FPSControllerComponent* controller = Object::GetComponent<FPSControllerComponent>(player);
+    if (!controller) return;
+
+    Object* camera = controller->camera_object();
+    if (!camera) return;
+
+    GunComponent* gun = Object::GetComponentInChildren<GunComponent>(scene_->player());
+    if (!gun) return;
+
+
+    // 1. 스크린 중앙 픽셀 좌표
+    float screen_x = client_width_ / 2.0f;
+    float screen_y = client_height_ / 2.0f;
+
+    // 2. 카메라에서 월드로 레이 변환
+    XMFLOAT3 ray_origin, ray_dir;
+    scene_->main_camera()->GetPickingRay(screen_x, screen_y, ray_origin, ray_dir);
+
+    // 3. 레이로 충돌 지점 계산 (맵, 오브젝트 등)
+    float hit_distance = 15.0f; // 레이가 닿을 거리
+    XMFLOAT3 hit_point = ray_origin + (ray_dir * hit_distance); // 충돌 로직에 따라 수정
+
+    // 4. 총구 방향 계산
+    XMFLOAT3 gun_shoting_point{ gun->owner()->world_position_vector() };
+    XMFLOAT3 bullet_dir = xmath_util_float3::Normalize(hit_point - gun_shoting_point);
+
     cs_packet_mouse_move mm;
     mm.size = sizeof(mm);
     mm.type = C2S_P_MOUSE_MOVE;
     mm.yaw = x1 - x2;
+	mm.pick_dir = bullet_dir;
     do_send(&mm);
     last_mouse_packet_time_ = now;
 }
@@ -1276,6 +1310,11 @@ void GameFramework::ProcessPacket(char* p)
 		base_scene->DeleteKeyObject(packet->id);
     }
         break;
+    case S2C_P_GAME_CLEAR:
+    {
+        base_scene->ShowClearRogo();
+    }
+    break;
     default:
         break;
     }

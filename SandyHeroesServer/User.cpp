@@ -424,6 +424,8 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 				static_cast<float>(packet->yaw) * 0.1,
 				0.f);
 
+			fire_direction_ = packet->pick_dir;
+
 			sc_packet_move mp;
 			mp.size = sizeof(mp);
 			mp.type = S2C_P_MOVE;

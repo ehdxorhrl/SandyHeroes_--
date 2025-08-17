@@ -88,6 +88,8 @@ private:
 	// F키 누름
 	bool f_key_{};
 
+	bool is_game_clear_{ false };	//게임 클리어 여부
+
 	//현재 스테이지의 스포너를 활성화 했는가?
 	bool is_activate_spawner_ = false;
 

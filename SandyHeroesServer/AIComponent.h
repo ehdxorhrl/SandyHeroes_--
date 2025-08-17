@@ -1121,7 +1121,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
 
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_shield(1000.f);
-    monstercomp->set_hp(1000.f);
+    monstercomp->set_hp(2000.f);
     monstercomp->set_attack_force(40);
 
 	auto movement = Object::GetComponentInChildren<MovementComponent>(self);
@@ -1209,7 +1209,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         if (xmath_util_float3::Length(direction) < 0.5f) 
         {
             state->is_fly_to_sky = false;
-            movement->Stop();
+            movement->set_velocity(XMFLOAT3{ 0.f,0.f,0.f });
             return true; // 목표 위치에 도달하면 true 반환
 		}
         else
@@ -1396,12 +1396,12 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 
         if (InRangeXZ(self, target, kRange + 0.5f) && self->position_vector().y < kGroundY - kFlyHeight)
         {
-            movement->Stop();
+            movement->set_velocity(XMFLOAT3{ 0.f,0.f,0.f });
             state->is_move_to_target = false;
             return true; // 타겟과의 거리가 충분히 가까우면 true 반환
         }
 
-        movement->Stop();
+        movement->set_velocity(XMFLOAT3{ 0.f,0.f,0.f });
 
         //아니면 타겟방향으로 이동
 		XMFLOAT3 target_position = target->world_position_vector();
@@ -1588,7 +1588,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 
     auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_attack_force(60);
-	monstercomp->set_hp(2000.f);
+	monstercomp->set_hp(4000.f);
 	monstercomp->set_shield(2000.f);
 
 	auto movement = Object::GetComponentInChildren<MovementComponent>(self);

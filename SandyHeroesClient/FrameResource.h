@@ -71,7 +71,7 @@ struct CBUi
 	float height_ratio;
 	XMFLOAT2 texture_offset; // ui 텍스쳐 오프셋 (0.0 ~ 1.0)
 	float ui_layer;			// ui 레이어 
-	float alpha;	// padding to make it 16 bytes aligned
+	float alpha;	
 	XMFLOAT2 gage_value; // ui 가젯 값 (0.0 ~ 1.0)
 };
 

@@ -199,6 +199,9 @@
     <Filter Include="Animation\State\SuperDragon">
       <UniqueIdentifier>{f4ee4a86-2f4f-4aca-9b05-ad073aa06da3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="7.Component\UI\FadeInUI">
+      <UniqueIdentifier>{74577a59-ebdf-4ed5-bfb0-a95837dd356d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -462,6 +465,9 @@
     <ClInclude Include="SuperDragonAnimationState.h">
       <Filter>Animation\State\SuperDragon</Filter>
     </ClInclude>
+    <ClInclude Include="FadeInUIComponent.h">
+      <Filter>7.Component\UI\FadeInUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandyHeroesClient.cpp">
@@ -706,6 +712,9 @@
     </ClCompile>
     <ClCompile Include="SuperDragonAnimationState.cpp">
       <Filter>Animation\State\SuperDragon</Filter>
+    </ClCompile>
+    <ClCompile Include="FadeInUIComponent.cpp">
+      <Filter>7.Component\UI\FadeInUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

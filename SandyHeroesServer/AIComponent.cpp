@@ -186,7 +186,6 @@ bool AIComponent::Rotate_To_Target(float elapsed_time, Object* target) {
 
 void AIComponent::Send_Move_Packet(float elapsed_time, float speed)
 {
-
     sc_packet_monster_move mm{};
     mm.size = sizeof(sc_packet_monster_move);
     mm.type = S2C_P_MONSTER_MOVE;

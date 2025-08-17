@@ -27,7 +27,7 @@ cbuffer UiInfo : register(b3)
     float g_height_ratio; 
     float2 g_ui_texture_offset;
     float g_ui_layer; // ui ·¹ÀÌ¾î 
-    float padding; // padding to make it 16 bytes aligned
+    float g_ui_alpha; 
     float2 g_ui_gage_value; // 0.0 ~ 1.0
 }
 

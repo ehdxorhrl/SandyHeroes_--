@@ -44,6 +44,8 @@ float4 PS(VertexOut v_in) : SV_TARGET
     
     clip(r_value.a - 0.01f);
     
+    r_value.a *= g_ui_alpha;
+    
     return r_value;
 
 }

@@ -30,7 +30,7 @@ public:
 	void set_texture_offset(XMFLOAT2 value) { texture_offset_ = value; }
 	void set_gage_value(XMFLOAT2 value) { gage_value_ = value; }
 	void set_position_offset(XMFLOAT2 value) { position_offset_ = value; }
-
+    void set_alpha(float alpha) { alpha_ = std::clamp(alpha, 0.0f, 1.0f); }
 private:
     std::string name_{ "UiMeshComponent" };
 
@@ -44,6 +44,8 @@ private:
 	XMFLOAT2 texture_offset_{ 0.f, 0.f }; //texture offset for ui texture
 	UiLayer ui_layer_{ UiLayer::kZero }; //ui layer
 	XMFLOAT2 gage_value_{ 1.f, 1.f }; //ui gage value (0.0 ~ 1.0)
+
+    float alpha_ = 1.0f;
 };
 
 

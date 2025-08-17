@@ -88,6 +88,7 @@ void UiMeshComponent::UpdateConstantBuffer(FrameResource* current_frame_resource
 	ui_info.height_ratio = ui_ratio_.y;
 	ui_info.texture_offset = texture_offset_;
 	ui_info.gage_value = gage_value_;
+	ui_info.alpha = alpha_;
 
 	constant_buffer_index_ = cb_index;
 

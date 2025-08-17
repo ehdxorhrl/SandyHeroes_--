@@ -55,6 +55,7 @@
 #include "RazerMesh.h"
 #include "BillboardMeshComponent.h"
 #include "SuperDragonAnimationState.h"
+#include "FadeInUIComponent.h"
 
 void BaseScene::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* command_list, 
 	ID3D12RootSignature* root_signature, GameFramework* game_framework, 
@@ -164,6 +165,14 @@ void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* comma
 	ui_y = client_size.y / 9.f * 0.5f;
 	meshes_.push_back(std::make_unique<UIMesh>(ui_x, ui_y, ui_width, ui_height));
 	meshes_.back().get()->set_name("BossHeadIcon");
+
+	//SandyHeroes
+	ui_width = client_size.x / 16.f * 14.f;
+	ui_height = client_size.y / 9.f * 8.f;
+	ui_x = client_size.x / 16.f;
+	ui_y = client_size.y / 9.f * 0.5f;
+	meshes_.push_back(std::make_unique<UIMesh>(ui_x, ui_y, ui_width, ui_height));
+	meshes_.back()->set_name("SandyHeroesMesh");
 
 	//Scroll
 	constexpr float scroll_width = 150.f;
@@ -395,6 +404,16 @@ void BaseScene::BuildMaterial(ID3D12Device* device, ID3D12GraphicsCommandList* c
 		material->AddTexture(FindTexture("Desert",textures_));
 		materials_.emplace_back();
 		materials_.back().reset(material);
+	}
+
+	// Ending UI용 Material
+	{
+		Material* sandy_heroes_mat = new Material{ "SandyHeroes", (int)ShaderType::kUI };
+		textures_.push_back(std::make_unique<Texture>());
+		textures_.back()->name = "SandyHeroes1";
+		textures_.back()->type = TextureType::kAlbedoMap;
+		sandy_heroes_mat->AddTexture(textures_.back().get());
+		materials_.emplace_back().reset(sandy_heroes_mat);
 	}
 
 	// 총기 강화 수치 UI
@@ -1636,6 +1655,7 @@ void BaseScene::CreatePlayerUI()
 		player_->AddChild(player_shield_text);
 
 	}
+
 }
 
 void BaseScene::CreateMonsterSpawner()
@@ -1768,6 +1788,27 @@ void BaseScene::ActivateStageMonsterSpawner(int stage_num)
 	for (auto& spawner : stage_monster_spawner_list_[stage_num])
 	{
 		spawner->ActivateSpawn();
+	}
+}
+
+void BaseScene::ShowClearRogo()
+{
+	//Create SandyHeroes
+	{
+		Object* sandy_ui = new Object("SandyHeroesUI");
+		Mesh* mesh = Scene::FindMesh("SandyHeroesMesh", meshes_);
+		Material* material = Scene::FindMaterial("SandyHeroes", materials_);
+
+		auto ui_comp = new UiMeshComponent(sandy_ui, mesh, material, this);
+		ui_comp->set_is_static(true); // 화면 고정
+		ui_comp->set_ui_layer(UiLayer::kZero); // 다른 UI 위/아래 조정 가능
+		ui_comp->set_alpha(0.f);
+		sandy_ui->AddComponent(ui_comp);
+
+		auto fade_in_component = new FadeInUIComponent(sandy_ui, 5.0f);
+		sandy_ui->AddComponent(fade_in_component);
+
+		AddObject(sandy_ui);
 	}
 }
 
