@@ -2637,6 +2637,10 @@ void BaseScene::add_remote_player(int id, const std::string& name, const XMFLOAT
 	remote->set_id(id);
 	remote->set_name(name);
 
+	auto player_component = new PlayerComponent(remote);
+	player_component->set_scene(this);
+	remote->AddComponent(player_component);
+
 	AddObject(remote);
 }
 
