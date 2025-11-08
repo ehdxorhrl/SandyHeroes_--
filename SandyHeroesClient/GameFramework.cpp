@@ -43,7 +43,13 @@ GameFramework::~GameFramework()
             ChangeWindowMode();
 		}
     }
+	recv_running_ = false;
+	shutdown(socket_, SD_BOTH);
     closesocket(socket_);
+
+    if(recv_thread_.joinable())
+		recv_thread_.join();
+
     WSACleanup();
 }
 
