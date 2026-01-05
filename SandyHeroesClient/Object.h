@@ -8,7 +8,7 @@ struct CollideType
 	bool wall_check = false;	//벽 체크가 필요한가?
 };
 
-// Scene에 등장하는 모든 오브젝트의 조상 클래스
+// Scene에 등장하는 오브젝트 클래스
 // 자식과 형제 노드를 가진 트리구조
 
 class Object
@@ -18,7 +18,6 @@ public:
 	Object(const std::string& name);
 	virtual ~Object();
 
-	//복사 생성자(child, sibling도 복사하는 깊은복사)
 	Object(const Object& other);
 
 	//getter

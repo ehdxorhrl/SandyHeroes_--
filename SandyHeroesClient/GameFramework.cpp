@@ -46,7 +46,6 @@ GameFramework::~GameFramework()
 
 	recv_running_ = false;
 
-	//shutdown(socket_, SD_BOTH);
     closesocket(socket_);
 
     if(recv_thread_.joinable())
@@ -640,10 +639,17 @@ void GameFramework::FrameAdvance()
 {
     client_timer_->Tick();
 
+	//---- 이 구간의 퍼포먼스 측정 시작
+	Timer perf_timer;
+	perf_timer.Reset();
     ProcessInput();
 
     scene_->Update(client_timer_->ElapsedTime());
     scene_->UpdateObjectWorldMatrix();
+	perf_timer.Tick();    
+	std::wstring perf_text = L"Update Time: " + std::to_wstring(perf_timer.ElapsedTime() * 1000.f) + L"ms";
+	OutputDebugString(perf_text.c_str());
+	//---- 이 구간의 퍼포먼스 측정 끝
 
     scene_->RunViewFrustumCulling();
 
