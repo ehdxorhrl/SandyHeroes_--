@@ -69,21 +69,21 @@ void GameFramework::Initialize(HINSTANCE hinstance, HWND hwnd)
     descriptor_manager_ = std::make_unique<DescriptorManager>();
     input_manager_ = std::make_unique<InputManager>();
 
+	//Create Text Renderer
+	text_renderer_ = std::make_unique<TextRenderer>();
+    d2d_device_context_->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Blue), &d2d_text_brush_);
+    debug_text_format_ = std::make_unique<TextFormat>(dwrite_factory_.Get(),
+        L"Consolas", 18.0f, DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+
     scene_ = std::make_unique<BaseScene>();
     scene_->Initialize(d3d_device_.Get(), d3d_command_list_.Get(), d3d_root_signature_.Get(), 
-        this, d2d_device_context_.Get(), dwrite_factory_.Get());
+        this, dwrite_factory_.Get());
 
     d3d_command_list_->Close();
     ID3D12CommandList* cmd_list[] = { d3d_command_list_.Get() };
     d3d_command_queue_->ExecuteCommandLists(1, cmd_list);
 
     OnResize();
-
-    //d3d_command_list_->Close();
-    //cmd_list[0] = d3d_command_list_.Get();
-    //d3d_command_queue_->ExecuteCommandLists(1, cmd_list);
-
-    //FlushCommandQueue();
 
     scene_->ReleaseMeshUploadBuffer();
 
@@ -614,7 +614,7 @@ void GameFramework::ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float 
 
             scene_ = std::make_unique<BaseScene>();
             scene_->Initialize(d3d_device_.Get(), d3d_command_list_.Get(), d3d_root_signature_.Get(),
-                this, d2d_device_context_.Get(), dwrite_factory_.Get());
+                this, dwrite_factory_.Get());
 
             d3d_command_list_->Close();
             ID3D12CommandList* cmd_list[] = { d3d_command_list_.Get() };
@@ -639,17 +639,10 @@ void GameFramework::FrameAdvance()
 {
     client_timer_->Tick();
 
-	//---- 이 구간의 퍼포먼스 측정 시작
-	Timer perf_timer;
-	perf_timer.Reset();
     ProcessInput();
 
     scene_->Update(client_timer_->ElapsedTime());
     scene_->UpdateObjectWorldMatrix();
-	perf_timer.Tick();    
-	std::wstring perf_text = L"Update Time: " + std::to_wstring(perf_timer.ElapsedTime() * 1000.f) + L"ms";
-	OutputDebugString(perf_text.c_str());
-	//---- 이 구간의 퍼포먼스 측정 끝
 
     scene_->RunViewFrustumCulling();
 
@@ -723,7 +716,27 @@ void GameFramework::FrameAdvance()
     d2d_device_context_->SetTarget(d2d_render_targets_[current_back_buffer_].Get());
     d2d_device_context_->BeginDraw();
 
-    scene_->RenderText(d2d_device_context_.Get());
+	text_renderer_->Render(d2d_device_context_.Get(), d2d_text_brush_.Get());
+	// Render debug text.
+    d2d_device_context_->SetTransform(D2D1::Matrix3x2F::Identity());
+    d2d_text_brush_->SetColor(D2D1::ColorF(D2D1::ColorF::Blue));
+	std::wstring debug_text;
+    for (const auto& text : debug_text_buffer_)
+    {
+		debug_text += text;
+    }
+    d2d_device_context_->DrawText(
+        debug_text.c_str(),
+        debug_text.size(),
+        debug_text_format_->dwrite_text_format(),
+        &D2D1::RectF(
+            0.0f,
+            0.0f,
+            1920.0f,
+            1080.0f
+        ),
+        d2d_text_brush_.Get()
+    );
 
 	d2d_device_context_->EndDraw();
 
@@ -797,6 +810,14 @@ LRESULT GameFramework::ProcessWindowMessage(HWND h_wnd, UINT message_id, WPARAM 
         break;
     }
     return 0;
+}
+
+void GameFramework::AddDebugText(const std::wstring& text)
+{
+	static int text_count = 0;
+
+	text_count = (text_count + 1) % kDebugTextCount;
+	debug_text_buffer_[text_count] = text + L"\n";
 }
 
 FrameResourceManager* GameFramework::frame_resource_manager() const

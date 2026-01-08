@@ -36,7 +36,6 @@ VertexOut MeshVS(MeshVertexIn v_in)
     v_out.position_w = position_w.xyz;
     v_out.position = mul(mul(float4(v_out.position_w, 1.f), g_view_matrix), g_projection_matrix);
 
-    //비균등 비례가 월드행렬에 있다면 월드행렬의 역전치 행렬로 변환해야함!
     v_out.normal_w = mul(v_in.normal, (float3x3)g_world_matrix);
     v_out.tangent_w = mul(v_in.tangent, (float3x3) g_world_matrix);
 

@@ -57,18 +57,15 @@
 #include "SuperDragonAnimationState.h"
 #include "FadeInUIComponent.h"
 
-void BaseScene::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* command_list, 
-	ID3D12RootSignature* root_signature, GameFramework* game_framework, 
-	ID2D1DeviceContext* device_context, IDWriteFactory* dwrite_factory)
+void BaseScene::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* command_list,
+	ID3D12RootSignature* root_signature, GameFramework* game_framework,
+	IDWriteFactory* dwrite_factory)
 {
 	constexpr int kCutSceneTrackCount = 1;
 	cut_scene_tracks_.reserve(kCutSceneTrackCount);
 	cut_scene_tracks_.emplace_back("CutScene");
 
-	text_renderer_ = std::make_unique<TextRenderer>();
-	TextComponent::kTextRenderer = text_renderer_.get();
-
-	Scene::Initialize(device, command_list, root_signature, game_framework, device_context, dwrite_factory);
+	Scene::Initialize(device, command_list, root_signature, game_framework, dwrite_factory);
 
 	particle_system_ = std::make_unique<ParticleSystem>(Scene::FindMesh("green_cube", meshes_), 
 		Scene::FindMaterial("green", materials_));
@@ -777,10 +774,8 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	device_ = device;
 }
 
-void BaseScene::BuildTextBrushAndFormat(ID2D1DeviceContext* device_context, IDWriteFactory* dwrite_factory)
+void BaseScene::BuildTextFormat(IDWriteFactory* dwrite_factory)
 {
-	device_context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Blue), &d2d_text_brush_);
-
 	text_formats_["Default"] = std::make_unique<TextFormat>(dwrite_factory, L"Arial", 50.f);
 	text_formats_["BulletCount"] = std::make_unique<TextFormat>(dwrite_factory, 
 		L"Bahnschrift", 
@@ -1928,7 +1923,7 @@ bool BaseScene::ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time
 
 			// UI off
 			shaders_[(int)ShaderType::kUI]->set_is_render(false);
-			text_renderer_->set_is_render(false);
+			GameFramework::Instance()->text_renderer()->set_is_render(false);
 
 			return true;
 		}
@@ -1944,7 +1939,7 @@ bool BaseScene::ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time
 			}
 			main_input_controller_ = Object::GetComponent<FPSControllerComponent>(player_);
 			shaders_[(int)ShaderType::kUI]->set_is_render(true);
-			text_renderer_->set_is_render(true);
+			GameFramework::Instance()->text_renderer()->set_is_render(true);
 
 			return true;
 		}
@@ -2050,11 +2045,6 @@ void BaseScene::Update(float elapsed_time)
 
 	DeleteDeadObjects();
 
-}
-
-void BaseScene::RenderText(ID2D1DeviceContext2* d2d_device_context)
-{
-	text_renderer_->Render(d2d_device_context, d2d_text_brush_.Get());
 }
 
 void BaseScene::AddObject(Object* object)

@@ -33,8 +33,6 @@ public:
 	void set_is_static(bool value) { is_static_ = value; }
 	void set_color(const D2D1_COLOR_F& color) { color_ = color; }
 
-	static TextRenderer* kTextRenderer;
-
 private:
 	std::wstring text_ = L"None"; //텍스트 내용
 	D2D1_COLOR_F color_ = D2D1::ColorF(D2D1::ColorF::White); //폰트 색상

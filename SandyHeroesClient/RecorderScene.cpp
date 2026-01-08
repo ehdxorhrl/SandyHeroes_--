@@ -14,7 +14,7 @@
 
 void RecorderScene::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* command_list, 
 	ID3D12RootSignature* root_signature, GameFramework* game_framework,
-	ID2D1DeviceContext* device_context, IDWriteFactory* dwrite_factory)
+	IDWriteFactory* dwrite_factory)
 {
 	cut_scene_recorder_ = std::make_unique<CutSceneRecorder>("Test1");
 
@@ -22,7 +22,7 @@ void RecorderScene::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* 
 	cut_scene_tracks_.reserve(kCutSceneTrackCount);
 	cut_scene_tracks_.emplace_back("CutScene");
 
-	Scene::Initialize(device, command_list, root_signature, game_framework, device_context, dwrite_factory);
+	Scene::Initialize(device, command_list, root_signature, game_framework, dwrite_factory);
 
 }
 

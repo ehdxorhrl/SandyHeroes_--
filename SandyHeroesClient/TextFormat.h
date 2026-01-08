@@ -14,7 +14,6 @@ public:
 		const std::wstring& locale_name = L"ko-kr");
 	~TextFormat() {}
 
-
 	//getter
 	IDWriteTextFormat* dwrite_text_format() const { return dwrite_text_format_.Get(); }
 	std::wstring font_name() const { return font_name_; }

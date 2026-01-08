@@ -89,7 +89,7 @@ void Timer::Tick()
         return;
     }
 
-    __int64 curr_time;
+    __int64 curr_time{};
     QueryPerformanceCounter((LARGE_INTEGER*)&curr_time);
 
     curr_time_ = curr_time;

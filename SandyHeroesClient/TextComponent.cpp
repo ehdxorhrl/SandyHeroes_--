@@ -2,8 +2,8 @@
 #include "TextComponent.h"
 #include "TextFormat.h"
 #include "Object.h"
+#include "GameFramework.h"
 
-TextRenderer* TextComponent::kTextRenderer = nullptr;
 
 TextComponent::TextComponent()
 {
@@ -47,7 +47,7 @@ Component* TextComponent::GetCopy()
 
 void TextComponent::Update(float elapsed_time)
 {
-	kTextRenderer->AddText(this); // 텍스트 렌더러에 추가
+	GameFramework::Instance()->text_renderer()->AddText(this); // 텍스트 렌더러에 추가
 
 	if(is_static_)
 	{

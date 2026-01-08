@@ -583,14 +583,14 @@ Scene::~Scene()
 }
 
 void Scene::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* command_list,
-	ID3D12RootSignature* root_signature, GameFramework* game_framework, ID2D1DeviceContext* device_context, IDWriteFactory* dwrite_factory)
+	ID3D12RootSignature* root_signature, GameFramework* game_framework, IDWriteFactory* dwrite_factory)
 {
 	game_framework_ = game_framework;
 
 	particle_renderer_ = std::make_unique<ParticleRenderer>();
 	ParticleComponent::kParticleRenderer = particle_renderer_.get();
 
-	BuildTextBrushAndFormat(device_context, dwrite_factory);
+	BuildTextFormat(dwrite_factory);
 	BuildShader(device, root_signature);
 	BuildMesh(device, command_list);
 	BuildMaterial(device, command_list);
@@ -666,23 +666,6 @@ void Scene::BuildShaderResourceViews(ID3D12Device* device)
 		texture->heap_index = i;
 		++i;
 	}
-}
-
-void Scene::BuildTextBrushAndFormat(ID2D1DeviceContext* device_context, IDWriteFactory* dwrite_factory)
-{
-	device_context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Blue), &d2d_text_brush_);
-	dwrite_factory->CreateTextFormat(
-		L"¸¼Àº °íµñ",
-		NULL,
-		DWRITE_FONT_WEIGHT_NORMAL,
-		DWRITE_FONT_STYLE_NORMAL,
-		DWRITE_FONT_STRETCH_NORMAL,
-		20,
-		L"en-us",
-		&d2d_text_format_
-	);
-	d2d_text_format_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	d2d_text_format_->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 }
 
 using namespace file_load_util;

@@ -1,11 +1,14 @@
 #pragma once
 
+#include "TextRenderer.h"
+#include "TextComponent.h"
 
 class Timer;
 class Scene;
 class FrameResourceManager;
 class DescriptorManager;
 class InputManager;
+class TextFormat;
 
 struct EXP_OVER
 {
@@ -57,6 +60,8 @@ public:
 
 	LRESULT CALLBACK ProcessWindowMessage(HWND h_wnd, UINT message_id, WPARAM w_param, LPARAM l_param);
 
+	void AddDebugText(const std::wstring& text);
+
 	//getter
 	FrameResourceManager* frame_resource_manager() const;
 	DescriptorManager* descriptor_manager() const;
@@ -64,7 +69,7 @@ public:
 	XMFLOAT2 client_size() const;
 	SOCKET socket() const; // 소켓
 	Scene* scene() const;
-
+	TextRenderer* text_renderer() const { return text_renderer_.get(); }
 
 	//서버 연결
 	void ConnectServer(const char* ip, uint16_t port);
@@ -153,6 +158,13 @@ private:
 	std::unique_ptr<FrameResourceManager> frame_resource_manager_ = nullptr;
 	std::unique_ptr<DescriptorManager> descriptor_manager_ = nullptr;
 	std::unique_ptr<InputManager> input_manager_ = nullptr;
+
+	ComPtr<ID2D1SolidColorBrush> d2d_text_brush_;
+	std::unique_ptr<TextFormat> debug_text_format_;
+	std::unique_ptr<TextRenderer> text_renderer_;	// 텍스트 렌더러를 GameFramework가 소유하고 Scene 등에서 사용하도록 함
+	constexpr static size_t kDebugTextCount{ 20 };
+	std::array<std::wstring, kDebugTextCount> debug_text_buffer_;
+
 private:
 	SOCKET socket_;
 	long long id_;
