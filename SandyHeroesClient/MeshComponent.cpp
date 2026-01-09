@@ -6,6 +6,8 @@
 #include "DescriptorManager.h"
 #include "Material.h"
 #include "Scene.h"
+#include "GameFramework.h"
+#include "CameraComponent.h"
 
 MeshComponent::MeshComponent(Object* owner, Mesh* mesh) : Component(owner), mesh_(mesh)
 {

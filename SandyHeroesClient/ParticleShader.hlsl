@@ -56,7 +56,7 @@ void GS(point VertexIn gin[1], uint primID : SV_PrimitiveID, inout TriangleStrea
     [unroll]
     for (int i = 0; i < 4; ++i)
     {
-        gout.PosH = mul(mul(v[i], g_view_matrix), g_projection_matrix);
+        gout.PosH = mul(v[i], g_vp_matrix);
         gout.PosW = v[i].xyz;
         gout.NormalW = look;
         gout.TexC = texC[i];

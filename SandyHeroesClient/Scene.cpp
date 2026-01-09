@@ -360,9 +360,13 @@ void Scene::UpdateRenderPassConstantBuffer(ID3D12GraphicsCommandList* command_li
 {
 	main_camera_->UpdateCameraInfo();
 
+	XMMATRIX view = XMLoadFloat4x4(&main_camera_->view_matrix());
+	XMMATRIX proj = XMLoadFloat4x4(&main_camera_->projection_matrix());
+	XMMATRIX view_proj = view * proj;
 	CBPass cb_pass{};
 	cb_pass.view_matrix = xmath_util_float4x4::TransPose(main_camera_->view_matrix());
 	cb_pass.proj_matrix = xmath_util_float4x4::TransPose(main_camera_->projection_matrix());
+	XMStoreFloat4x4(&cb_pass.view_proj_matrix, XMMatrixTranspose(view_proj));
 	cb_pass.camera_position = main_camera_->world_position();
 	cb_pass.camera_up_axis = main_camera_->up_vector();
 
@@ -453,6 +457,7 @@ void Scene::UpdateRenderPassShadowBuffer(ID3D12GraphicsCommandList* command_list
 	XMMATRIX S = lightView * lightProj * T;
 	XMStoreFloat4x4(&shadow_pass.light_view, XMMatrixTranspose(lightView));
 	XMStoreFloat4x4(&shadow_pass.light_proj, XMMatrixTranspose(lightProj));
+	XMStoreFloat4x4(&shadow_pass.light_view_proj, XMMatrixTranspose(lightView * lightProj));
 	XMStoreFloat4x4(&shadow_pass.shadow_transform, XMMatrixTranspose(S));
 
 	FrameResourceManager* frame_resource_manager = game_framework_->frame_resource_manager();

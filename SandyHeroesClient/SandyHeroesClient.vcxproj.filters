@@ -405,9 +405,6 @@
     <ClInclude Include="ParticleComponent.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="SkinnedShadowShader.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="ParticleRenderer.h">
       <Filter>Renderer</Filter>
     </ClInclude>
@@ -467,6 +464,9 @@
     </ClInclude>
     <ClInclude Include="FadeInUIComponent.h">
       <Filter>7.Component\UI\FadeInUI</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinnedShadowShader.h">
+      <Filter>3.Shader\ShadowShader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -656,9 +656,6 @@
     <ClCompile Include="ParticleComponent.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="SkinnedShadowShader.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="ParticleRenderer.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
@@ -716,6 +713,9 @@
     <ClCompile Include="FadeInUIComponent.cpp">
       <Filter>7.Component\UI\FadeInUI</Filter>
     </ClCompile>
+    <ClCompile Include="SkinnedShadowShader.cpp">
+      <Filter>3.Shader\ShadowShader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SandyHeroesClient.rc">
@@ -741,9 +741,6 @@
     <FxCompile Include="Breathing.hlsl" />
     <FxCompile Include="Shadow.hlsl" />
     <FxCompile Include="ParticleShader.hlsl" />
-    <FxCompile Include="SkinnedShadow.hlsl" />
-    <FxCompile Include="RazerShader.hlsl">
-      <Filter>헤더 파일</Filter>
-    </FxCompile>
+    <FxCompile Include="RazerShader.hlsl" />
   </ItemGroup>
 </Project>

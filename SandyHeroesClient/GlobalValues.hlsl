@@ -36,6 +36,7 @@ cbuffer RenderPass : register(b4)
 {
     matrix g_view_matrix;
     matrix g_projection_matrix;
+    matrix g_vp_matrix;
     float3 g_camera_position;
     float g_time;
     float4 g_ambient_light;
@@ -62,6 +63,7 @@ cbuffer ShadowPass : register(b6)
 {
     float4x4 light_view;
     float4x4 light_proj;
+    float4x4 light_view_proj;
     float4x4 shadow_transform;
     float3 light_dir;
     float near_z;

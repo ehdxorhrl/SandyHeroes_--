@@ -21,6 +21,7 @@ struct CBPass
 {
 	XMFLOAT4X4 view_matrix;
 	XMFLOAT4X4 proj_matrix;
+	XMFLOAT4X4 view_proj_matrix;
 	XMFLOAT3 camera_position;
 	float total_time;
 	XMFLOAT4 ambient_light;
@@ -34,6 +35,7 @@ struct CBShadow
 {
 	XMFLOAT4X4 light_view;
 	XMFLOAT4X4 light_proj;
+	XMFLOAT4X4 light_view_proj;
 	XMFLOAT4X4 shadow_transform;
 	XMFLOAT3 light_dir;
 	float near_z;

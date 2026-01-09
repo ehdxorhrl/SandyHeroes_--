@@ -18,7 +18,7 @@ VertexOut VS(VertexIn v_in)
     
     float3 position_w = mul(float4(v_in.position, 1.f), g_world_matrix).xyz;
     position_w.xyz += g_camera_position;
-    v_out.position = mul(mul(float4(position_w, 1.f), g_view_matrix), g_projection_matrix).xyww;
+    v_out.position = mul(float4(position_w, 1.f), g_vp_matrix).xyww;
     
     return v_out;
 }
