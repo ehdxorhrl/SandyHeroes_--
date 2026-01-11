@@ -119,7 +119,7 @@ void UiMeshComponent::Render(Material* material, ID3D12GraphicsCommandList* comm
 		}
 	}
 
-	mesh_->Render(command_list, material_index);
+	mesh_->Render(command_list, material_index, curr_frame_resource);
 }
 
 std::string UiMeshComponent::name() const

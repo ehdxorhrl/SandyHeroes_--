@@ -85,7 +85,7 @@ void SkinnedMeshComponent::Render(Material* material, ID3D12GraphicsCommandList*
 		}
 	}
 
-	mesh_->Render(command_list, material_index);
+	mesh_->Render(command_list, material_index, curr_frame_resource);
 }
 
 void SkinnedMeshComponent::AttachBoneFrames(const std::vector<std::string>& bone_names)

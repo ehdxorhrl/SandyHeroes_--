@@ -1,11 +1,11 @@
 #include "LightingUtil.hlsl"
 
-cbuffer ObjectInfo : register(b0)
-{
-    matrix g_world_matrix;
-    float g_object_time;
-    float3 o_padding;
-}
+//cbuffer ObjectInfo : register(b0)
+//{
+//    matrix g_world_matrix;
+//    float g_object_time;
+//    float3 o_padding;
+//}
 
 #define SKINNED_ANIMATION_BONES 128
 #define MAX_BONE_PER_VERTEX 4
@@ -70,6 +70,15 @@ cbuffer ShadowPass : register(b6)
     float3 light_pos_w;
     float far_z;
 }
+
+struct InstanceData
+{
+    matrix world_matrix;
+    float object_time;
+    float3 padding;
+};
+
+StructuredBuffer<InstanceData> g_instance_data : register(t0, space1);
 
 Texture2D g_albedo_map : register(t0);
 Texture2D g_spec_glos_map : register(t1);

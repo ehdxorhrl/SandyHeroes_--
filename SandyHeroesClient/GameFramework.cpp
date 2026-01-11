@@ -280,9 +280,7 @@ void GameFramework::BuildRootSignature()
     constexpr int root_parameter_size{ 14 };
     CD3DX12_ROOT_PARAMETER root_parameter[root_parameter_size];
 
-    //25.02.23 ����
-    //���� ��Ʈ ��ũ���� ���̺����� ��Ʈ CBV������� ����
-    root_parameter[0].InitAsConstantBufferView(0); // world matrix
+	root_parameter[0].InitAsShaderResourceView(0, 1); // world matrix(Instance data)
     root_parameter[1].InitAsConstantBufferView(1); // bone transform
     root_parameter[2].InitAsConstantBufferView(2); // bone offset (default buffer)
     root_parameter[3].InitAsConstantBufferView(3); // ui
@@ -647,6 +645,7 @@ void GameFramework::FrameAdvance()
     scene_->RunViewFrustumCulling();
 
     auto& command_allocator = frame_resource_manager_->curr_frame_resource()->d3d_allocator;
+	frame_resource_manager_->curr_frame_resource()->current_instance_offset = 0;
 
     command_allocator->Reset();
 
@@ -716,7 +715,7 @@ void GameFramework::FrameAdvance()
     d2d_device_context_->SetTarget(d2d_render_targets_[current_back_buffer_].Get());
     d2d_device_context_->BeginDraw();
 
-	text_renderer_->Render(d2d_device_context_.Get(), d2d_text_brush_.Get());
+    text_renderer_->Render(d2d_device_context_.Get(), d2d_text_brush_.Get());
 	// Render debug text.
     d2d_device_context_->SetTransform(D2D1::Matrix3x2F::Identity());
     d2d_text_brush_->SetColor(D2D1::ColorF(D2D1::ColorF::Blue));

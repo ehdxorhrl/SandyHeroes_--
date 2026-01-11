@@ -60,3 +60,23 @@ UINT d3d_util::CalculateConstantBufferSize(UINT byte_size)
 {
 	return (byte_size + 255) & ~255;
 }
+
+std::wstring StringToWString(const std::string& str)
+{
+	if (str.empty())
+		return L"";
+
+	int len = MultiByteToWideChar(
+		CP_UTF8, 0,
+		str.c_str(), (int)str.size(),
+		nullptr, 0);
+
+	std::wstring wstr(len, 0);
+
+	MultiByteToWideChar(
+		CP_UTF8, 0,
+		str.c_str(), (int)str.size(),
+		wstr.data(), len);
+
+	return wstr;
+}

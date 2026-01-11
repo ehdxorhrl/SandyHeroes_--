@@ -87,7 +87,7 @@ extern std::mt19937 kRandomGenerator;
 
 
 enum class RootParameterIndex {
-	kWorldMatrix = 0, kBoneTransform, kBoneOffset, kUi, kRenderPass,
+	kInstanceData = 0, kBoneTransform, kBoneOffset, kUi, kRenderPass,
 	kMaterial, kAlbedoMap, kSpecGlosMap, kMetalGlosMap, kEmissionMap,
 	kNormalMap, kCubeMap, kShadowMap, kShadowPass
 };
@@ -98,6 +98,8 @@ inline bool IsZero(float value, float epsilon = std::numeric_limits<float>::epsi
 {
 	return std::fabs(value) < epsilon;
 }
+
+std::wstring StringToWString(const std::string& str);
 
 namespace d3d_util
 {

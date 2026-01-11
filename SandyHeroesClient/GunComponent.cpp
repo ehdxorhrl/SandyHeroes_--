@@ -5,7 +5,6 @@
 #include "MeshComponent.h"
 #include "MovementComponent.h"
 #include "BoxColliderComponent.h"
-#include "DebugMeshComponent.h"
 #include "MeshColliderComponent.h"
 #include "Scene.h"
 #include "ParticleComponent.h"

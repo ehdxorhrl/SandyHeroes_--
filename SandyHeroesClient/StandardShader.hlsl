@@ -26,20 +26,26 @@ struct VertexOut
     float3 tangent_w : TANGENT;
     float2 uv : TEXCOORD;
     float4 position_s : POSITION1;
+    nointerpolation uint instance_id : SV_InstanceID;
+
 };
 
-VertexOut MeshVS(MeshVertexIn v_in)
+VertexOut MeshVS(MeshVertexIn v_in, uint instance_id : SV_InstanceID)
 {
     VertexOut v_out;
     
-    float4 position_w = mul(float4(v_in.position, 1.f), g_world_matrix);
+    matrix world = g_instance_data[instance_id].world_matrix;
+    
+    float4 position_w = mul(float4(v_in.position, 1.f), world);
     v_out.position_w = position_w.xyz;
     v_out.position = mul(position_w, g_vp_matrix);
 
-    v_out.normal_w = mul(v_in.normal, (float3x3)g_world_matrix);
-    v_out.tangent_w = mul(v_in.tangent, (float3x3) g_world_matrix);
+    v_out.normal_w = mul(v_in.normal, (float3x3)world);
+    v_out.tangent_w = mul(v_in.tangent, (float3x3)world);
 
     v_out.uv = v_in.uv;
+    
+    v_out.instance_id = instance_id;
     
     v_out.position_s = mul(position_w, shadow_transform);
 

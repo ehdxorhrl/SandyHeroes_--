@@ -76,6 +76,12 @@ struct CBUi
 	float alpha;	
 	XMFLOAT2 gage_value; // ui 가젯 값 (0.0 ~ 1.0)
 };
+struct InstanceData
+{
+	XMFLOAT4X4 world_matrix;
+	float time;
+	float padding[3];
+};
 
 // 게임에서 한 프레임에 사용하는 리소스에 대한 구조체
 struct FrameResource
@@ -90,7 +96,8 @@ public:
 
 		cb_pass = std::make_unique<UploadBuffer<CBPass>>(device, pass_count, true);
 		cb_shadow = std::make_unique<UploadBuffer<CBShadow>>(device, pass_count, true);
-		cb_object = std::make_unique<UploadBuffer<CBObject>>(device, object_count, true);
+		//cb_object = std::make_unique<UploadBuffer<CBObject>>(device, object_count, true);
+		sb_instance_data = std::make_unique<UploadBuffer<InstanceData>>(device, object_count, false);
 		cb_bone_transform = std::make_unique<UploadBuffer<CBBoneTransform>>(device, skinned_mesh_object_count, true);
 		cb_material = std::make_unique<UploadBuffer<CBMaterial>>(device, material_count, true);
 		cb_ui = std::make_unique<UploadBuffer<CBUi>>(device, ui_mesh_count, true);
@@ -103,10 +110,13 @@ public:
 
 	std::unique_ptr<UploadBuffer<CBPass>> cb_pass;
 	std::unique_ptr<UploadBuffer<CBShadow>> cb_shadow;
-	std::unique_ptr<UploadBuffer<CBObject>> cb_object;
+	//std::unique_ptr<UploadBuffer<CBObject>> cb_object;
+	std::unique_ptr<UploadBuffer<InstanceData>> sb_instance_data;
 	std::unique_ptr<UploadBuffer<CBBoneTransform>> cb_bone_transform;
 	std::unique_ptr<UploadBuffer<CBMaterial>> cb_material;
 	std::unique_ptr<UploadBuffer<CBUi>> cb_ui;
+
+	int current_instance_offset = 0;
 
 	UINT64 fence = 0;
 };

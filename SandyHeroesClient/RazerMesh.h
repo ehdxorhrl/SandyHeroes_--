@@ -1,7 +1,7 @@
 #pragma once
-#include "Mesh.h"
+#include "BillboardMesh.h"
 class RazerMesh :
-    public Mesh
+    public BillboardMesh
 {
 public:
     RazerMesh();

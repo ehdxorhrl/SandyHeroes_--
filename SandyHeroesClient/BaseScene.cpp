@@ -20,7 +20,6 @@
 #include "SkyboxMesh.h"
 #include "SkinnedShadowShader.h"
 #include "MeshColliderComponent.h"
-#include "DebugMeshComponent.h"
 #include "DebugShader.h"
 #include "SkinnedMeshComponent.h"
 #include "UIShader.h"
@@ -53,7 +52,6 @@
 #include "FMODSoundManager.h"
 #include "RazerShader.h"
 #include "RazerMesh.h"
-#include "BillboardMeshComponent.h"
 #include "SuperDragonAnimationState.h"
 #include "FadeInUIComponent.h"
 
@@ -1406,8 +1404,8 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		ModelInfo* razer_model = new ModelInfo();
 		auto razer_object = new Object("Razer");
 		auto razer_component = new RazerComponent(razer_object);
-		auto mesh_component = new BillboardMeshComponent(razer_object,
-			FindMesh("RazerMesh", meshes_), FindMaterial("Razer", materials_), this);
+		auto mesh_component = new MeshComponent(razer_object,
+			FindMesh("RazerMesh", meshes_), FindMaterial("Razer", materials_));
 		FindMaterial("Razer", materials_)->DeleteMeshComponent(mesh_component);
 		razer_object->AddComponent(mesh_component);
 		razer_object->AddComponent(razer_component);

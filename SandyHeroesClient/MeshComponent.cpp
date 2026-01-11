@@ -59,33 +59,34 @@ Component* MeshComponent::GetCopy()
 
 void MeshComponent::UpdateConstantBuffer(FrameResource* current_frame_resource, int cb_index)
 {
-	if (!is_visible_)
-		return;
+	// 이 기능을 인스턴싱을 위해 Mesh 쪽으로 옮김 다만 여전히 skinned mesh는 이 함수가 필요하기 때문에 남겨둠
+	//if (!is_visible_)
+	//	return;
 
-	if (cb_index == -1) cb_index = constant_buffer_index_;
-	constant_buffer_index_ = cb_index;
+	//if (cb_index == -1) cb_index = constant_buffer_index_;
+	//constant_buffer_index_ = cb_index;
 
-	CBObject object_buffer{};
-	XMStoreFloat4x4(&object_buffer.world_matrix,
-		XMMatrixTranspose(XMLoadFloat4x4(&owner_->world_matrix())));
+	//CBObject object_buffer{};
+	//XMStoreFloat4x4(&object_buffer.world_matrix,
+	//	XMMatrixTranspose(XMLoadFloat4x4(&owner_->world_matrix())));
 
-	object_buffer.time = owner_->life_time();
+	//object_buffer.time = owner_->life_time();
 
-	UploadBuffer<CBObject>* object_cb = current_frame_resource->cb_object.get();
-	object_cb->CopyData(cb_index, object_buffer);
+	//UploadBuffer<CBObject>* object_cb = current_frame_resource->cb_object.get();
+	//object_cb->CopyData(cb_index, object_buffer);
 }
 
 void MeshComponent::UpdateConstantBufferForShadow(FrameResource* current_frame_resource, int cb_index)
 {
-	if (cb_index == -1) cb_index = constant_buffer_index_;
-	constant_buffer_index_ = cb_index;
+	//if (cb_index == -1) cb_index = constant_buffer_index_;
+	//constant_buffer_index_ = cb_index;
 
-	CBObject object_buffer{};
-	XMStoreFloat4x4(&object_buffer.world_matrix,
-		XMMatrixTranspose(XMLoadFloat4x4(&owner_->world_matrix())));
+	//CBObject object_buffer{};
+	//XMStoreFloat4x4(&object_buffer.world_matrix,
+	//	XMMatrixTranspose(XMLoadFloat4x4(&owner_->world_matrix())));
 
-	UploadBuffer<CBObject>* object_cb = current_frame_resource->cb_object.get();
-	object_cb->CopyData(cb_index, object_buffer);
+	//UploadBuffer<CBObject>* object_cb = current_frame_resource->cb_object.get();
+	//object_cb->CopyData(cb_index, object_buffer);
 }
 
 void MeshComponent::AddMaterial(Material* material)
@@ -113,12 +114,7 @@ void MeshComponent::Render(Material* material, ID3D12GraphicsCommandList* comman
 {
 	if (!is_visible_)
 		return;
-	auto gpu_address = curr_frame_resource->cb_object->Resource()->GetGPUVirtualAddress();
-	const auto cb_size = d3d_util::CalculateConstantBufferSize((sizeof(CBObject)));
-	gpu_address += cb_size * constant_buffer_index_;
-
-	command_list->SetGraphicsRootConstantBufferView((int)RootParameterIndex::kWorldMatrix, gpu_address);
-
+	// material과 서브메쉬 인덱스 매칭
 	int material_index{};
 	for (int i = 0; i < materials_.size(); ++i)
 	{
@@ -129,7 +125,7 @@ void MeshComponent::Render(Material* material, ID3D12GraphicsCommandList* comman
 		}
 	}
 
-	mesh_->Render(command_list, material_index);
+	mesh_->Render(command_list, material_index, curr_frame_resource);
 }
 
 bool MeshComponent::IsVisible() const

@@ -94,9 +94,6 @@
     <Filter Include="7.Component\Mesh\SkinnedMesh">
       <UniqueIdentifier>{1abe438f-5798-44ed-b5a3-c6d476f52c1e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="7.Component\Mesh\DebugMesh">
-      <UniqueIdentifier>{bd906ab1-bf5e-4a64-bb7f-3ed9cb07f928}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3.Shader\Debug">
       <UniqueIdentifier>{ac8b63a8-37bd-434a-bb05-0b611ab6a249}</UniqueIdentifier>
     </Filter>
@@ -187,9 +184,6 @@
     <Filter Include="7.Component\Razer">
       <UniqueIdentifier>{4c81ebca-342a-48b7-9529-e9218a8eaa01}</UniqueIdentifier>
     </Filter>
-    <Filter Include="7.Component\Mesh\BillboardMesh">
-      <UniqueIdentifier>{e984477a-82e6-4090-af84-0f370ace6d9e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="7.Component\Player">
       <UniqueIdentifier>{269b9c97-22f7-44f6-a014-fe4aee50a66d}</UniqueIdentifier>
     </Filter>
@@ -201,6 +195,9 @@
     </Filter>
     <Filter Include="7.Component\UI\FadeInUI">
       <UniqueIdentifier>{74577a59-ebdf-4ed5-bfb0-a95837dd356d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4.Mesh\Billboard">
+      <UniqueIdentifier>{a1f3a8ee-91eb-4238-b681-f1aaadbdd772}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -314,9 +311,6 @@
     </ClInclude>
     <ClInclude Include="FPSControllerComponent.h">
       <Filter>7.Component\Input\FPS</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugMeshComponent.h">
-      <Filter>7.Component\Mesh\DebugMesh</Filter>
     </ClInclude>
     <ClInclude Include="DebugShader.h">
       <Filter>3.Shader\Debug</Filter>
@@ -450,9 +444,6 @@
     <ClInclude Include="RazerComponent.h">
       <Filter>7.Component\Razer</Filter>
     </ClInclude>
-    <ClInclude Include="BillboardMeshComponent.h">
-      <Filter>7.Component\Mesh\BillboardMesh</Filter>
-    </ClInclude>
     <ClInclude Include="PlayerComponent.h">
       <Filter>7.Component\Player</Filter>
     </ClInclude>
@@ -467,6 +458,9 @@
     </ClInclude>
     <ClInclude Include="SkinnedShadowShader.h">
       <Filter>3.Shader\ShadowShader</Filter>
+    </ClInclude>
+    <ClInclude Include="BillboardMesh.h">
+      <Filter>4.Mesh\Billboard</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -565,9 +559,6 @@
     </ClCompile>
     <ClCompile Include="FPSControllerComponent.cpp">
       <Filter>7.Component\Input\FPS</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugMeshComponent.cpp">
-      <Filter>7.Component\Mesh\DebugMesh</Filter>
     </ClCompile>
     <ClCompile Include="DebugShader.cpp">
       <Filter>3.Shader\Debug</Filter>
@@ -698,9 +689,6 @@
     <ClCompile Include="RazerComponent.cpp">
       <Filter>7.Component\Razer</Filter>
     </ClCompile>
-    <ClCompile Include="BillboardMeshComponent.cpp">
-      <Filter>7.Component\Mesh\BillboardMesh</Filter>
-    </ClCompile>
     <ClCompile Include="PlayerComponent.cpp">
       <Filter>7.Component\Player</Filter>
     </ClCompile>
@@ -715,6 +703,9 @@
     </ClCompile>
     <ClCompile Include="SkinnedShadowShader.cpp">
       <Filter>3.Shader\ShadowShader</Filter>
+    </ClCompile>
+    <ClCompile Include="BillboardMesh.cpp">
+      <Filter>4.Mesh\Billboard</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

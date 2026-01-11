@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "UIMesh.h"
 #include "Shader.h"
+#include "MeshComponent.h"
 
 UIMesh::UIMesh(float screen_x, float screen_y, float screen_width, float screen_height, float z_depth)
     :screen_position_(screen_x, screen_y), ui_size_(screen_width, screen_height)
@@ -81,4 +82,66 @@ XMFLOAT2 UIMesh::screen_position() const
 XMFLOAT2 UIMesh::ui_size() const
 {
     return ui_size_;
+}
+
+void UIMesh::UpdateConstantBuffer(FrameResource* curr_frame_resource, int& cb_index)
+{
+    //메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
+    for (MeshComponent* mesh_component : mesh_component_list_)
+    {
+    	// 그릴 필요 없는 대상에 대해서는 업데이트를 할 필요 없음
+    	if (!mesh_component->IsVisible())
+    		continue;
+    
+    	mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
+    
+    	++cb_index;
+    }
+}
+
+void UIMesh::UpdateConstantBufferForShadow(FrameResource* curr_frame_resource, int& cb_index)
+{    
+    //메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
+    for (MeshComponent* mesh_component : mesh_component_list_)
+    {
+        mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
+
+        ++cb_index;
+    }
+
+}
+
+void UIMesh::Render(ID3D12GraphicsCommandList* command_list, int material_index, FrameResource* curr_frame_resource)
+{
+    command_list->IASetPrimitiveTopology(primitive_topology_);
+
+    //정점 버퍼 set
+    command_list->IASetVertexBuffers(0,
+        vertex_buffer_views_.size(), vertex_buffer_views_.data());
+
+    if (material_index < indices_array_.size())
+    {
+        if (indices_array_[material_index].size())
+        {
+            command_list->IASetIndexBuffer(&index_buffer_views_[material_index]);
+            command_list->DrawIndexedInstanced(indices_array_[material_index].size(), 1, 0, 0, 0);
+        }
+        else
+        {
+            command_list->DrawInstanced(positions_.size(), 1, 0, 0);
+        }
+    }
+    else
+    {
+        if (indices_array_.back().size())
+        {
+            command_list->IASetIndexBuffer(&index_buffer_views_.back());
+            command_list->DrawIndexedInstanced(indices_array_.back().size(), 1, 0, 0, 0);
+        }
+        else
+        {
+            command_list->DrawInstanced(positions_.size(), 1, 0, 0);
+        }
+    }
+
 }

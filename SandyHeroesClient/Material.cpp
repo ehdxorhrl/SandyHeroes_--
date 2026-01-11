@@ -116,9 +116,16 @@ void Material::Render(ID3D12GraphicsCommandList* command_list,
 	if(!bShadow)
 		UpdateShaderVariables(command_list, curr_frame_resource, descriptor_manager);
 
+	std::unordered_map<Mesh*, std::vector<MeshComponent*>> batches;
 
 	for (const auto& mesh_component : mesh_component_list_)
 	{
+		const auto& mesh = mesh_component->GetMesh();
+		if (mesh->instance_count())
+		{
+			batches[mesh].push_back(mesh_component);
+			continue;
+		}
 		if (bShadow)
 		{
 			mesh_component->Render(this, command_list, curr_frame_resource);
@@ -138,6 +145,12 @@ void Material::Render(ID3D12GraphicsCommandList* command_list,
 		{
 			mesh_component->Render(this, command_list, curr_frame_resource);
 		}
+	}
+
+	//instance rendering
+	for (auto& [mesh, instances] : batches)
+	{
+		instances[0]->Render(this, command_list, curr_frame_resource);
 	}
 }
 

@@ -531,32 +531,30 @@ void Scene::ShadowRender(ID3D12GraphicsCommandList* command_list)
 		skinnedShader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_, true);
 	}
 
-	//{
-	//	auto& shadow_shader = shaders_[(int)ShaderType::kShadow];
-	//	auto& mesh_shader = shaders_[(int)ShaderType::kStandardMesh];
-	//	shadow_shader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_);
-	//	mesh_shader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_, true);
-	//}
-
-	auto& shadow_shader = shaders_[(int)ShaderType::kShadow];
-	shadow_shader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_);
-	for (int i = -1; i <= 1; ++i)
 	{
-		int idx = std::clamp(stage_clear_num_ + i, 0, 7);
-		const auto& mesh_list_ = GetShadowMeshList(idx);
-		for (auto& mesh_component : mesh_list_)
-		{
-			mesh_component->UpdateConstantBufferForShadow(curr_frame_resource, -1);
-
-			auto gpu_address = curr_frame_resource->cb_object->Resource()->GetGPUVirtualAddress();
-			const auto cb_size = d3d_util::CalculateConstantBufferSize((sizeof(CBObject)));
-			gpu_address += cb_size * mesh_component->constant_buffer_index();
-
-			command_list->SetGraphicsRootConstantBufferView((int)RootParameterIndex::kWorldMatrix, gpu_address);
-
-			mesh_component->GetMesh()->Render(command_list, 0);
-		}
+		auto& shadow_shader = shaders_[(int)ShaderType::kShadow];
+		auto& mesh_shader = shaders_[(int)ShaderType::kStandardMesh];
+		shadow_shader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_);
+		mesh_shader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_, true);
 	}
+
+	//for (int i = -1; i <= 1; ++i)
+	//{
+	//	int idx = std::clamp(stage_clear_num_ + i, 0, 7);
+	//	const auto& mesh_list_ = GetShadowMeshList(idx);
+	//	for (auto& mesh_component : mesh_list_)
+	//	{
+	//		mesh_component->UpdateConstantBufferForShadow(curr_frame_resource, -1);
+
+	//		auto gpu_address = curr_frame_resource->cb_object->Resource()->GetGPUVirtualAddress();
+	//		const auto cb_size = d3d_util::CalculateConstantBufferSize((sizeof(CBObject)));
+	//		gpu_address += cb_size * mesh_component->constant_buffer_index();
+
+	//		command_list->SetGraphicsRootShaderResourceView((int)RootParameterIndex::kInstanceData, gpu_address);
+
+	//		mesh_component->GetMesh()->Render(command_list, 0, curr_frame_resource);
+	//	}
+	//}
 
 }
 

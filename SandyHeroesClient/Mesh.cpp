@@ -5,6 +5,7 @@
 #include "DescriptorManager.h"
 #include "FrameResource.h"
 #include "Material.h"
+#include "Object.h"
 
 Mesh::~Mesh()
 {
@@ -162,30 +163,73 @@ void Mesh::ReleaseUploadBuffer()
 void Mesh::UpdateConstantBuffer(FrameResource* curr_frame_resource, int& cb_index)
 {
 	//메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
-	for (MeshComponent* mesh_component : mesh_component_list_)
+	//for (MeshComponent* mesh_component : mesh_component_list_)
+	//{
+	//	// 그릴 필요 없는 대상에 대해서는 업데이트를 할 필요 없음
+	//	if (!mesh_component->IsVisible())
+	//		continue;
+
+	//	mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
+
+	//	++cb_index;
+	//}
+	instance_count_ = 0;
+	instance_buffer_offset_ = curr_frame_resource->current_instance_offset;
+
+	for (MeshComponent* comp : mesh_component_list_)
 	{
-		// 그릴 필요 없는 대상에 대해서는 업데이트를 할 필요 없음
-		if (!mesh_component->IsVisible())
+		if (!comp->IsVisible())
 			continue;
+		const auto& object = comp->owner();
 
-		mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
+		InstanceData data{};
+		XMStoreFloat4x4(&data.world_matrix,
+			XMMatrixTranspose(XMLoadFloat4x4(&object->world_matrix())));
 
-		++cb_index;
+		data.time = object->life_time();
+
+		curr_frame_resource->sb_instance_data->CopyData(
+			curr_frame_resource->current_instance_offset++,
+			data
+		);
+
+		instance_count_++;
 	}
+
 }
 
 void Mesh::UpdateConstantBufferForShadow(FrameResource* curr_frame_resource, int& cb_index)
 {
 	//메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
-	for (MeshComponent* mesh_component : mesh_component_list_)
-	{
-		mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
+	//for (MeshComponent* mesh_component : mesh_component_list_)
+	//{
+	//	mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
 
-		++cb_index;
+	//	++cb_index;
+	//}
+	instance_count_ = 0;
+	instance_buffer_offset_ = curr_frame_resource->current_instance_offset;
+
+	for (MeshComponent* comp : mesh_component_list_)
+	{
+		const auto& object = comp->owner();
+
+		InstanceData data{};
+		XMStoreFloat4x4(&data.world_matrix,
+			XMMatrixTranspose(XMLoadFloat4x4(&object->world_matrix())));
+
+		data.time = object->life_time();
+
+		curr_frame_resource->sb_instance_data->CopyData(
+			curr_frame_resource->current_instance_offset++,
+			data
+		);
+
+		instance_count_++;
 	}
 }
 
-void Mesh::Render(ID3D12GraphicsCommandList* command_list, int material_index)
+void Mesh::Render(ID3D12GraphicsCommandList* command_list, int material_index, FrameResource* curr_frame_resource)
 {
 	command_list->IASetPrimitiveTopology(primitive_topology_);
 
@@ -193,16 +237,26 @@ void Mesh::Render(ID3D12GraphicsCommandList* command_list, int material_index)
 	command_list->IASetVertexBuffers(0,
 		vertex_buffer_views_.size(), vertex_buffer_views_.data());
 
+	//인스턴스 버퍼 set
+	D3D12_GPU_VIRTUAL_ADDRESS base =
+		curr_frame_resource->sb_instance_data->Resource()->GetGPUVirtualAddress();
+
+	command_list->SetGraphicsRootShaderResourceView(
+		(int)RootParameterIndex::kInstanceData,
+		base + instance_buffer_offset_ * sizeof(InstanceData)
+	);
+
+
 	if (material_index < indices_array_.size()) 
 	{
 		if (indices_array_[material_index].size())
 		{
 			command_list->IASetIndexBuffer(&index_buffer_views_[material_index]);
-			command_list->DrawIndexedInstanced(indices_array_[material_index].size(), 1, 0, 0, 0);
+			command_list->DrawIndexedInstanced(indices_array_[material_index].size(), instance_count_, 0, 0, 0);
 		}
 		else
 		{
-			command_list->DrawInstanced(positions_.size(), 1, 0, 0);
+			command_list->DrawInstanced(positions_.size(), instance_count_, 0, 0);
 		}
 	}
 	else
@@ -210,11 +264,11 @@ void Mesh::Render(ID3D12GraphicsCommandList* command_list, int material_index)
 		if (indices_array_.back().size())
 		{
 			command_list->IASetIndexBuffer(&index_buffer_views_.back());
-			command_list->DrawIndexedInstanced(indices_array_.back().size(), 1, 0, 0, 0);
+			command_list->DrawIndexedInstanced(indices_array_.back().size(), instance_count_, 0, 0, 0);
 		}
 		else
 		{
-			command_list->DrawInstanced(positions_.size(), 1, 0, 0);
+			command_list->DrawInstanced(positions_.size(), instance_count_, 0, 0);
 		}
 	}
 }
@@ -324,6 +378,11 @@ const std::vector<std::vector<UINT>>& Mesh::indices_array() const
 D3D12_PRIMITIVE_TOPOLOGY Mesh::primitive_topology() const
 {
 	return primitive_topology_;
+}
+
+int Mesh::instance_count() const
+{
+	return instance_count_;
 }
 
 void Mesh::set_name(const std::string& name)

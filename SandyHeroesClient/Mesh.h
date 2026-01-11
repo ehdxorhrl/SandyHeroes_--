@@ -25,7 +25,9 @@ public:
 	virtual void UpdateConstantBuffer(FrameResource* curr_frame_resource, int& start_index);
 	virtual void UpdateConstantBufferForShadow(FrameResource* curr_frame_resource, int& start_index);
 
-	virtual void Render(ID3D12GraphicsCommandList* command_list, int material_index);
+	virtual void Render(ID3D12GraphicsCommandList* command_list, int material_index, FrameResource* curr_frame_resource);
+
+
 
 	void LoadMeshFromFile(std::ifstream& file);
 
@@ -42,6 +44,7 @@ public:
 	const std::vector<XMFLOAT3>& positions() const;
 	const std::vector<std::vector<UINT>>& indices_array() const;
 	D3D12_PRIMITIVE_TOPOLOGY primitive_topology() const;
+	int instance_count() const;
 
 	//setter
 	void set_name(const std::string& name);
@@ -86,5 +89,9 @@ protected:
 	BoundingBox bounds_{};
 
 	std::list<MeshComponent*> mesh_component_list_;
+
+	// 하드웨어 인스턴싱을 위한 변수들
+	int instance_count_ = 0;
+	int instance_buffer_offset_ = 0;
 };
 

@@ -10,7 +10,7 @@ public:
     virtual void UpdateConstantBuffer(FrameResource* curr_frame_resource, int& cb_index) override;
     virtual void UpdateConstantBufferForShadow(FrameResource* curr_frame_resource, int& cb_index) override;
 
-    virtual void Render(ID3D12GraphicsCommandList* command_list, int material_index) override;
+    virtual void Render(ID3D12GraphicsCommandList* command_list, int material_index, FrameResource* curr_frame_resource) override;
 
     void LoadSkinnedMeshFromFile(std::ifstream& file);
 
