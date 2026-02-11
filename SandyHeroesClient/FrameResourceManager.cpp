@@ -63,18 +63,18 @@ void FrameResourceManager::ResetFrameResources(ID3D12Device* device, UINT cb_pas
 }
 
 void FrameResourceManager::CirculateFrameResource(ID3D12Fence* fence)
-{
+{   
+    // 다음 프레임 리소스 인덱스로 이동 (Ring Buffer)
     curr_frame_resource_index_ = (curr_frame_resource_index_ + 1) % kFrameCount;
     curr_frame_resource_ = frame_resources_[curr_frame_resource_index_].get();
 
-    // 현재 프레임리소스의 명령이 GPU에서 전부 수행했는지 체크하고 대기
-    if (curr_frame_resource_->fence != 0 && fence->GetCompletedValue() < curr_frame_resource_->fence)
+    // GPU가 해당 프레임 리소스 사용을 완료했는지 체크
+    // fence 값이 0이 아니고(초기상태 제외), GPU의 완료 값(GetCompletedValue)이 목표 값보다 작다면 대기
+    if (curr_frame_resource_->fence != 0 && 
+        fence->GetCompletedValue() < curr_frame_resource_->fence)
     {
         HANDLE event_handle = CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
         fence->SetEventOnCompletion(curr_frame_resource_->fence, event_handle);
-
-		//OutputDebugString(L"Waiting for frame resource to complete...\n");
-
         WaitForSingleObject(event_handle, INFINITE);
         CloseHandle(event_handle);
     }
