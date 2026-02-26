@@ -17,10 +17,6 @@ Object::Object(const std::string& name) : Object()
 
 Object::~Object()
 {
-	if (sibling_)
-		delete sibling_;
-	if (child_)
-		delete child_;
 }
 
 Object::Object(const Object& other) : 
@@ -39,10 +35,9 @@ Object::Object(const Object& other) :
 	sibling_ = nullptr;
 
 	//복사 대상 오브젝트의 컴포넌트들을 가져오고 이 오브젝트로 owner를 재설정한다.
-	for (const std::unique_ptr<Component>& component : other.component_list_)
+	for (const std::shared_ptr<Component>& component : other.component_list_)
 	{
-		component_list_.emplace_back();
-		component_list_.back().reset(component->GetCopy());
+		component_list_.push_back(std::shared_ptr<Component>(component->GetCopy()));
 		component_list_.back()->set_owner(this);
 	}
 }
@@ -114,27 +109,22 @@ std::string Object::tag() const
 
 Object* Object::child() const
 {
-	return child_;
+	return child_.get();
 }
 
 Object* Object::sibling() const
 {
-	return sibling_;
+	return sibling_.get();
 }
 
 Object* Object::parent() const
 {
-	return parent_;
+	return parent_.lock().get();
 }
 
 bool Object::is_ground() const
 {
 	return is_ground_;
-}
-
-bool Object::is_dead() const
-{
-	return is_dead_;
 }
 
 CollideType Object::collide_type() const
@@ -194,11 +184,6 @@ void Object::set_name(const std::string& value)
 void Object::set_tag(const std::string& value)
 {
 	tag_ = value;
-}
-
-void Object::set_is_dead(bool is_dead)
-{
-	is_dead_ = is_dead;
 }
 
 void Object::set_is_ground(bool is_ground)
@@ -289,16 +274,16 @@ void Object::ResetSRTFromTransformMatrix()
 	}
 }
 
-void Object::AddChild(Object* object)
+void Object::AddChild(std::shared_ptr<Object> object)
 {
-	object->parent_ = this;
+	object->parent_ = shared_from_this();
 	if (child_)
 		child_->AddSibling(object);
 	else
 		child_ = object;
 }
 
-void Object::AddSibling(Object* object)
+void Object::AddSibling(std::shared_ptr<Object> object)
 {
 	object->parent_ = parent_;
 	if (sibling_)
@@ -307,10 +292,9 @@ void Object::AddSibling(Object* object)
 		sibling_ = object;
 }
 
-void Object::AddComponent(Component* component)
+void Object::AddComponent(std::shared_ptr<Component> component)
 {
-	component_list_.emplace_back();
-	component_list_.back().reset(component);
+	component_list_.push_back(component);
 }
 
 Object* Object::FindFrame(const std::string& name)
@@ -333,17 +317,16 @@ Object* Object::FindFrame(const std::string& name)
 
 Object* Object::GetHierarchyRoot()
 {
-	if (parent_)
-		return parent_->GetHierarchyRoot();
+	if (!parent_.expired())
+		return parent_.lock()->GetHierarchyRoot();
 	return this;
 }
 
 void Object::DeleteChild(const std::string& name)
 {
-	if (child_ && child_->name_ == name)
+	if (child_ && child_->name() == name)
 	{
-		delete child_;
-		child_ = nullptr;
+		child_ = child_->sibling_;
 		return;
 	}
 	if (child_)
@@ -355,63 +338,15 @@ void Object::DeleteChild(const std::string& name)
 		sibling_->DeleteChild(name);
 	}
 }
-
-void Object::KillChild(const std::string& name)
-{
-	if (child_ && child_->name_ == name)
-	{
-		child_->set_is_dead(true);
-		return;
-	}
-	if (child_)
-	{
-		child_->KillChild(name);
-	}
-	if (sibling_)
-	{
-		sibling_->KillChild(name);
-	}
-}
-
-Object* Object::PopDeadChild()
-{
-	if (child_ && child_->is_dead_)
-	{
-		Object* new_child = child_->sibling_;
-		child_->sibling_ = nullptr;
-		Object* dead_child = child_;
-		child_ = new_child;
-		return dead_child;
-	}
-	if (child_)
-	{
-		Object* dead_child = child_->PopDeadChild();
-		if (dead_child)
-			return dead_child;
-	}
-	if (sibling_)
-	{
-		return sibling_->PopDeadChild();
-	}
-	return nullptr;
-}
-
-void Object::ChangeChild(Object* src, const std::string& dst_name, bool is_delete)
+void Object::ChangeChild(std::shared_ptr<Object> src, const std::string& dst_name, bool is_delete)
 {
 	if (!src)
 		return;
-	if (child_ && child_->name_ == dst_name)
+	if (child_ && child_->name() == dst_name)
 	{
-		if (is_delete)
-		{
-			delete child_;
-			child_ = src;
-		}
-		else
-		{
-			child_->set_is_dead(true);
-			child_->AddSibling(src);
-		}
+		src->parent_ = shared_from_this();
+		src->sibling_ = child_->sibling_;
+		child_ = src;
 		return;
 	}
 	if (child_)
@@ -423,8 +358,6 @@ void Object::ChangeChild(Object* src, const std::string& dst_name, bool is_delet
 		sibling_->ChangeChild(src, dst_name, is_delete);
 	}
 }
-
-
 void Object::UpdateWorldMatrix(const XMFLOAT4X4* const parent_world)
 {
 	world_matrix_ = parent_world ? transform_matrix_ * (*parent_world) : transform_matrix_;
@@ -437,12 +370,11 @@ void Object::UpdateWorldMatrix(const XMFLOAT4X4* const parent_world)
 
 void Object::Update(float elapsed_time)
 {
-	if (is_dead_)
-		return;
+	
 
 	life_time_ += elapsed_time;
 
-	for (const std::unique_ptr<Component>& component : component_list_)
+	for (const std::shared_ptr<Component>& component : component_list_)
 	{
 		component->Update(elapsed_time);
 	}
@@ -520,17 +452,12 @@ void Object::Destroy()
 	}
 }
 
-void Object::AddDeadFrameCount(UINT frame_count)
-{
-	dead_frame_count_ += frame_count;
-}
-
-Object* Object::DeepCopy(Object* value, Object* parent)
+std::shared_ptr<Object> Object::DeepCopy(const std::shared_ptr<Object>& value, const std::shared_ptr<Object>& parent)
 {
 	if (!value)
 		return nullptr;
 
-	Object* copy = new Object(*value);
+	std::shared_ptr<Object> copy = std::make_shared<Object>(*value);
 	copy->parent_ = parent;
 
 	copy->child_ = DeepCopy(value->child_, copy);

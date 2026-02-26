@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 class Component;
 
@@ -11,7 +12,7 @@ struct CollideType
 // Scene에 등장하는 오브젝트 클래스
 // 자식과 형제 노드를 가진 트리구조
 
-class Object
+class Object : public std::enable_shared_from_this<Object>
 {
 public:
 	Object();
@@ -42,9 +43,7 @@ public:
 	Object* child() const;
 	Object* sibling() const;
 	Object* parent() const;
-	bool is_ground() const;	
-	bool is_dead() const;	//죽은 오브젝트인가?
-	UINT dead_frame_count() const { return dead_frame_count_; }	//죽은 후 프레임 카운트
+	bool is_ground() const;
 
 	CollideType collide_type() const;
 
@@ -68,8 +67,6 @@ public:
 	void set_name(const std::string& value);
 	void set_id(const long long id);
 	void set_tag(const std::string& value);
-	void set_is_dead(bool is_dead);
-
 	void set_is_ground(bool on_ground);
 	void set_collide_type(bool ground_check, bool wall_check);
 	void set_collide_type(const CollideType& collide_type);
@@ -85,17 +82,15 @@ public:
 	//SRT 정보를 transform_matrix_로 초기화한다.
 	void ResetSRTFromTransformMatrix();
 
-	void AddChild(Object* object);
-	void AddSibling(Object* object);
-	void AddComponent(Component* component);
+	void AddChild(std::shared_ptr<Object> object);
+	void AddSibling(std::shared_ptr<Object> object);
+	void AddComponent(std::shared_ptr<Component> component);
 
 	Object* FindFrame(const std::string& name);
 	Object* GetHierarchyRoot();
 
 	void DeleteChild(const std::string& name);
-	void KillChild(const std::string& name);
-	Object* PopDeadChild();	// 죽은 자식 오브젝트를 찾아서 자식 노드에서 제거하고 반환한다.
-	void ChangeChild(Object* src, const std::string& dst_name, bool is_delete = true);
+	void ChangeChild(std::shared_ptr<Object> src, const std::string& dst_name, bool is_delete = true);
 
 	void UpdateWorldMatrix(const XMFLOAT4X4* const parent_transform); 
 
@@ -109,9 +104,7 @@ public:
 
 	void OnDestroy(std::function<void(Object*)> func);
 	void Destroy();
-	void AddDeadFrameCount(UINT frame_count);
-
-	static Object* DeepCopy(Object* value, Object* parent = nullptr);
+	static std::shared_ptr<Object> DeepCopy(const std::shared_ptr<Object>& value, const std::shared_ptr<Object>& parent = nullptr);
 
 	template<class T>
 	static T* GetComponent(Object* object)
@@ -195,18 +188,15 @@ protected:
 	XMFLOAT3 local_rotation_{}; //오일러각
 	XMFLOAT3 local_position_{};
 
-	Object* parent_ = nullptr;
-	Object* child_ = nullptr;
-	Object* sibling_ = nullptr;
+	std::weak_ptr<Object> parent_;
+	std::shared_ptr<Object> child_;
+	std::shared_ptr<Object> sibling_;
 
-	std::list<std::unique_ptr<Component>> component_list_;
+	std::list<std::shared_ptr<Component>> component_list_;
 
 	std::string name_ = "None";
 	std::string tag_ = "None_Tag";	//오브젝트를 "분류"하기 위한 태그 값 ex) "Player", "HitDragon", "ShotDragon"
-
-	bool is_dead_ = false;	//죽은 오브젝트인가?	
 	bool is_player_ = false;
-	UINT dead_frame_count_ = 0;	//오브젝트가 죽은 후 프레임 카운트
 
 	float life_time_ = 0.f;	//오브젝트의 생존 시간
 

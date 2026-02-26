@@ -24,7 +24,7 @@ struct CollideType
 
 // Scene에 등장하는 모든 오브젝트의 조상 클래스
 // 자식과 형제 노드를 가진 트리구조
-class Object
+class Object : public std::enable_shared_from_this<Object>
 {
 public:
 	Object();
@@ -61,7 +61,6 @@ public:
 	Object* child() const;
 	Object* sibling() const;
 	bool is_ground() const;
-	bool is_dead() const;
 	bool is_player() const;
 	bool is_movable() const { return is_movable_; }
 
@@ -70,8 +69,6 @@ public:
 	void ApplyGravity(float elapsed_time);
 
 	void Destroy();
-
-	Object* PopDeadChild();
 
 	XMFLOAT3 local_scale() const { return local_scale_; }
 	XMFLOAT3 local_rotation() const { return local_rotation_; }
@@ -98,16 +95,14 @@ public:
 	void set_name(const std::string& value);
 	void set_velocity(const XMFLOAT3& value);
 
-	void set_is_ground(bool on_ground);
-	void set_is_dead(bool is_dead);
-	void set_is_movable(bool value);
+	void set_is_ground(bool on_ground);	void set_is_movable(bool value);
 	void set_tag(const std::string& value);
 	void set_monster_type(MonsterType type);
 	void set_animation_state(int animation_state);
 
-	void AddChild(Object* object);
-	void AddSibling(Object* object);
-	void AddComponent(Component* component);
+	void AddChild(std::shared_ptr<Object> object);
+	void AddSibling(std::shared_ptr<Object> object);
+	void AddComponent(std::shared_ptr<Component> component);
 
 	Object* FindFrame(const std::string& name);
 	void PrintFrameNamesRecursive(int depth);
@@ -125,9 +120,9 @@ public:
 
 	void OnDestroy(std::function<void(Object*)> func);
 
-	void ChangeChild(Object* src, const std::string& dst_name, bool is_delete);
+	void ChangeChild(std::shared_ptr<Object> src, const std::string& dst_name, bool is_delete);
 
-	static Object* DeepCopy(Object* value, Object* parent = nullptr);
+	static std::shared_ptr<Object> DeepCopy(const std::shared_ptr<Object>& value, const std::shared_ptr<Object>& parent = nullptr);
 
 	void set_collide_type(bool ground_check, bool wall_check);
 
@@ -220,12 +215,12 @@ protected:
 
 	XMFLOAT3 old_position_{};
 
-	Object* parent_ = nullptr;
-	Object* child_ = nullptr;
-	Object* sibling_ = nullptr;
+	std::weak_ptr<Object> parent_;
+	std::shared_ptr<Object> child_;
+	std::shared_ptr<Object> sibling_;
 
 	// 오브젝트에 추가된 모든 컴포넌트의 리스트
-	std::list<std::unique_ptr<Component>> component_list_;
+	std::list<std::shared_ptr<Component>> component_list_;
 
 	std::string name_ = "None";
 	std::string tag_ = "None_Tag";
@@ -234,11 +229,7 @@ protected:
 	//물리 관련 변수들
 	XMFLOAT3 velocity_{ 0,0,0 };
 	const float gravity_ = { -9.8f };
-
-	bool is_dead_ = false;	//죽은 오브젝트인가?	
 	bool is_player_ = false;
-
-	UINT dead_frame_count_ = 0;	//오브젝트가 죽은 후 프레임 카운트
 
 	bool is_ground_ = false;
 
