@@ -97,61 +97,24 @@ XMVECTOR Scene::GetPickingPointAtWorld(float sx, float sy, Object* picked_object
 	return XMVECTOR();
 }
 
-void Scene::AddObject(Object* object)
+void Scene::AddObject(std::shared_ptr<Object> object)
 {
-	object_list_.emplace_back();
-	object_list_.back().reset(object);
+	object_list_.push_back(object);
 }
 
-void Scene::DeleteObject(Object* object)
+void Scene::DeleteObject(std::shared_ptr<Object> object)
 {
 	for (auto& sector : sectors_)
 	{
-		sector.DeleteObject(object);
+		sector.DeleteObject(object.get());
 	}
 
-	object_list_.remove_if([&object](const std::unique_ptr<Object>& obj) {
-		return obj.get() == object;
-		});
-}
-
-void Scene::DeleteDeadObjects()
-{
-	for (auto& sector : sectors_) {
-		sector.DeleteDeadObject();
-	}
-
-	// 메인 object 리스트에서 죽은 오브젝트 제거
-	auto it = object_list_.begin();
-	while (it != object_list_.end()) {
-		if ((*it)->is_dead()) {
-			auto current = it++;
-			(*current)->Destroy();       // 상태 설정
-			dead_object_list_.splice(dead_object_list_.end(), object_list_, current);  // 즉시 삭제
-		}
-		else {
-			Object* dead_object = (*it)->PopDeadChild();
-			while (dead_object)
-			{
-				dead_object_list_.emplace_back(std::unique_ptr<Object>(dead_object));
-				dead_object = (*it)->PopDeadChild();
-			}
-			++it;
-		}
-	}
-}
-
-void Scene::Update(float elapsed_time)
-{
-	for (const std::unique_ptr<Object>& object : object_list_)
-	{
-		object->Update(elapsed_time);
-	}
+	object_list_.remove(object);
 }
 
 void Scene::UpdateObjectWorldMatrix()
 {
-	for (const std::unique_ptr<Object>& object : object_list_)
+	for (const std::shared_ptr<Object>& object : object_list_)
 	{
 		object->UpdateWorldMatrix(nullptr);
 	}
@@ -159,7 +122,7 @@ void Scene::UpdateObjectWorldMatrix()
 
 Object* Scene::FindObject(const std::string& object_name)
 {
-	auto it = std::find_if(object_list_.begin(), object_list_.end(), [&object_name](const std::unique_ptr<Object>& object) {
+	auto it = std::find_if(object_list_.begin(), object_list_.end(), [&object_name](const std::shared_ptr<Object>& object) {
 		return object.get()->name() == object_name;
 		});
 
@@ -208,8 +171,7 @@ void Scene::BuildScene(const std::string& scene_name)
 		if (load_token[0] == '@')
 		{
 			load_token.erase(0, 1);
-			object_list_.emplace_back();
-			object_list_.back().reset(FindModelInfo(load_token)->GetInstance());
+			object_list_.push_back(std::shared_ptr<Object>(FindModelInfo(load_token)->GetInstance()));
 	
 			ReadStringFromFile(scene_file, load_token);
 			XMFLOAT4X4 transfrom = ReadFromFile<XMFLOAT4X4>(scene_file);
@@ -224,8 +186,7 @@ void Scene::BuildScene(const std::string& scene_name)
 	
 			model_infos_.push_back(std::make_unique<ModelInfo>("../Resource/Model/" + object_name + ".bin", meshes_, materials_, textures_));
 	
-			object_list_.emplace_back();
-			object_list_.back().reset(model_infos_.back()->GetInstance());
+			object_list_.push_back(std::shared_ptr<Object>(model_infos_.back()->GetInstance()));
 	
 			object_list_.back()->set_transform_matrix(transfrom);
 	
@@ -247,15 +208,15 @@ Mesh* Scene::FindMesh(const std::string& mesh_name, const std::vector<std::uniqu
 	return nullptr;
 }
 
-Object* Scene::CreatePlayerObject(long long session_id) {
+std::shared_ptr<Object> Scene::CreatePlayerObject(long long session_id) {
 	auto model_info = FindModelInfo("Dog00");
 	if (!model_info) return nullptr;
 
-	auto obj = model_info->GetInstance();
+	auto obj = std::shared_ptr<Object>(model_info->GetInstance());
 	obj->set_name("Player_" + std::to_string(session_id));
 	obj->set_position_vector(0, 0, 0);
 
-	object_list_.emplace_back(obj);
+	object_list_.push_back(obj);
 	return obj;
 }
 

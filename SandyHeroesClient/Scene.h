@@ -42,10 +42,8 @@ public:
 	virtual bool CheckObjectByObjectCollisions() { return false; };
 
 	//씬에 오브젝트 추가 및 삭제(부가적인 오브젝트 리스트가 있다면 이 함수를 오버라이드하여	사용)
-	virtual void AddObject(Object* object);
-	virtual void DeleteObject(Object* object);
-	virtual void DeleteDeadObjects();
-
+	virtual void AddObject(std::shared_ptr<Object> object);
+	virtual void DeleteObject(std::shared_ptr<Object> object);
 	void ReleaseMeshUploadBuffer();
 
 	virtual void UpdateRenderPassConstantBuffer(ID3D12GraphicsCommandList* command_list);
@@ -90,15 +88,14 @@ public:
 	XMFLOAT2 screen_size() const;
 	bool is_play_cutscene() const;
 	Object* player() const;
-	std::list<WallColliderComponent*> stage_wall_collider_list(int index) const { return stage_wall_collider_list_[index]; }
+	std::list<std::weak_ptr<WallColliderComponent>> stage_wall_collider_list(int index) const { return stage_wall_collider_list_[index]; }
 
 	//setter
 	void set_main_camera(CameraComponent* value);
 	void set_is_play_cutscene(bool value);
 
 protected:
-	std::list<std::unique_ptr<Object>> object_list_;
-	std::list<std::unique_ptr<Object>> dead_object_list_;
+	std::list<std::shared_ptr<Object>> object_list_;
 	std::unordered_map<int, std::unique_ptr<Shader>> shaders_;
 	std::vector<std::unique_ptr<Mesh>> meshes_;
 	std::vector<std::unique_ptr<ModelInfo>> model_infos_;
@@ -127,13 +124,13 @@ protected:
 	//그림자를 위해 일부 base scene 멤버 변수들 scene으로 옮김
 	bool is_prepare_ground_checking_ = false;
 	//맵 바닥체크를 위한 메쉬 콜라이더 리스트 배열
-	std::array<std::list<WallColliderComponent*>, 8> stage_wall_collider_list_;
-	std::list<Object*> ground_check_object_list_;	//지면 체크가 필요한 객체들의 리스트(플레이어, monster, NPC)
+	std::array<std::list<std::weak_ptr<WallColliderComponent>>, 8> stage_wall_collider_list_;
+	std::list<std::weak_ptr<Object>> ground_check_object_list_;	//지면 체크가 필요한 객체들의 리스트(플레이어, monster, NPC)
 
 	// 플레이어의 스테이지 진행도
 	int stage_clear_num_{ 0 };
 
-	Object* player_ = nullptr;
+	std::weak_ptr<Object> player_;
 
 	//For ParticleRender
 	std::unique_ptr<ParticleRenderer> particle_renderer_{ nullptr };	//파티클 렌더러
