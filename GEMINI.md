@@ -22,3 +22,4 @@
 
 * [2026-02-27] Object 클래스 리팩토링 완료 (shared_ptr, weak_ptr 적용 및 is_dead_ 멤버 제거)
 * [2026-02-27] Scene 클래스 리팩토링 완료 (object_list_ shared_ptr 적용, 지연 삭제 로직 제거 및 기타 참조 리스트 weak_ptr 적용)
+* [2026-02-27] Sector 클래스 리팩토링 완료 (object_list_ weak_ptr 적용 및 지연 삭제 로직 제거)
