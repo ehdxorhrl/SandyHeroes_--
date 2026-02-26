@@ -22,7 +22,6 @@ public:
 			auto locked = wp.lock();
 			return locked && locked.get() == object;
 		}) != object_list_.end();
-	}) != object_list_.end();
 	}
 
 	void DeleteObject(Object* object);

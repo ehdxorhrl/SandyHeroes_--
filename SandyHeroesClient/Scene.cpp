@@ -150,7 +150,7 @@ void Scene::UpdateSector()
 			continue;
 		for (auto& sector : sectors_)
 		{
-			if (sector.InsertObject(object.get()))
+			if (sector.InsertObject(object))
 				break;
 		}
 	}
@@ -170,7 +170,8 @@ void Scene::RunViewFrustumCulling()
 		bool is_in_view_sector = sector.bounds().Intersects(world_frustum);
 		for (const auto& object : sector.object_list())
 		{
-			object->set_is_in_view_sector(is_in_view_sector);
+			auto object_ptr = object.lock();
+			object_ptr->set_is_in_view_sector(is_in_view_sector);
 		}
 	}
 	//std::string str = "View Frustum Culling: " + std::to_string(i) + " objects checked.\n" + std::to_string(j) + " Sectors checked.\n";
@@ -689,7 +690,7 @@ void Scene::InitializeSectorObjectlist()
 			continue;
 		for (auto& sector : sectors_)
 		{
-			if (sector.InsertObject(object.get()))
+			if (sector.InsertObject(object))
 				break;
 		}
 	}
