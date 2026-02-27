@@ -19,35 +19,35 @@ public:
 
     void Stop();
 
-    void set_camera_object(Object* value);
+    void set_camera_object(std::shared_ptr<Object> value);
     void set_scene(Scene* value);
-    void set_particle(ParticleComponent* value);
+    void set_particle(std::shared_ptr<ParticleComponent> value);
 
     //getter
     bool is_firekey_down() const;
 
-    Object* camera_object() const { return camera_object_; }
+    std::shared_ptr<Object> camera_object() const { return camera_object_.lock(); }
 
 private:
     Scene* scene_ = nullptr;
-    Object* camera_object_ = nullptr;
+    std::weak_ptr<Object> camera_object_;
 
-    ParticleComponent* particle_ = nullptr;
+    std::weak_ptr<ParticleComponent> particle_;
 
     bool is_firekey_down_ = false;
 
-    // Á¡ÇÁÅ°°¡ ´­·È°í owner°¡ Áö¸éÀ§¿¡ ÀÖ´Ù¸é Á¡ÇÁ¸¦ ½ÇÇà
+    // ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½È°ï¿½ ownerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     bool is_jumpkey_pressed_ = false;
     float jump_speed_ = 7.f;
 
-    float y_axis_velocity_ = 0.f;       // yÃà¿¡ ´ëÇÑ ¼Óµµ
+    float y_axis_velocity_ = 0.f;       // yï¿½à¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½Óµï¿½
     float gravity_ = 20.f;
 
     bool is_dash_pressed_ = false;
-    float dash_cool_delta_time_ = 0.f;          // ´ë½¬ ÄðÅ¸ÀÓ ÃøÁ¤À» À§ÇÑ º¯¼ö
-    float dash_cool_time_ = 0.f;                // ´ë½¬ ÄðÅ¸ÀÓ
-    XMFLOAT3 dash_velocity_{ 0,0,0 };           // ´ë½¬ ¼Óµµ(½ÇÁ¦ Àû¿ëµÇ´Â "¼Óµµ"ÀÓ)
-    float dash_length_{ 10.f };                  // ´ë½¬ °Å¸®
-    XMFLOAT3 dash_before_position_{ 0,0,0 };    // ´ë½¬ ½ÃÀÛÀ§Ä¡
+    float dash_cool_delta_time_ = 0.f;          // ï¿½ë½¬ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    float dash_cool_time_ = 0.f;                // ï¿½ë½¬ ï¿½ï¿½Å¸ï¿½ï¿½
+    XMFLOAT3 dash_velocity_{ 0,0,0 };           // ï¿½ë½¬ ï¿½Óµï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ "ï¿½Óµï¿½"ï¿½ï¿½)
+    float dash_length_{ 10.f };                  // ï¿½ë½¬ ï¿½Å¸ï¿½
+    XMFLOAT3 dash_before_position_{ 0,0,0 };    // ï¿½ë½¬ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡
 };
 

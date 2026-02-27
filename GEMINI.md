@@ -25,3 +25,5 @@
 * \[2026-02-27] Sector 클래스 리팩토링 완료 (object\_list\_ weak\_ptr 적용 및 지연 삭제 로직 제거)
 * \[2026-02-27] Component 클래스 리팩토링 완료 (owner\_ weak\_ptr 적용 및 shared\_ptr 기반 관리)
 * \[2026-02-27] BaseScene 클래스 리팩토링 완료 (모든 참조 리스트 weak\_ptr 적용, 지연 삭제 로직 제거 및 shared\_ptr 기반 객체 생성 적용)
+* \[2026-02-28] ModelInfo 클래스 리팩토링 완료 (hierarchy_root_ shared_ptr 적용 및 프레임/컴포넌트 객체 생성 시 shared_ptr 사용)
+* \[2026-02-28] FPSControllerComponent 클래스 리팩토링 완료 (참조 객체 멤버 weak_ptr 적용)
