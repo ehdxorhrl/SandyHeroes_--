@@ -23,8 +23,6 @@ ModelInfo::ModelInfo(const std::string& file_name, std::vector<std::unique_ptr<M
 
 ModelInfo::~ModelInfo()
 {
-	if (hierarchy_root_)
-		delete hierarchy_root_;
 }
 
 std::string ModelInfo::model_name() const
@@ -52,7 +50,7 @@ void ModelInfo::LoadModelInfoFromFile(const std::string& file_name, std::vector<
 
 	hierarchy_root_ = LoadFrameInfoFromFile(model_file, meshes, materials, textures);
 
-	hierarchy_root_->set_position_vector(0, 0, 0); //¸ðµ¨ Á¤º¸´Â 0 0 0¿¡ À§Ä¡
+	hierarchy_root_->set_position_vector(0, 0, 0); //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0 0 0ï¿½ï¿½ ï¿½ï¿½Ä¡
 
 	ReadStringFromFile(model_file, load_token);
 
@@ -77,8 +75,8 @@ void ModelInfo::LoadModelInfoFromFile(const std::string& file_name, std::vector<
 
 	if (animation_sets_.size())
 	{
-		//TODO: ¸ðµ¨ Á¾·ù¿¡ µû¶ó ¾Ë¸ÂÀº AS Å¬·¡½º ºÐ¹è°¡ ÇÊ¿ä
-		AnimatorComponent* animator = new AnimatorComponent(hierarchy_root_, animation_sets_, frame_names_, root_bone_name_, new PlayerAnimationState);
+		//TODO: ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ï¿½ï¿½ AS Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¹è°¡ ï¿½Ê¿ï¿½
+		auto animator = std::make_shared<AnimatorComponent>(hierarchy_root_.get(), animation_sets_, frame_names_, root_bone_name_, new PlayerAnimationState);
 		hierarchy_root_->AddComponent(animator);
 	}
 
@@ -90,7 +88,7 @@ void ModelInfo::LoadModelInfoFromFile(const std::string& file_name, std::vector<
 
 }
 
-Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::unique_ptr<Mesh>>& meshes,
+std::shared_ptr<Object> ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::unique_ptr<Mesh>>& meshes,
 	std::vector<std::unique_ptr<Material>>& materials, std::vector<std::unique_ptr<Texture>>& textures)
 {
 	std::string load_token;
@@ -100,7 +98,7 @@ Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::u
 	PrintDebugStringLoadTokenError(model_name_, load_token, "<Frame>:");
 #endif //_DEBUG
 
-	Object* frame = new Object;
+	auto frame = std::make_shared<Object>();
 
 	//object name
 	ReadStringFromFile(file, load_token);
@@ -120,10 +118,10 @@ Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::u
 		BoundingBox box;
 		box.Center = ReadFromFile<XMFLOAT3>(file);
 		box.Extents = ReadFromFile<XMFLOAT3>(file);
-		frame->AddComponent(new BoxColliderComponent(frame, box));
+		frame->AddComponent(std::make_shared<BoxColliderComponent>(frame.get(), box));
 #ifdef _DEBUG
-		//TODO: µð¹ö±× material Ãß°¡ ¹× ÄÄÆ÷³ÍÆ®¿¡ ¿¬°á
-		frame->AddComponent(new DebugMeshComponent(frame, Scene::FindMesh("Debug_Mesh", meshes), box));
+		//TODO: ï¿½ï¿½ï¿½ï¿½ï¿½ material ï¿½ß°ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		frame->AddComponent(std::make_shared<DebugMeshComponent>(frame.get(), Scene::FindMesh("Debug_Mesh", meshes), box));
 #endif // _DEBUG
 
 		ReadStringFromFile(file, load_token);
@@ -133,7 +131,7 @@ Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::u
 	{
 		const std::array<std::string, 8>
 			stage_names{ "BASE", "STAGE1", "STAGE2", "STAGE3", "STAGE4", "STAGE5", "STAGE6", "STAGE7" };
-		//¾î¶² ¸ÊÀÇ ³ëµåÀÎÁö
+		//ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		const auto& map_name = model_name_;
 		int map_idx{};
 		for (int i = 0; i < 8; ++i)
@@ -182,8 +180,9 @@ Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::u
 			meshes.back().reset(mesh);
 		}
 
-		MeshComponent* mesh_component = new MeshComponent(frame, mesh);
-		mesh->DeleteMeshComponent(mesh_component);	//¸ðµ¨ Á¤º¸´Â ±×·ÁÁö¸é ¾ÈµÇ±â ¶§¹®¿¡ ¸Þ½¬ÀÇ ÄÄÆ÷³ÍÆ® ¸®½ºÆ®¿¡¼­ Á¦¿ÜÇÔ
+		auto mesh_component = std::make_shared<MeshComponent>(frame.get(), mesh);
+				mesh->DeleteMeshComponent(mesh_component.get());
+			//ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		frame->AddComponent(mesh_component);
 
 		ReadStringFromFile(file, load_token);
@@ -210,7 +209,6 @@ Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::u
 			}
 
 			mesh_component->AddMaterial(material);
-			material->DeleteMeshComponent(mesh_component);
 		}
 		ReadStringFromFile(file, load_token);
 
@@ -224,7 +222,7 @@ Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::u
 		{
 			if (mesh)
 			{
-				GroundColliderComponent* mesh_collider = new GroundColliderComponent(frame);
+				auto mesh_collider = std::make_shared<GroundColliderComponent>(frame.get());
 				mesh_collider->set_mesh(mesh);
 				frame->AddComponent(mesh_collider);
 			}
@@ -234,12 +232,12 @@ Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::u
 		{
 			if (mesh)
 			{
-				WallColliderComponent* wall_collider = new WallColliderComponent(frame);
+				auto wall_collider = std::make_shared<WallColliderComponent>(frame.get());
 				wall_collider->set_mesh(mesh);
 				auto box = Object::GetComponent<BoxColliderComponent>(frame);
 				if (box)
 				{
-					wall_collider->set_box_collider(box);
+					wall_collider->set_box_collider(box.get());
 				}
 				frame->AddComponent(wall_collider);
 			}
@@ -264,8 +262,8 @@ Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::u
 			meshes.back().reset(skinned_mesh);
 		}
 
-		SkinnedMeshComponent* skinned_mesh_component = new SkinnedMeshComponent(frame, skinned_mesh);
-		skinned_mesh->DeleteMeshComponent(skinned_mesh_component);
+		auto skinned_mesh_component = std::make_shared<SkinnedMeshComponent>(frame.get(), skinned_mesh);
+		skinned_mesh->DeleteMeshComponent(skinned_mesh_component.get());
 		frame->AddComponent(skinned_mesh_component);
 
 		ReadStringFromFile(file, load_token);
@@ -292,7 +290,6 @@ Object* ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, std::vector<std::u
 			}
 
 			skinned_mesh_component->AddMaterial(material);
-			material->DeleteMeshComponent(skinned_mesh_component);
 		}
 		ReadStringFromFile(file, load_token);
 
@@ -370,23 +367,19 @@ void ModelInfo::LoadAnimationInfoFromFile(std::ifstream& file)
 
 }
 
-Object* ModelInfo::GetInstance() const
+std::shared_ptr<Object> ModelInfo::GetInstance() const
 {
-	Object* r_value = Object::DeepCopy(hierarchy_root_);
+	auto r_value = Object::DeepCopy(hierarchy_root_);
 
 	return r_value;
 }
 
-Object* ModelInfo::hierarchy_root() const
+std::shared_ptr<Object> ModelInfo::hierarchy_root() const
 {
 	return hierarchy_root_;
 }
 
-void ModelInfo::set_hierarchy_root(Object* root)
+void ModelInfo::set_hierarchy_root(std::shared_ptr<Object> root)
 {
-	if (hierarchy_root_)
-	{
-		delete hierarchy_root_;
-	}
 	hierarchy_root_ = root;
 }

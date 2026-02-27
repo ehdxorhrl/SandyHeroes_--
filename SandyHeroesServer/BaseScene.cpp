@@ -106,8 +106,7 @@ void BaseScene::BuildMesh()
 		{
 			load_token.erase(0, 1);
 			std::string object_name = load_token;
-			object_list_.emplace_back();
-			object_list_.back().reset(FindModelInfo(object_name)->GetInstance());
+			object_list_.push_back(FindModelInfo(object_name)->GetInstance());
 			object_list_.back()->set_name(object_name);
 
 			ReadStringFromFile(scene_file, load_token);  // <Transform>
@@ -155,8 +154,7 @@ void BaseScene::BuildMesh()
 
 			model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/World/" + object_name + ".bin", meshes_, materials_, textures_));
 
-			object_list_.emplace_back();
-			object_list_.back().reset(model_infos_.back()->GetInstance());
+			object_list_.push_back(model_infos_.back()->GetInstance());
 			object_list_.back()->set_name(object_name);
 
 			object_list_.back()->set_transform_matrix(transform);
@@ -464,7 +462,7 @@ void BaseScene::BuildObject()
 				std::cout << "[ERROR] MeshComponent 에 Mesh 가 nullptr!!" << std::endl;
 			}
 
-			Object* object = mesh_comp->owner();
+			auto object = mesh_comp->owner();
 			auto mesh_collider = std::make_shared<MeshColliderComponent>(object);
 			mesh_collider->set_mesh(mesh);
 			object->AddComponent(mesh_collider);
@@ -615,8 +613,8 @@ void BaseScene::CreateMonsterSpawner()
 	int super_spawner_id = 0;
 	ModelInfo* super_dragon_spawner = FindModelInfo("Super_Dragon_Spawner");
 
-	Object* spawner;
-	SpawnerComponent* spawner_component;
+	std::shared_ptr<Object> spawner;
+	std::shared_ptr<SpawnerComponent> spawner_component;
 	//Stage 1
 	{
 		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
@@ -890,7 +888,7 @@ std::shared_ptr<Object> BaseScene::CreateAndRegisterPlayer(long long session_id)
 	for (auto& mesh_component : mesh_component_list)
 	{
 		auto mesh = mesh_component->GetMesh();
-		Object* object = mesh_component->owner();
+		auto object = mesh_component->owner();
 		auto mesh_collider = std::make_shared<MeshColliderComponent>(object);
 		mesh_collider->set_mesh(mesh);
 		object->AddComponent(mesh_collider);

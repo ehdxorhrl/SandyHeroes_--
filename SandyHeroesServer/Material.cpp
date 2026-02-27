@@ -220,12 +220,6 @@ void Material::AddMeshComponent(MeshComponent* component)
 	mesh_component_list_.push_back(component);
 }
 
-void Material::DeleteMeshComponent(MeshComponent* component)
-{
-	mesh_component_list_.remove(component);
-
-}
-
 void Material::CopyMaterialData(Material* material)
 {
 	albedo_color_ = material->albedo_color_;

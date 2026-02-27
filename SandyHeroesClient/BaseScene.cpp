@@ -228,8 +228,7 @@ void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* comma
 		{
 			load_token.erase(0, 1);			
 			std::string object_name = load_token;
-			object_list_.emplace_back();
-			object_list_.back().reset(FindModelInfo(object_name)->GetInstance());
+			object_list_.push_back(FindModelInfo(object_name)->GetInstance());
 
 			ReadStringFromFile(scene_file, load_token); 
 			XMFLOAT4X4 transfrom;
@@ -274,8 +273,7 @@ void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* comma
 
 			model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/World/" + object_name + ".bin", meshes_, materials_, textures_));
 
-			object_list_.emplace_back();
-			object_list_.back().reset(model_infos_.back()->GetInstance());
+			object_list_.push_back(model_infos_.back()->GetInstance());
 
 			object_list_.back()->set_transform_matrix(transfrom);
 			if (is_sector)
@@ -1690,8 +1688,8 @@ void BaseScene::CreateMonsterSpawner()
 	int strong_spawner_id = 0;
 	ModelInfo* strong_dragon_spawner = FindModelInfo("Strong_Dragon_Spawner");
 
-	Object* spawner;
-	SpawnerComponent* spawner_component;
+	std::shared_ptr<Object> spawner;
+	std::shared_ptr<SpawnerComponent> spawner_component;
 	//Stage 1
 	{
 		spawner = create_spawner(hit_dragon_spawner, hit_spawner_id, XMFLOAT3{ 17.38f, 0.61f, -0.92f }, 3, 3.f, 5.f);
@@ -2088,7 +2086,7 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 	ModelInfo* ui_model = FindModelInfo(gun_ui_name);
 	if (ui_model)
 	{
-		auto ui_texture = std::shared_ptr<Object>(ui_model->GetInstance()));
+		auto ui_texture = ui_model->GetInstance();
 		ui_texture->set_local_position({ 0.0f, 0.5f, 0.1f }); // 위치는 필요 시 조정
 		dropped_gun->AddChild(ui_texture);
 	}
