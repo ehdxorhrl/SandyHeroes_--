@@ -27,7 +27,7 @@ void CutSceneTrack::Play(Scene* scene)
 {
 	is_playing_ = true;
 	scene_ = scene;
-	scene_camera_ = scene->main_camera()->owner();
+	scene_camera_ = scene->main_camera()->owner().lock();
 	auto camera_component = Object::GetComponent<CameraComponent>(camera_);
 	scene->set_main_camera(camera_component);
 	scene_->set_is_play_cutscene(true);
@@ -78,12 +78,12 @@ void CutSceneTrack::Run(float elapsed_time)
 
 }
 
-void CutSceneTrack::set_camera(Object* value)
+void CutSceneTrack::set_camera(std::shared_ptr<Object> value)
 {
 	camera_ = value;
 }
 
-Object* CutSceneTrack::camera() const
+std::shared_ptr<Object> CutSceneTrack::camera() const
 {
 	return camera_;
 }

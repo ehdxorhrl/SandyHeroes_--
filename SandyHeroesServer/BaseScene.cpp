@@ -162,7 +162,7 @@ void BaseScene::BuildMesh()
 			object_list_.back()->set_transform_matrix(transform);
 			if (is_sector)
 			{
-				sectors_.back().object_list().push_back(object_list_.back().get());
+				sectors_.back().object_list().push_back(object_list_.back());
 			}
 		}
 
@@ -206,10 +206,10 @@ void BaseScene::BuildModelInfo()
 	//Create Hit Dragon Spawner
 	ModelInfo* hit_dragon_spawner = new ModelInfo();
 	hit_dragon_spawner->set_model_name("Hit_Dragon_Spawner");
-	Object* spawner = new Object();
-	auto monster_component = new MonsterComponent(nullptr);
+	auto spawner = std::make_shared<Object>();
+	auto monster_component = std::make_shared<MonsterComponent>(nullptr);
 	monster_component->set_scene(this);
-	auto spawner_component = new SpawnerComponent(spawner, this, hit_dragon);
+	auto spawner_component = std::make_shared<SpawnerComponent>(spawner, this, hit_dragon);
 	spawner_component->AddComponent(monster_component);
 	spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
 	spawner_component->SetMonsterType(MonsterType::Hit_Dragon);
@@ -221,8 +221,8 @@ void BaseScene::BuildModelInfo()
 	//Create Shot Dragon Spawner
 	ModelInfo* shot_dragon_spawner = new ModelInfo();
 	shot_dragon_spawner->set_model_name("Shot_Dragon_Spawner");
-	spawner = new Object();
-	spawner_component = new SpawnerComponent(spawner, this, shot_dragon);
+	spawner = std::make_shared<Object>();
+	spawner_component = std::make_shared<SpawnerComponent>(spawner, this, shot_dragon);
 	spawner_component->AddComponent(monster_component->GetCopy());
 	spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
 	spawner_component->SetMonsterType(MonsterType::Shot_Dragon);
@@ -234,8 +234,8 @@ void BaseScene::BuildModelInfo()
 	//Create Bomb Dragon Spawner
 	ModelInfo* bomb_dragon_spawner = new ModelInfo();
 	bomb_dragon_spawner->set_model_name("Bomb_Dragon_Spawner");
-	spawner = new Object();
-	spawner_component = new SpawnerComponent(spawner, this, bomb_dragon);
+	spawner = std::make_shared<Object>();
+	spawner_component = std::make_shared<SpawnerComponent>(spawner, this, bomb_dragon);
 	spawner_component->AddComponent(monster_component->GetCopy());
 	spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
 	spawner_component->SetMonsterType(MonsterType::Bomb_Dragon);
@@ -247,8 +247,8 @@ void BaseScene::BuildModelInfo()
 	//Create Strong Dragon Spawner
 	ModelInfo* strong_dragon_spawner = new ModelInfo();
 	strong_dragon_spawner->set_model_name("Strong_Dragon_Spawner");
-	spawner = new Object();
-	spawner_component = new SpawnerComponent(spawner, this, strong_dragon);
+	spawner = std::make_shared<Object>();
+	spawner_component = std::make_shared<SpawnerComponent>(spawner, this, strong_dragon);
 	spawner_component->AddComponent(monster_component->GetCopy());
 	spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
 	spawner_component->SetMonsterType(MonsterType::Strong_Dragon);
@@ -260,8 +260,8 @@ void BaseScene::BuildModelInfo()
 	//Create Super Dragon Spawner
 	ModelInfo* super_dragon_spawner = new ModelInfo();
 	super_dragon_spawner->set_model_name("Super_Dragon_Spawner");
-	spawner = new Object();
-	spawner_component = new SpawnerComponent(spawner, this, super_dragon);
+	spawner = std::make_shared<Object>();
+	spawner_component = std::make_shared<SpawnerComponent>(spawner, this, super_dragon);
 	spawner_component->AddComponent(monster_component->GetCopy());
 	spawner_component->AddComponent(std::make_unique<MovementComponent>(nullptr));
 	spawner_component->SetMonsterType(MonsterType::Super_Dragon);
@@ -280,7 +280,7 @@ void BaseScene::BuildModelInfo()
 			classic_model->set_hierarchy_root(classic_object);
 			classic_model->set_model_name("Classic");
 
-			GunComponent* gun_component = new GunComponent(classic_object);
+			auto gun_component = std::make_shared<GunComponent>(classic_object);
 			gun_component->LoadGunInfo("classic");
 			classic_object->AddComponent(gun_component);
 			classic_object->Rotate(0, 170, -17);
@@ -296,7 +296,7 @@ void BaseScene::BuildModelInfo()
 			vandal_model->set_hierarchy_root(vandal_object);
 			vandal_model->set_model_name("Vandal");
 
-			GunComponent* gun_component = new GunComponent(vandal_object);
+			auto gun_component = std::make_shared<GunComponent>(vandal_object);
 			gun_component->LoadGunInfo("vandal");
 			vandal_object->AddComponent(gun_component);
 			vandal_object->Rotate(0, 170, -17);
@@ -312,7 +312,7 @@ void BaseScene::BuildModelInfo()
 			odin_model->set_hierarchy_root(odin_object);
 			odin_model->set_model_name("Odin");
 
-			GunComponent* gun_component = new GunComponent(odin_object);
+			auto gun_component = std::make_shared<GunComponent>(odin_object);
 			gun_component->LoadGunInfo("odin");
 			odin_object->AddComponent(gun_component);
 			odin_object->Rotate(0, 170, -17);
@@ -328,17 +328,17 @@ void BaseScene::BuildModelInfo()
 			flamethrower_model->set_hierarchy_root(flamethrower_object);
 			flamethrower_model->set_model_name("Flamethrower");
 
-			GunComponent* gun_component = new GunComponent(flamethrower_object);
+			auto gun_component = std::make_shared<GunComponent>(flamethrower_object);
 			gun_component->LoadGunInfo("flamethrower");
 			flamethrower_object->AddComponent(gun_component);
 			flamethrower_object->Rotate(0, 170, -17);
 
-			Object* player_gun_particle_pivot = new Object("gun_particle_pivot");
+			auto player_gun_particle_pivot = std::make_shared<Object>("gun_particle_pivot");
 			flamethrower_object->AddChild(player_gun_particle_pivot);
 			player_gun_particle_pivot->set_local_position(XMFLOAT3(0.0f, 0.143f, 1.24f));
 
 			//// 화염방사기에 충돌 박스 달기
-			auto flamethrow_box_component = new BoxColliderComponent(player_gun_particle_pivot, gun_component->flamethrow_box());
+			auto flamethrow_box_component = std::make_shared<BoxColliderComponent>(player_gun_particle_pivot, gun_component->flamethrow_box());
 			player_gun_particle_pivot->AddComponent(flamethrow_box_component);
 
 			model_infos_.emplace_back();
@@ -352,7 +352,7 @@ void BaseScene::BuildModelInfo()
 			sherif_model->set_hierarchy_root(sherif_object);
 			sherif_model->set_model_name("Sherif");
 
-			GunComponent* gun_component = new GunComponent(sherif_object);
+			auto gun_component = std::make_shared<GunComponent>(sherif_object);
 			gun_component->LoadGunInfo("sherif");
 			sherif_object->AddComponent(gun_component);
 			sherif_object->Rotate(0, 170, -17);
@@ -368,7 +368,7 @@ void BaseScene::BuildModelInfo()
 			specter_model->set_hierarchy_root(specter_object);
 			specter_model->set_model_name("Specter");
 
-			GunComponent* gun_component = new GunComponent(specter_object);
+			auto gun_component = std::make_shared<GunComponent>(specter_object);
 			gun_component->LoadGunInfo("specter");
 			specter_object->AddComponent(gun_component);
 			specter_object->Rotate(0, 170, -17);
@@ -392,19 +392,19 @@ void BaseScene::BuildModelInfo()
 			model_infos_.emplace_back();
 			model_infos_.back().reset(scroll_model_info);
 
-			Object* scroll = model_infos_[scroll_model_index]->GetInstance();
+			auto scroll = std::shared_ptr<Object>(model_infos_[scroll_model_index]->GetInstance());
 			scroll_model_info->set_hierarchy_root(scroll);
 			scroll->set_name("Scroll_" + std::to_string(i));
 			scroll->set_tag("Scroll");
 			scroll->set_is_movable(true);
 
-			auto scroll_component = new ScrollComponent(scroll);
+			auto scroll_component = std::make_shared<ScrollComponent>(scroll);
 			scroll_component->set_type(static_cast<ScrollType>(i));
 			scroll->AddComponent(scroll_component);
 
 			//scroll->set_local_rotation(scroll_rotations[0]);
 
-			Object* ui_bar = new Object();
+			auto ui_bar = std::make_shared<Object>();
 			ui_bar->set_tag("Scroll_UI");
 
 			// 메쉬 및 머티리얼 설정
@@ -448,9 +448,8 @@ void BaseScene::BuildObject()
 
 	std::cout << "[DEBUG] 전체 오브젝트 수: " << object_list_.size() << std::endl;
 
-	for (auto& object_ptr : object_list_)
+	for (auto& object : object_list_)
 	{
-		Object* object = object_ptr.get();
 		// 재귀적으로 MeshComponent를 찾아서 처리
 		auto mesh_components = Object::GetComponentsInChildren<MeshComponent>(object);
 		std::cout << "[DEBUG] Object name: " << object->name()
@@ -466,14 +465,14 @@ void BaseScene::BuildObject()
 			}
 
 			Object* object = mesh_comp->owner();
-			MeshColliderComponent* mesh_collider = new MeshColliderComponent(object);
+			auto mesh_collider = std::make_shared<MeshColliderComponent>(object);
 			mesh_collider->set_mesh(mesh);
 			object->AddComponent(mesh_collider);
 			if (mesh->name() != "Debug_Mesh")
 			{
 				if (debug_material)
 				{
-					auto debug_mesh_component = new DebugMeshComponent(object, debug_mesh, mesh->bounds());
+					auto debug_mesh_component = std::make_shared<DebugMeshComponent>(object, debug_mesh, mesh->bounds());
 					debug_mesh_component->AddMaterial(debug_material);
 					object->AddComponent(debug_mesh_component);
 				}
@@ -529,14 +528,14 @@ void BaseScene::BuildObject()
 
 		for (int i = 0; i < kChestCount; ++i)
 		{
-			Object* chest = model_infos_[12]->GetInstance();
+			auto chest = std::shared_ptr<Object>(model_infos_[12]->GetInstance());
 			chest->set_name("Chest" + std::to_string(i));
 			chest->set_position_vector(chest_positions[i]);
 			chest->set_local_rotation(chest_rotations[i]);
 			chest->set_is_movable(true);
 
 			//스크롤 추가
-			auto chest_component = new ChestComponent(chest, this);
+			auto chest_component = std::make_shared<ChestComponent>(chest, this);
 			//박스당 1개 사용
 			auto scroll_model = FindModelInfo("Scroll_" + std::to_string(scroll_index[i]));
 			std::cout << "Scroll_" + std::to_string(scroll_index[i]) << std::endl;
@@ -546,7 +545,7 @@ void BaseScene::BuildObject()
 
 			// 충돌용 BoxColliderComponent 부착
 			BoundingBox box_bounds{ {0.0f, 0.0f, 0.0f}, {1.5f, 1.0f, 1.5f} };
-			auto collider = new BoxColliderComponent(chest, box_bounds);
+			auto collider = std::make_shared<BoxColliderComponent>(chest, box_bounds);
 			chest->AddComponent(collider);
 
 
@@ -556,35 +555,16 @@ void BaseScene::BuildObject()
 		}
 	}
 
-	////Create Razer Model
-	//{
-	//	ModelInfo* razer_model = new ModelInfo();
-	//	auto razer_object = new Object("Razer");
-	//	auto razer_component = new RazerComponent(razer_object);
-	//	auto mesh_component = new BillboardMeshComponent(razer_object,
-	//		FindMesh("RazerMesh", meshes_), FindMaterial("Razer", materials_), this);
-	//	FindMaterial("Razer", materials_)->DeleteMeshComponent(mesh_component);
-	//	razer_object->AddComponent(mesh_component);
-	//	razer_object->AddComponent(razer_component);
-	//	razer_object->set_is_movable(true);
-	//	razer_model->set_hierarchy_root(razer_object);
-	//	razer_model->set_model_name("Razer");
-	//	model_infos_.emplace_back();
-	//	model_infos_.back().reset(razer_model);
-	//}
-
 	{
 		ModelInfo* razer_model = new ModelInfo();
-		auto razer_object = new Object("Razer");
-		auto razer_component = new RazerComponent(razer_object);
-		auto mesh_component = new BillboardMeshComponent(
+		auto razer_object = std::make_shared<Object>("Razer");
+		auto razer_component = std::make_shared<RazerComponent>(razer_object);
+		auto mesh_component = std::make_shared<BillboardMeshComponent>(
 			razer_object,
 			FindMesh("RazerMesh", meshes_),
-			nullptr, // 재질 제거됨
+			nullptr, 
 			this
 		);
-		// 재질 관련 코드 제거됨:
-		//FindMaterial("Razer", materials_)->DeleteMeshComponent(mesh_component);
 
 		razer_object->AddComponent(mesh_component);
 		razer_object->AddComponent(razer_component);
@@ -598,24 +578,15 @@ void BaseScene::BuildObject()
 	catch_monster_num_ = 1;
 
 
-	//std::cout << "========== DEBUG COLLIDER CHECK ==========\n";
-	//for (const auto& obj : object_list_)
-	//{
-	//	auto mesh_collider_list = Object::GetComponentsInChildren<MeshColliderComponent>(obj.get());
-	//	std::cout << "[Object] " << obj->name()
-	//		<< " → " << mesh_collider_list.size() << " MeshCollider(s)" << std::endl;
-	//}
-	//
-	//std::cout << "STAGE1 object: " << (Scene::FindObject("STAGE1") ? "Found" : "Not Found") << std::endl;
 }
 
 void BaseScene::CreateMonsterSpawner()
 {
-	std::function<Object* (ModelInfo*, int&, XMFLOAT3, int, float, float)> create_spawner =
+	std::function<std::shared_ptr<Object> (ModelInfo*, int&, XMFLOAT3, int, float, float)> create_spawner =
 		[this]
 	(ModelInfo* spawner_model, int& spawner_id, XMFLOAT3 spawn_position, int spawn_count, float spawn_time, float spawn_cool_time)
 	{
-		Object* spawner = spawner_model->GetInstance();
+		auto spawner = spawner_model->GetInstance();
 		spawner->set_name(spawner_model->model_name() + "_" + std::to_string(++spawner_id));
 		spawner->set_position_vector(spawn_position);
 		auto spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
@@ -835,8 +806,10 @@ void BaseScene::ActivateStageMonsterSpawner(int stage_num)
 	{
 		return;
 	}
-	for (auto& spawner : stage_monster_spawner_list_[stage_num])
-	{
+	for (auto it = stage_monster_spawner_list_[stage_num].begin(); it != stage_monster_spawner_list_[stage_num].end(); ) {
+	auto spawner = it->lock();
+	if (!spawner) { it = stage_monster_spawner_list_[stage_num].erase(it); continue; }
+	++it;
 		spawner->ActivateSpawn();
 	}
 }
@@ -846,7 +819,7 @@ void BaseScene::add_catch_monster_num()
 	++catch_monster_num_;
 }
 
-const std::list<MonsterComponent*>& BaseScene::monster_list() const
+const std::list<std::weak_ptr<MonsterComponent>>& BaseScene::monster_list() const
 {
 	return monster_list_;
 }
@@ -877,7 +850,7 @@ void BaseScene::Update(float elapsed_time)
 
 	UpdateRazerHitEnemy();
 
-	DeleteDeadObjects();
+	
 
 	UpdateStageClear();
 
@@ -888,9 +861,9 @@ void BaseScene::Update(float elapsed_time)
 	TickNoClipTimers(elapsed_time);
 }
 
-Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
+std::shared_ptr<Object> BaseScene::CreateAndRegisterPlayer(long long session_id)
 {
-	Object* player = model_infos_[0]->GetInstance();
+	auto player = std::shared_ptr<Object>(model_infos_[0]->GetInstance());
 	player->set_name("Player_" + std::to_string(session_id));
 	player->set_position_vector(XMFLOAT3{ -15, 6, 0 });
 	//player->set_position_vector(XMFLOAT3{ 205.3f, 6, -91.f }); 7스테이지
@@ -901,34 +874,29 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 	player->set_collide_type(true, true);  // 지면 & 벽 충돌 체크 등록
 	player->set_is_movable(true);
 	player->set_is_player();
-	player->AddComponent(new MovementComponent(player));
+	player->AddComponent(std::make_shared<MovementComponent>(player));
 
 	// 애니메이션 세팅
 	if (auto animator = Object::GetComponent<AnimatorComponent>(player))
 		animator->set_animation_state(new PlayerAnimationState);
 
 	// 총기 부착
-	Object* weapon_frame = player->FindFrame("WeaponR_locator");
+	auto weapon_frame = player->FindFrame("WeaponR_locator");
 	if (weapon_frame) {
 		weapon_frame->AddChild(FindModelInfo("Flamethrower")->GetInstance());  // 총 모델
-		weapon_frame = weapon_frame->child();  // 자식 프레임 가져옴
-
 	}
-	//else {
-	//	std::cerr << "[DEBUG] WeaponR_locator not found." << std::endl;
-	//}
 
 	auto mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(player);
 	for (auto& mesh_component : mesh_component_list)
 	{
 		auto mesh = mesh_component->GetMesh();
 		Object* object = mesh_component->owner();
-		MeshColliderComponent* mesh_collider = new MeshColliderComponent(object);
+		auto mesh_collider = std::make_shared<MeshColliderComponent>(object);
 		mesh_collider->set_mesh(mesh);
 		object->AddComponent(mesh_collider);
 	}
 
-	auto player_component = new PlayerComponent(player);
+	auto player_component = std::make_shared<PlayerComponent>(player);
 	player_component->set_scene(this);
 	player->AddComponent(player_component);
 
@@ -951,7 +919,7 @@ Object* BaseScene::CreateAndRegisterPlayer(long long session_id)
 }
 
 
-void BaseScene::AddObject(Object* object)
+void BaseScene::AddObject(std::shared_ptr<Object> object)
 {
 	Scene::AddObject(object);
 
@@ -960,8 +928,8 @@ void BaseScene::AddObject(Object* object)
 	if (collide_type.ground_check)
 	{
 		ground_check_object_list_.push_back(object);
-		//std::cout << "추가 완료" << std::endl;
 	}
+
 	if (collide_type.wall_check)
 	{
 		auto movement = Object::GetComponentInChildren<MovementComponent>(object);
@@ -971,7 +939,6 @@ void BaseScene::AddObject(Object* object)
 		}
 
 	}
-
 	auto monster_component = Object::GetComponent<MonsterComponent>(object);
 	if (monster_component)
 	{
@@ -983,76 +950,34 @@ void BaseScene::AddObject(Object* object)
 	{
 		razer_list_.push_back(razer_component);
 	}
-
-	if(object->is_movable()) {
-		object->OnDestroy([this](Object* o) {
-			sc_packet_object_set_dead osd{};
-		osd.size = sizeof(sc_packet_object_set_dead);
-		osd.type = S2C_P_OBJECT_SET_DEAD;   // 실제 사용 중인 타입으로 교체
-		osd.id = o->id();
-		osd.monster_type = o->monster_type();
-
-		const auto& users = SessionManager::getInstance().getAllSessions();
-		for (auto& u : users) u.second->do_send(&osd);   // 브로드캐스트
-			});
-	}
 }
 
-void BaseScene::DeleteObject(Object* object)
+void BaseScene::DeleteObject(std::shared_ptr<Object> object)
 {
 	CollideType collide_type = object->collide_type();
-	if (collide_type.ground_check)
-	{
-		ground_check_object_list_.remove(object);
-	}
 	if (collide_type.wall_check)
 	{
-		wall_check_object_list_.remove_if([object](const WallCheckObject& wall_check_object) {
-			return wall_check_object.object == object;
+		wall_check_object_list_.remove_if([&object](const WallCheckObject& wall_check_object) {
+			return wall_check_object.object.expired() || wall_check_object.object.lock() == object;
 			});
 	}
 
 	Scene::DeleteObject(object);
 }
 
-void BaseScene::DeleteDeadObjects()
-{
-	monster_list_.remove_if([](const MonsterComponent* monster_component) {
-		return monster_component->owner()->is_dead();
-		});
-
-	ground_check_object_list_.remove_if([](const Object* object) {
-		return object->is_dead();
-		});
-
-	wall_check_object_list_.remove_if([](const WallCheckObject& wall_check_object) {
-		return wall_check_object.object->is_dead();
-		});
-
-	razer_list_.remove_if([](const RazerComponent* razer_component) {
-		return razer_component->owner()->is_dead();
-		});
-
-	Scene::DeleteDeadObjects();
-}
-
 void BaseScene::UpdateObjectIsGround()
 {
-
 	if (!is_prepare_ground_checking_)
 	{
 		PrepareGroundChecking();
 	}
 
-	for (auto& object : ground_check_object_list_)
+	for (auto it = ground_check_object_list_.begin(); it != ground_check_object_list_.end(); ) 
 	{
-		if (!object)
-		{
-			std::cout << "[DEBUG] CheckObjectIsGround: object is nullptr" << std::endl;
-			return;
-		}
-
+		auto object = it->lock();
+		if (!object) { it = ground_check_object_list_.erase(it); continue; }
 		CheckObjectIsGround(object);
+		++it;
 	}
 }
 
@@ -1063,9 +988,12 @@ void BaseScene::UpdateObjectHitWall()
 		PrepareGroundChecking();
 	}
 
-	for (auto& wall_check_object : wall_check_object_list_)
-	{
-		CheckPlayerHitWall(wall_check_object.object, wall_check_object.movement);
+	for (auto it = wall_check_object_list_.begin(); it != wall_check_object_list_.end(); ) {
+		auto object = it->object.lock();
+		auto movement = it->movement.lock();
+		if (!object || !movement) { it = wall_check_object_list_.erase(it); continue; }
+		CheckPlayerHitWall(object, movement);
+		++it;
 	}
 }
 
@@ -1080,16 +1008,20 @@ void BaseScene::UpdateObjectHitBullet(float elapsed_time)
 	{
 		const auto& player_object = player.second->get_player_object();
 		CheckPlayerHitGun(player_object);
+
 		if (!player.second->is_firekey_down()) continue;
-		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_object);
+		auto gun = Object::GetComponentInChildren<GunComponent>(player_object);
 		if (gun && gun->gun_name() == "flamethrower")
 		{
 			auto bullet_mesh = FindModelInfo("SM_Bullet_01")->GetInstance();
 			gun->FireBullet(XMFLOAT3{}, bullet_mesh, this, player.second->get_id());
 		}
-		for (const auto& monster : monster_list_)
+		for (auto it = monster_list_.begin(); it != monster_list_.end();)
 		{
+			auto monster = it->lock();
+			if (!monster) { it = monster_list_.erase(it); continue; }
 			CheckObjectHitFlamethrow(monster->owner(), player.second->get_id(), elapsed_time);
+			++it;
 		}
 	}
 }
@@ -1100,10 +1032,12 @@ void BaseScene::UpdateObjectHitObject()
 	{
 		PrepareGroundChecking();
 	}
-	for (auto& object : ground_check_object_list_)
-	{
+	for (auto it = ground_check_object_list_.begin(); it != ground_check_object_list_.end(); ) {
+		auto object = it->lock();
+		if (!object) { it = ground_check_object_list_.erase(it); continue; }
 		auto movement = Object::GetComponentInChildren<MovementComponent>(object);
 		CheckObjectHitObject(object);
+		++it;
 	}
 }
 
@@ -1189,15 +1123,18 @@ void BaseScene::UpdateStageClear()
 		});
 
 	//몬스터 삭제
-	for (auto& monster : monster_list_)
-	{
-		if (monster->owner()->is_dead()) continue;
+	for (auto it = monster_list_.begin(); it != monster_list_.end(); ) {
+		auto monster = it->lock();
+		if (!monster) { it = monster_list_.erase(it); continue; }
 		monster->HitDamage(9999.f);
+		++it;
 	}
 	// 스테이지 몬스터 스포너 비활성화
-	for (auto& spawner : stage_monster_spawner_list_[stage_clear_num_])
-	{
+	for (auto it = stage_monster_spawner_list_[stage_clear_num_].begin(); it != stage_monster_spawner_list_[stage_clear_num_].end(); ) {
+		auto spawner = it->lock();
+		if (!spawner) { it = stage_monster_spawner_list_[stage_clear_num_].erase(it); continue; }
 		spawner->DeactivateSpawn();
+		++it;
 	}
 
 	std::cout << "현재 스테이지: " << stage_clear_num_ << std::endl;
@@ -1226,20 +1163,23 @@ void BaseScene::UpdateStageClear()
 
 void BaseScene::PrepareGroundChecking()
 {
-	static const std::array<std::string, kStageMaxCount>
+	const std::array<std::string, kStageMaxCount>
 		stage_names{ "BASE", "STAGE1", "STAGE2", "STAGE3", "STAGE4", "STAGE5", "STAGE6", "STAGE7" };
 	for (int i = 0; i < stage_names.size(); ++i)
 	{
-		Object* object = Scene::FindObject(stage_names[i]);
+		auto object = Scene::FindObject(stage_names[i]);
 		//std::cout << object->name() << std::endl;
-		checking_maps_mesh_collider_list_[i] = Object::GetComponentsInChildren<MeshColliderComponent>(object);
-		stage_ground_collider_list_[i] = Object::GetComponentsInChildren<GroundColliderComponent>(object);
-		stage_wall_collider_list_[i] = Object::GetComponentsInChildren<WallColliderComponent>(object);
+		auto mesh_collider_list = Object::GetComponentsInChildren<MeshColliderComponent>(object);
+		checking_maps_mesh_collider_list_[i].assign(mesh_collider_list.begin(), mesh_collider_list.end());
+		auto ground_collider_list = Object::GetComponentsInChildren<GroundColliderComponent>(object);
+		stage_ground_collider_list_[i].assign(ground_collider_list.begin(), ground_collider_list.end());
+		auto wall_collider_list = Object::GetComponentsInChildren<WallColliderComponent>(object);
+		stage_wall_collider_list_[i].assign(wall_collider_list.begin(), wall_collider_list.end());
 	}
 	is_prepare_ground_checking_ = true;
 }
 
-void BaseScene::CheckPlayerHitGun(Object* object)
+void BaseScene::CheckPlayerHitGun(std::shared_ptr<Object> object)
 {
 	if (!object)
 		return;
@@ -1254,14 +1194,15 @@ void BaseScene::CheckPlayerHitGun(Object* object)
 
 	for (auto it = dropped_guns_.begin(); it != dropped_guns_.end(); )
 	{
-		Object* gun = *it;
+		auto gun = it->lock();
+		if (!gun) { it = dropped_guns_.erase(it); continue; }
 		auto gun_box = Object::GetComponent<BoxColliderComponent>(gun);
 		if (!gun_box) { ++it; continue; }
 
 		// F 키 입력된 세션만 판정
 		if (player_obb.Intersects(gun_box->animated_box()) && session->IsKeyDown('F'))
 		{
-			GunComponent* gun_component = Object::GetComponent<GunComponent>(gun);
+			auto gun_component = Object::GetComponent<GunComponent>(gun);
 			if (!gun_component) { ++it; continue; }
 
 			std::string dropped_name = gun->name(); // "Dropped_Classic"
@@ -1271,7 +1212,7 @@ void BaseScene::CheckPlayerHitGun(Object* object)
 			int upgrade = gun_component->upgrade();
 			ElementType element = gun_component->element();
 
-			Object* player_gun_frame = object->FindFrame("WeaponR_locator");
+			auto player_gun_frame = object->FindFrame("WeaponR_locator");
 			if (!player_gun_frame) { ++it; continue; }
 
 			std::vector<std::string> guns{ "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
@@ -1281,8 +1222,8 @@ void BaseScene::CheckPlayerHitGun(Object* object)
 				player_gun_frame->ChangeChild(FindModelInfo(gun_name)->GetInstance(), name, true);
 			}
 
-			Object* new_gun = player_gun_frame->FindFrame(gun_name);
-			GunComponent* new_gun_component = Object::GetComponent<GunComponent>(new_gun);
+			auto new_gun = player_gun_frame->FindFrame(gun_name);
+			auto new_gun_component = Object::GetComponent<GunComponent>(new_gun);
 			if (new_gun_component)
 			{
 				new_gun_component->set_upgrade(upgrade);
@@ -1305,7 +1246,7 @@ void BaseScene::CheckPlayerHitGun(Object* object)
 				user.second->do_send(&gc);
 			}
 
-			gun->set_is_dead(true);
+			DeleteObject(gun);
 			it = dropped_guns_.erase(it);
 
 			// F 키를 한 번만 사용하도록 해제
@@ -1321,16 +1262,22 @@ void BaseScene::CheckPlayerHitGun(Object* object)
 
 void BaseScene::UpdateRazerHitEnemy()
 {
-	for (auto& razer : razer_list_)
+	for (auto it = razer_list_.begin(); it != razer_list_.end(); ) 
 	{
-		for (auto& monster : monster_list_)
+		auto razer = it->lock();
+		if (!razer) { it = razer_list_.erase(it); continue; }
+		++it;
+		for (auto monster_it = monster_list_.begin(); monster_it != monster_list_.end(); )
 		{
+			auto monster = monster_it->lock();
+			if (!monster) { monster_it = monster_list_.erase(monster_it); continue; }
+			++monster_it;
 			CheckRazerHitEnemy(razer, monster);
 		}
 	}
 }
 
-void BaseScene::CheckObjectIsGround(Object* object)
+void BaseScene::CheckObjectIsGround(std::shared_ptr<Object> object)
 {
 	//std::cout << "[DEBUG] Entered CheckObjectIsGround()" << std::endl;
 
@@ -1343,8 +1290,11 @@ void BaseScene::CheckObjectIsGround(Object* object)
 
 	bool is_collide = false;
 	float distance{ std::numeric_limits<float>::max() };
-	for (auto& mesh_collider : stage_ground_collider_list_[stage_clear_num_])
+	for (auto it = stage_ground_collider_list_[stage_clear_num_].begin(); it != stage_ground_collider_list_[stage_clear_num_].end(); ) 
 	{
+		auto mesh_collider = it->lock();
+		if (!mesh_collider) { it = stage_ground_collider_list_[stage_clear_num_].erase(it); continue; }
+		++it;
 		//++a;
 		float t{};
 		if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
@@ -1358,8 +1308,11 @@ void BaseScene::CheckObjectIsGround(Object* object)
 	}
 	if (stage_clear_num_ - 1 >= 0)
 	{
-		for (auto& mesh_collider : stage_ground_collider_list_[stage_clear_num_ - 1])
+		for (auto it = stage_ground_collider_list_[stage_clear_num_ - 1].begin(); it != stage_ground_collider_list_[stage_clear_num_ - 1].end(); ) 
 		{
+			auto mesh_collider = it->lock();
+			if (!mesh_collider) { it = stage_ground_collider_list_[stage_clear_num_ - 1].erase(it); continue; }
+			++it;
 			//++a;
 			float t{};
 			if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
@@ -1396,7 +1349,7 @@ void BaseScene::CheckObjectIsGround(Object* object)
 	object->set_is_ground(false);
 }
 
-void BaseScene::CheckPlayerHitWall(Object* object, MovementComponent* movement)
+void BaseScene::CheckPlayerHitWall(std::shared_ptr<Object> object, std::shared_ptr<MovementComponent> movement)
 {
 	XMFLOAT3 velocity = movement->velocity();
 
@@ -1420,8 +1373,10 @@ void BaseScene::CheckPlayerHitWall(Object* object, MovementComponent* movement)
 	int a = 0;
 	constexpr float MAX_DISTANCE = 0.5f;
 
-	for (auto& mesh_collider : stage_wall_collider_list_[stage_clear_num_])
-	{
+	for (auto it = stage_wall_collider_list_[stage_clear_num_].begin(); it != stage_wall_collider_list_[stage_clear_num_].end(); ) {
+	auto mesh_collider = it->lock();
+	if (!mesh_collider) { it = stage_wall_collider_list_[stage_clear_num_].erase(it); continue; }
+	++it;
 		++a;
 		float t{};
 		if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
@@ -1434,8 +1389,10 @@ void BaseScene::CheckPlayerHitWall(Object* object, MovementComponent* movement)
 	}
 	if (stage_clear_num_ - 1 >= 0)
 	{
-		for (auto& mesh_collider : stage_wall_collider_list_[stage_clear_num_ - 1])
-		{
+		for (auto it = stage_wall_collider_list_[stage_clear_num_ - 1].begin(); it != stage_wall_collider_list_[stage_clear_num_ - 1].end(); ) {
+	auto mesh_collider = it->lock();
+	if (!mesh_collider) { it = stage_wall_collider_list_[stage_clear_num_ - 1].erase(it); continue; }
+	++it;
 			++a;
 			float t{};
 			if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
@@ -1459,9 +1416,9 @@ void BaseScene::CheckPlayerHitWall(Object* object, MovementComponent* movement)
 
 }
 
-void BaseScene::CheckObjectHitObject(Object* object)
+void BaseScene::CheckObjectHitObject(std::shared_ptr<Object> object)
 {
-	if (!object || object->is_dead()) return;
+	if (!object ) return;
 
 	auto movement = Object::GetComponentInChildren<MovementComponent>(object);
 	if (!movement) return;
@@ -1469,8 +1426,11 @@ void BaseScene::CheckObjectHitObject(Object* object)
 	auto selfMesh = Object::GetComponentInChildren<MeshColliderComponent>(object);
 	auto selfBox = Object::GetComponentInChildren<BoxColliderComponent>(object);
 
-	for (auto& other : ground_check_object_list_) {
-		if (!other || other == object || other->is_dead()) continue;
+	for (auto it = ground_check_object_list_.begin(); it != ground_check_object_list_.end(); ) {
+		auto other = it->lock();
+		if (!other) { it = ground_check_object_list_.erase(it); continue; }
+		++it;
+		if (!other || other == object ) continue;
 
 		auto otherMesh = Object::GetComponentInChildren<MeshColliderComponent>(other);
 		auto otherBox = Object::GetComponentInChildren<BoxColliderComponent>(other);
@@ -1544,9 +1504,14 @@ void BaseScene::CheckObjectHitObject(Object* object)
 
 
 		float distance = std::numeric_limits<float>::max();
-		for (auto& mesh_collider : stage_wall_collider_list_[stage_clear_num_]) {
+		for (auto it = stage_wall_collider_list_[stage_clear_num_].begin(); it != stage_wall_collider_list_[stage_clear_num_].end(); ) 
+		{
+			auto mesh_collider = it->lock();
+			if (!mesh_collider) { it = stage_wall_collider_list_[stage_clear_num_].erase(it); continue; }
+			++it;
 			float t{};
-			if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t)) {
+			if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t)) 
+			{
 				if (t < distance) distance = t;
 			}
 		}
@@ -1577,8 +1542,14 @@ void BaseScene::CheckObjectHitObject(Object* object)
 				XMVECTOR ro = XMLoadFloat3(&XMFLOAT3{ object_pos.x, object_pos.y + 0.75f, object_pos.z });
 				XMVECTOR rd = XMVector3Normalize(XMLoadFloat3(&XMFLOAT3{ side.x, 0.f, side.z }));
 				float d = std::numeric_limits<float>::max(), t{};
-				for (auto& mc : stage_wall_collider_list_[stage_clear_num_])
-					if (mc->CollisionCheckByRay(ro, rd, t)) d = std::min(d, t);
+				for (auto it = stage_wall_collider_list_[stage_clear_num_].begin(); it != stage_wall_collider_list_[stage_clear_num_].end();)
+				{
+					auto mc = it->lock();
+					if (!mc) { it = stage_wall_collider_list_[stage_clear_num_].erase(it); continue; }
+					if (mc->CollisionCheckByRay(ro, rd, t)) 
+						d = std::min(d, t);
+					++it;
+				}
 				return d;
 			};
 
@@ -1602,132 +1573,7 @@ void BaseScene::CheckObjectHitObject(Object* object)
 	}
 }
 
-void BaseScene::CheckObjectHitBullet(Object* object)
-{
-	auto box_collider_list = Object::GetComponentsInChildren<BoxColliderComponent>(object);
-	if (box_collider_list.empty())
-		return;
-
-	const auto& users = SessionManager::getInstance().getAllSessions();
-	for (const auto& pair : users)
-	{
-		const auto& user = pair.second;
-
-		if (!user)
-			continue;
-
-		Object* player = user->get_player_object();
-		if (!player)
-			continue;
-
-		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player);
-		if (!gun)
-			continue;
-
-		auto bullet_list = gun->fired_bullet_list();
-		for (auto& box_collider : box_collider_list)
-		{
-			for (auto& bullet : bullet_list)
-			{
-				if (bullet->is_dead())
-					continue;
-
-				BoxColliderComponent* bullet_collider = Object::GetComponent<BoxColliderComponent>(bullet);
-				if (!bullet_collider)
-					continue;
-
-				if (bullet_collider->animated_box().Intersects(box_collider->animated_box()))
-				{
-					MonsterComponent* monster = Object::GetComponent<MonsterComponent>(object);
-					if (monster && monster->IsDead())
-						continue;
-
-					bullet->set_is_dead(true);
-
-					if (monster && !monster->IsDead())
-					{
-						monster->HitDamage(gun->damage() * (1 + gun->upgrade() * 0.2));
-
-						if (monster->IsDead()) {
-							// 총기 이름 목록
-							std::vector<std::string> gun_names = { "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
-
-							std::vector<int> drop_weights = { 15, 10, 7, 5, 3, 1 }; // 전체 합 = 41
-
-							// 드랍할지 말지: 41% 확률로 총기 드랍, 나머지 59%는 아무것도 안 떨어짐
-							if (rand() % 100 >= 41) return; // 59% 확률로 드랍 안 함
-
-							// 랜덤 엔진 및 분포 생성
-							std::random_device rd;
-							std::mt19937 gen(rd());
-							std::discrete_distribution<> dist(drop_weights.begin(), drop_weights.end());
-
-							int random_index = dist(gen);
-							std::string gun_name = gun_names[random_index];
-							Object* dropped_gun = FindModelInfo(gun_names[random_index])->GetInstance();
-
-							XMFLOAT3 drop_pos = monster->owner()->world_position_vector();
-							drop_pos.y += 0.1f;
-							dropped_gun->set_position_vector(drop_pos);
-							dropped_gun->set_is_movable(true);
-
-							BoundingBox gun_bb{ {0.f, 0.f, 0.f}, {0.5f, 0.3f, 1.0f} };
-							auto box_comp = new BoxColliderComponent(dropped_gun, gun_bb);
-							dropped_gun->AddComponent(box_comp);
-
-							// UI
-							/*Object* ui_texture = FindModelInfo("Gun_UI")->GetInstance();
-							ui_texture->set_local_position({ 0.0f, 0.5f, 0.1f });
-							dropped_gun->AddChild(ui_texture);*/
-
-							std::string dropped_name = dropped_gun->name();  // 예: "Dropped_Classic"
-
-							GunComponent* dropped_gun_component = Object::GetComponent<GunComponent>(dropped_gun);
-							std::string gun_ui_name = "Gun_UI_" + dropped_name.substr(dropped_name.find('_') + 1); // "Classic", "Sherif" 등
-
-							// 랜덤 강화, 속성
-							int upgrade = rand() % 4;
-							dropped_gun_component->set_upgrade(upgrade);
-
-							// [2] 속성 타입: 0 = Fire, 1 = Electric, 2 = Poison
-							int element_random = rand() % 3;
-							ElementType element = static_cast<ElementType>(element_random);
-							dropped_gun_component->set_element(element);
-
-							if (upgrade > 0)
-							{
-								gun_ui_name += "+" + std::to_string(upgrade);
-							}
-
-							AddObject(dropped_gun);
-							dropped_guns_.push_back(dropped_gun);
-
-							sc_packet_drop_gun dg;
-							dg.size = sizeof(sc_packet_drop_gun);
-							dg.type = S2C_P_DROP_GUN;
-							dg.id = dropped_gun->id();
-							dg.gun_type = random_index;
-							dg.upgrade_level = upgrade;
-							dg.element_type = element_random;
-							XMFLOAT4X4 xf;
-							XMFLOAT4X4 mat = dropped_gun->transform_matrix();
-							XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
-							memcpy(dg.matrix, &xf, sizeof(float) * 16);
-
-							std::cout << "드랍 총 id: " << dg.id << std::endl;
-							for (const auto& player : users) {
-								player.second->do_send(&dg);
-							}
-							
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-void BaseScene::CheckPlayerHitPyramid(Object* object)
+void BaseScene::CheckPlayerHitPyramid(std::shared_ptr<Object> object)
 {
 	if (stage_clear_num_ != 6) return; // 스테이지 6에서만 체크
 	
@@ -1735,7 +1581,7 @@ void BaseScene::CheckPlayerHitPyramid(Object* object)
 	if (!box) return;
 		
 	constexpr float kKeyCount = 3;
-	std::vector<Object*> key_objects;
+	std::vector<std::shared_ptr<Object>> key_objects;
 	key_objects.reserve(kKeyCount);
 	auto state_6_object = FindObject("STAGE6");
 	if (!state_6_object) return;
@@ -1750,7 +1596,7 @@ void BaseScene::CheckPlayerHitPyramid(Object* object)
 			std::cout << "[DEBUG] Key object is nullptr at index: " << i << std::endl;
 			continue;
 		}
-		if (key_objects[i]->is_dead())
+		if (false)
 		{
 			continue;
 		}
@@ -1761,7 +1607,7 @@ void BaseScene::CheckPlayerHitPyramid(Object* object)
 		if (box->animated_box().Intersects(key_box->animated_box()))
 		{
 			get_key_num_++;
-			key_objects[i]->set_is_dead(true); // 키 오브젝트 제거
+			DeleteObject(key_objects[i]);
 
 			std::cout << "키 획득: " << get_key_num_ << std::endl;
 
@@ -1782,11 +1628,13 @@ void BaseScene::CheckSpawnBoxHitPlayers()
 	if (stage_clear_num_ < 1 || is_activate_spawner_)
 		return;
 
-	const auto& spawn_box = spawn_boxs_[stage_clear_num_ - 1];
+	const auto& spawn_box = spawn_boxs_[stage_clear_num_ - 1].lock().get();
 
 	// 모든 플레이어 순회
-	for (auto& object : ground_check_object_list_)
-	{
+	for (auto it = ground_check_object_list_.begin(); it != ground_check_object_list_.end(); ) {
+		auto object = it->lock();
+		if (!object) { it = ground_check_object_list_.erase(it); continue; }
+		++it;
 		if (!object->is_player())
 			continue;
 
@@ -1839,9 +1687,11 @@ void BaseScene::CheckPlayerHitChest()
 	{
 		PrepareGroundChecking();
 	}
-	for (auto& object : ground_check_object_list_)
-	{
-		if (!(object->is_player() && !object->is_dead()))
+	for (auto it = ground_check_object_list_.begin(); it != ground_check_object_list_.end(); ) {
+		auto object = it->lock();
+		if (!object) { it = ground_check_object_list_.erase(it); continue; }
+		++it;
+		if (!(object->is_player() ))
 			return;
 
 		Session* session = SessionManager::getInstance().GetSessionByPlayerObject(object);
@@ -1859,7 +1709,7 @@ void BaseScene::CheckPlayerHitChest()
 
 		for (size_t i = 0; i < chests_.size(); ++i)
 		{
-			Object* chest = chests_[i];
+			auto chest = chests_[i].lock();
 
 			// 트리거 판정용
 			auto box_colliders = Object::GetComponents<BoxColliderComponent>(chest);
@@ -1878,17 +1728,17 @@ void BaseScene::CheckPlayerHitChest()
 					if (session->IsKeyDown('F'))
 					{
 						auto scroll_type = chest_component->TakeScroll(i);
-						PlayerComponent* player_comp = Object::GetComponent<PlayerComponent>(object);
+						auto player_comp = Object::GetComponent<PlayerComponent>(object);
 						if (player_comp && scroll_type != ScrollType::None)
 						{
 							player_comp->AddScroll(scroll_type);
 
 							if (scroll_type == ScrollType::kWeaponMaster)
 							{
-								Object* player_gun_frame = object->FindFrame("WeaponR_locator");
+								auto player_gun_frame = object->FindFrame("WeaponR_locator");
 								if (player_gun_frame)
 								{
-									GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_gun_frame);
+									auto gun = Object::GetComponentInChildren<GunComponent>(player_gun_frame);
 									if (gun)
 									{
 										gun->set_upgrade(4);
@@ -1909,12 +1759,17 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 	XMVECTOR direction = XMVector3Normalize(XMLoadFloat3(&ray_direction));
 
 	float closest_t = FLT_MAX;
-	Object* closest_monster = nullptr;	// 광선에 부딪힌 가장 가까운 몬스터
+	std::shared_ptr<Object> closest_monster = nullptr;	// 광선에 부딪힌 가장 가까운 몬스터
 
 	//광선 충돌체크 코드
-	for (const auto& monster : monster_list_)
+	for (auto it = monster_list_.begin(); it != monster_list_.end();)
 	{
-		if (monster->IsDead()) continue;
+		auto monster = it->lock();
+		if (!monster)
+		{
+			monster_list_.erase(it);
+			continue;
+		}
 		const auto& object = monster->owner();
 
 		auto box_list = Object::GetComponentsInChildren<BoxColliderComponent>(object);
@@ -1939,16 +1794,16 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 	{
 		//TODO: hit 사운드를 출력하라고 패킷 송신
 		//FMODSoundManager::Instance().PlaySound("hit", false, 0.3f);
-		Object* player_ = SessionManager::getInstance().get(id)->get_player_object();
-		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_);
+		auto player = SessionManager::getInstance().get(id)->get_player_object();
+		auto gun = Object::GetComponentInChildren<GunComponent>(player);
 		if (!gun) return;
 
-		MonsterComponent* monster = Object::GetComponent<MonsterComponent>(closest_monster);
+		auto monster = Object::GetComponent<MonsterComponent>(closest_monster);
 		if (!monster || monster->IsDead()) return;
 
 		float damage = gun->damage() * (1 + gun->upgrade() * 0.2);
 		// 플레이어 스크롤 효과 적용
-		PlayerComponent* player_comp = Object::GetComponent<PlayerComponent>(player_);
+		auto player_comp = Object::GetComponent<PlayerComponent>(player);
 		if (player_comp)
 		{
 			if (gun->element() == ElementType::kFire &&
@@ -2002,7 +1857,7 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 		monster->HitDamage(damage);
 
 		XMFLOAT3 hit_position = ray_origin + (ray_direction * closest_t);
-		XMFLOAT4 particle_color = GunComponent::GetGunElementColor(gun);
+		XMFLOAT4 particle_color = GunComponent::GetGunElementColor(gun.get());
 
 		sc_packet_monster_damaged_particle particle_packet{};
 		particle_packet.color = particle_color;
@@ -2029,7 +1884,7 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 
 			int random_index = dist(kRandomGenerator);
 			std::string gun_name = gun_names[random_index];
-			Object* dropped_gun = FindModelInfo(gun_names[random_index])->GetInstance();
+			auto dropped_gun = FindModelInfo(gun_names[random_index])->GetInstance();
 
 			XMFLOAT3 drop_pos = monster->owner()->world_position_vector();
 			drop_pos.y += 0.1f;
@@ -2037,7 +1892,7 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 			dropped_gun->set_is_movable(true);
 
 			BoundingBox gun_bb{ {0.f, 0.f, 0.f}, {0.5f, 0.3f, 1.0f} };
-			auto box_comp = new BoxColliderComponent(dropped_gun, gun_bb);
+			auto box_comp = std::make_shared<BoxColliderComponent>(dropped_gun, gun_bb);
 			dropped_gun->AddComponent(box_comp);
 
 			// UI
@@ -2047,7 +1902,7 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 
 			std::string dropped_name = dropped_gun->name();  // 예: "Dropped_Classic"
 
-			GunComponent* dropped_gun_component = Object::GetComponent<GunComponent>(dropped_gun);
+			auto dropped_gun_component = Object::GetComponent<GunComponent>(dropped_gun);
 			std::string gun_ui_name = "Gun_UI_" + dropped_name.substr(dropped_name.find('_') + 1); // "Classic", "Sherif" 등
 
 			// 랜덤 강화, 속성
@@ -2088,11 +1943,11 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 
 }
 
-void BaseScene::CheckObjectHitFlamethrow(Object* object, int id, float elapsed_time)
+void BaseScene::CheckObjectHitFlamethrow(std::shared_ptr<Object> object, int id, float elapsed_time)
 {
-	Object* player_ = SessionManager::getInstance().get(id)->get_player_object();
+	auto player = SessionManager::getInstance().get(id)->get_player_object();
 
-	GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_);
+	auto gun = Object::GetComponentInChildren<GunComponent>(player);
 	if (gun->gun_name() != "flamethrower") return;
 
 	auto& bullet_list = gun->fired_bullet_list();
@@ -2101,7 +1956,7 @@ void BaseScene::CheckObjectHitFlamethrow(Object* object, int id, float elapsed_t
 	if (!box_collider_list.size())
 		return;
 
-	Object* flame_tip = player_->FindFrame("gun_particle_pivot");
+	auto flame_tip = player->FindFrame("gun_particle_pivot");
 	auto flame_collider = Object::GetComponent<BoxColliderComponent>(flame_tip);
 	if (!flame_collider) return;
 
@@ -2110,11 +1965,11 @@ void BaseScene::CheckObjectHitFlamethrow(Object* object, int id, float elapsed_t
 		if (flame_collider->animated_box().Intersects(monster_box->animated_box()))
 		{
 			// 데미지 적용
-			MonsterComponent* monster = Object::GetComponent<MonsterComponent>(object);
+			auto monster = Object::GetComponent<MonsterComponent>(object);
 			if (monster && !monster->IsDead())
 			{
 				XMFLOAT3 hit_position = monster->owner()->world_position_vector();
-				XMFLOAT4 particle_color = GunComponent::GetGunElementColor(gun);
+				XMFLOAT4 particle_color = GunComponent::GetGunElementColor(gun.get());
 
 				sc_packet_monster_damaged_particle particle_packet{};
 				particle_packet.color = particle_color;
@@ -2137,7 +1992,7 @@ void BaseScene::CheckObjectHitFlamethrow(Object* object, int id, float elapsed_t
 
 					int random_index = dist(kRandomGenerator);
 					std::string gun_name = gun_names[random_index];
-					Object* dropped_gun = FindModelInfo(gun_names[random_index])->GetInstance();
+					auto dropped_gun = FindModelInfo(gun_names[random_index])->GetInstance();
 
 					XMFLOAT3 drop_pos = monster->owner()->world_position_vector();
 					drop_pos.y += 0.1f;
@@ -2145,7 +2000,7 @@ void BaseScene::CheckObjectHitFlamethrow(Object* object, int id, float elapsed_t
 					dropped_gun->set_is_movable(true);
 
 					BoundingBox gun_bb{ {0.f, 0.f, 0.f}, {0.5f, 0.3f, 1.0f} };
-					auto box_comp = new BoxColliderComponent(dropped_gun, gun_bb);
+					auto box_comp = std::make_shared<BoxColliderComponent>(dropped_gun, gun_bb);
 					dropped_gun->AddComponent(box_comp);
 
 					// UI
@@ -2155,7 +2010,7 @@ void BaseScene::CheckObjectHitFlamethrow(Object* object, int id, float elapsed_t
 
 					std::string dropped_name = dropped_gun->name();  // 예: "Dropped_Classic"
 
-					GunComponent* dropped_gun_component = Object::GetComponent<GunComponent>(dropped_gun);
+					auto dropped_gun_component = Object::GetComponent<GunComponent>(dropped_gun);
 					std::string gun_ui_name = "Gun_UI_" + dropped_name.substr(dropped_name.find('_') + 1); // "Classic", "Sherif" 등
 
 					// 랜덤 강화, 속성
@@ -2198,7 +2053,7 @@ void BaseScene::CheckObjectHitFlamethrow(Object* object, int id, float elapsed_t
 	}
 }
 
-void BaseScene::CheckRazerHitEnemy(RazerComponent* razer_component, MonsterComponent* monster_component)
+void BaseScene::CheckRazerHitEnemy(std::shared_ptr<RazerComponent> razer_component, std::shared_ptr<MonsterComponent> monster_component)
 {
 	if (!razer_component || !monster_component ||
 		monster_component->IsDead() || !razer_component->is_collision_active() || razer_component->is_collided())
@@ -2242,12 +2097,12 @@ void BaseScene::TickNoClipTimers(float elapsed_time)
 	}
 }
 
-std::list<MeshColliderComponent*> BaseScene::checking_maps_mesh_collider_list(int index)
+std::list<std::weak_ptr<MeshColliderComponent>> BaseScene::checking_maps_mesh_collider_list(int index)
 {
 	return checking_maps_mesh_collider_list_[index];
 }
 
-std::list<WallColliderComponent*> BaseScene::stage_wall_collider_list(int index)
+std::list<std::weak_ptr<WallColliderComponent>> BaseScene::stage_wall_collider_list(int index)
 {
 	return stage_wall_collider_list_[index];
 }
@@ -2257,7 +2112,7 @@ int BaseScene::stage_clear_num()
 	return stage_clear_num_;
 }
 
-bool BaseScene::InRangeXZ(Object* self, Object* target, float r) { // 범위 계산
+bool BaseScene::InRangeXZ(std::shared_ptr<Object> self, std::shared_ptr<Object> target, float r) { // 범위 계산
 	if (!self || !target) return false;
 	auto d = target->world_position_vector() - self->world_position_vector();
 	d.y = 0.f;

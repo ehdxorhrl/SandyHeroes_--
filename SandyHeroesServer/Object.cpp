@@ -293,21 +293,21 @@ void Object::AddComponent(std::shared_ptr<Component> component)
 	component_list_.push_back(component);
 }
 
-Object* Object::GetHierarchyRoot()
+std::shared_ptr<Object> Object::GetHierarchyRoot()
 {
 	if (!parent_.expired())
 		return parent_.lock()->GetHierarchyRoot();
-	return this;
+	return shared_from_this();
 }
 
-Object* Object::FindFrame(const std::string& name)
+std::shared_ptr<Object> Object::FindFrame(const std::string& name)
 {
 	if (name_ == name)
-		return this;
+		return shared_from_this();
 
 	if (child_)
 	{
-		Object* found = child_->FindFrame(name);
+		auto found = child_->FindFrame(name);
 		if (found)
 			return found;
 	}
@@ -423,22 +423,15 @@ void Object::OnDestroy(std::function<void(Object*)> func)
 	on_destroy_func_ = func;
 }
 
-void Object::ChangeChild(Object* src, const std::string& dst_name, bool is_delete)
+void Object::ChangeChild(std::shared_ptr<Object> src, const std::string& dst_name, bool is_delete)
 {
 	if (!src)
 		return;
-	if (child_ && child_->name_ == dst_name)
+	if (child_ && child_->name() == dst_name)
 	{
-		if (is_delete)
-		{
-			delete child_;
-			child_ = src;
-		}
-		else
-		{
-			child_->set_is_dead(true);
-			child_->AddSibling(src);
-		}
+		src->parent_ = shared_from_this();
+		src->sibling_ = child_->sibling_;
+		child_ = src;
 		return;
 	}
 	if (child_)

@@ -280,7 +280,7 @@ void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* comma
 			object_list_.back()->set_transform_matrix(transfrom);
 			if (is_sector)
 			{
-				sectors_.back().object_list().push_back(object_list_.back().get());
+				sectors_.back().object_list().push_back(object_list_.back());
 			}
 		}
 	}
@@ -496,27 +496,27 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	ShowCursor(false);
 
 	//플레이어 생성
-	Object* player = model_infos_[0]->GetInstance();
+	auto player = std::shared_ptr<Object>(model_infos_[0]->GetInstance());
 	player->set_name("Player");
 	player->set_position_vector(XMFLOAT3{ -15, 6, 0 });
 	player->set_collide_type(true, true);
 	player->set_is_movable(true);
-	player->AddComponent(new MovementComponent(player));
-	AnimatorComponent* animator = Object::GetComponent<AnimatorComponent>(player);
+	player->AddComponent(std::make_shared<MovementComponent>(player));
+	auto animator = Object::GetComponent<AnimatorComponent>(player);
 	animator->set_animation_state(new PlayerAnimationState);
-	auto player_component = new PlayerComponent(player);
+	auto player_component = std::make_shared<PlayerComponent>(player);
 	player_component->set_scene(this);
 	player->AddComponent(player_component);
 	player_ = player;
 
 	//player's mesh is invisible
-	auto& mesh_list = Object::GetComponentsInChildren<SkinnedMeshComponent>(player_);
+	auto& mesh_list = Object::GetComponentsInChildren<SkinnedMeshComponent>(player_.lock());
 	for (auto& mesh : mesh_list)
 	{
 		mesh->set_is_visible(!mesh->IsVisible());
 	}
 	//Set FPS Controller with player
-	FPSControllerComponent* fps_controller = new FPSControllerComponent(player);
+	auto fps_controller = std::make_shared<FPSControllerComponent>(player);
 	fps_controller->set_client_wnd(game_framework_->main_wnd());
 	fps_controller->set_scene(this);
 	player->AddComponent(fps_controller);
@@ -528,32 +528,32 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	GunComponent::LoadGunInfosFromFile("./Resource/GunInfos.txt");
 
 	//Set player's camera
-	Object* camera_object = new Object();
+	auto camera_object = std::make_shared<Object>();
 	player->AddChild(camera_object);
 	fps_controller->set_camera_object(camera_object);
 	camera_object->set_position_vector(0, 0.3f, 0); // 플레이어 캐릭터의 키가 150인것을 고려하여 머리위치에 배치
 	camera_object->set_name("CAMERA_1");
-	CameraComponent* camera_component =
-		new CameraComponent(camera_object, 0.01, 150,
+	auto camera_component =
+		std::make_shared<CameraComponent>(camera_object, 0.01, 150,
 			(float)kDefaultFrameBufferWidth / (float)kDefaultFrameBufferHeight, 58);
 	camera_object->AddComponent(camera_component);
 	main_camera_ = camera_component;
 
 	// 몬스터 HIT 파티클 생성
 	{
-		monster_hit_particles_.emplace_back(new Object("monster_hit_particle"));
-		Object* monster_particle = monster_hit_particles_.back();
-		object_list_.emplace_back(monster_particle);
+		auto monster_particle = std::make_shared<Object>("monster_hit_particle");
+		monster_hit_particles_.push_back(monster_particle);
+		object_list_.push_back(monster_particle);
 		monster_particle->set_local_position({ 0, 0, 0 });
 		Material* monster_particle_material = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
 			return material->name() == "Trail_1";
 			})->get();
-		ParticleComponent* monster_particle_component = new ParticleComponent(monster_particle, device, 1000, ParticleComponent::Sphere, monster_particle_material);
+		auto monster_particle_component = std::make_shared<ParticleComponent>(monster_particle, device, 1000, ParticleComponent::Sphere, monster_particle_material);
 		monster_particle_component->set_scene(this);
 		monster_particle->AddComponent(monster_particle_component);
 
-		Object* dragon_breathing_particle = new Object();
-		monster_particle_component = new ParticleComponent(monster_particle, device, 1000, ParticleComponent::BigCone, monster_particle_material);
+		auto dragon_breathing_particle = std::make_shared<Object>();
+		monster_particle_component = std::make_shared<ParticleComponent>(monster_particle, device, 1000, ParticleComponent::BigCone, monster_particle_material);
 		monster_particle_component->set_color(XMFLOAT4{ 1.0f, 0.f, 0.0f, 1.0f });
 		monster_particle_component->set_scene(this);
 		dragon_breathing_particle->AddComponent(monster_particle_component);
@@ -564,7 +564,7 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	BuildModelInfo(device);
 
 	//Set player's gun
-	Object* player_gun_frame = player->FindFrame("WeaponR_locator");
+	auto player_gun_frame = player->FindFrame("WeaponR_locator");
 	player_gun_frame->AddChild(FindModelInfo("Flamethrower")->GetInstance());
 	//GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player);
 
@@ -631,14 +631,14 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	
 		for (int i = 0; i < kChestCount; ++i)
 		{
-			Object* chest = model_infos_[12]->GetInstance();
+			auto chest = std::shared_ptr<Object>(model_infos_[12]->GetInstance());
 			chest->set_name("Chest" + std::to_string(i));
 			chest->set_position_vector(chest_positions[i]);
 			chest->set_local_rotation(chest_rotations[i]);
 			chest->set_is_movable(true);
 	
 			//스크롤 추가
-			auto chest_component = new ChestComponent(chest, this);
+			auto chest_component = std::make_shared<ChestComponent>(chest, this);
 			//박스당 1개 사용
 			auto scroll_model = FindModelInfo("Scroll_" + std::to_string(scroll_index[i]));
 			chest_component->set_scroll_model(scroll_model);
@@ -646,22 +646,22 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	
 			// 충돌용 BoxColliderComponent 부착
 			BoundingBox box_bounds{ {0.0f, 0.0f, 0.0f}, {1.5f, 1.0f, 1.5f} };
-			auto collider = new BoxColliderComponent(chest, box_bounds);
+			auto collider = std::make_shared<BoxColliderComponent>(chest, box_bounds);
 			chest->AddComponent(collider);
 	
 			// 파티클
 			Material* particle_material = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
 				return material->name() == "Trail_1";
 				})->get();
-				ParticleComponent* chest_particle = new ParticleComponent(
-					chest, device, 222, ParticleComponent::eShape::UpCone, particle_material);
-				chest_particle->set_scene(this);
-				chest_particle->set_loop(false);
-				chest_particle->set_color(XMFLOAT4(1.0f, 0.843f, 0.0f, 1.0f));
-				chest->AddComponent(chest_particle);
+			auto chest_particle = std::make_shared<ParticleComponent>(
+				chest, device, 222, ParticleComponent::eShape::UpCone, particle_material);
+			chest_particle->set_scene(this);
+			chest_particle->set_loop(false);
+			chest_particle->set_color(XMFLOAT4(1.0f, 0.843f, 0.0f, 1.0f));
+			chest->AddComponent(chest_particle);
 	
-				AddObject(chest);
-				chests_.push_back(chest);
+			AddObject(chest);
+			chests_.push_back(chest);
 	
 		}
 	}
@@ -669,8 +669,8 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	// 사운드
 	{
 		FMODSoundManager::Instance().Initialize();
-		Object* sound_object = new Object();
-		auto sound_comp = new SoundComponent(sound_object);
+		auto sound_object = std::make_shared<Object>();
+		auto sound_comp = std::make_shared<SoundComponent>(sound_object);
 		sound_comp->Load("gun_fire", "Resource/Fmod/sound/gun_fire.wav", false);
 		sound_comp->Load("flamethrower", "Resource/Fmod/sound/flamethrower.wav", true);
 		sound_comp->Load("chest", "Resource/Fmod/sound/chest.wav", false);
@@ -698,34 +698,33 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	}
 
 	//Create Skybox
-	Object* skybox = new Object();
-	skybox->AddComponent(new MeshComponent(skybox, 
+	auto skybox = std::make_shared<Object>();
+	skybox->AddComponent(std::make_shared<MeshComponent>(skybox, 
 		Scene::FindMesh("Skybox", meshes_), Scene::FindMaterial("Skybox_Cube2", materials_)));
 	AddObject(skybox);
 
 
 	//Create sub camera (free view)
-	camera_object = new Object;
+	camera_object = std::make_shared<Object>();
 	camera_object->set_name("CAMERA_2");
 	camera_component =
-		new CameraComponent(camera_object, 0.01, 2000,
+		std::make_shared<CameraComponent>(camera_object, 0.01, 2000,
 			(float)kDefaultFrameBufferWidth / (float)kDefaultFrameBufferHeight, 58);
-	TestControllerComponent* controller = new TestControllerComponent(camera_object);
+	auto controller = std::make_shared<TestControllerComponent>(camera_object);
 	controller->set_client_wnd(game_framework_->main_wnd());
-	MovementComponent* movement = new MovementComponent(camera_object);
+	auto movement = std::make_shared<MovementComponent>(camera_object);
 	movement->DisableGarvity();
 	camera_object->AddComponent(movement);
 	camera_object->AddComponent(camera_component);
 	camera_object->AddComponent(controller);
 
-	object_list_.emplace_back();
-	object_list_.back().reset(camera_object);
+	object_list_.push_back(camera_object);
 
 	//컷씬 적용 카메라
-	camera_object = new Object{};
+	camera_object = std::make_shared<Object>();
 	camera_object->set_name("CutSceneCamera");
 
-	camera_component = new CameraComponent(camera_object, 0.01, 120,
+	camera_component = std::make_shared<CameraComponent>(camera_object, 0.01, 120,
 		(float)kDefaultFrameBufferWidth / (float)kDefaultFrameBufferHeight, 58);
 	camera_object->AddComponent(camera_component);
 
@@ -737,20 +736,21 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	//25.08.08 수정: 디버그 메쉬 삭제(사용하지 않고 에러가 발생함)
 	for (auto& object : object_list_)
 	{
-		auto& mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(object.get());
+		auto& mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(object);
 		for (auto& mesh_component : mesh_component_list)
 		{
 			auto mesh = mesh_component->GetMesh();
-			Object* object = mesh_component->owner();
-			MeshColliderComponent* mesh_collider = new MeshColliderComponent(object);
+			auto object = mesh_component->owner();
+			auto mesh_collider = std::make_shared<MeshColliderComponent>(object);
 			mesh_collider->set_mesh(mesh);
 			object->AddComponent(mesh_collider);
 		}
 	}
 	PrepareGroundChecking();
 
-	for (const auto& collider : stage_ground_collider_list_[3])
+	for (const auto& collider_wk : stage_ground_collider_list_[3])
 	{
+		auto collider = collider_wk.lock();
 		auto object = collider->owner();
 
 		auto mesh_components = Object::GetComponentsInChildren<MeshComponent>(object);
@@ -795,9 +795,9 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 	{
 		ModelInfo* monster_hp_ui = new ModelInfo();
 		monster_hp_ui->set_model_name("Monster_Hp_UI");
-		auto progress_bar_background = new Object();
-		auto hp_bar = new Object();
-		auto shield_bar = new Object();
+		auto progress_bar_background = std::make_shared<Object>();
+		auto hp_bar = std::make_shared<Object>();
+		auto shield_bar = std::make_shared<Object>();
 		progress_bar_background->set_name("ProgressBarBackground");
 		hp_bar->set_name("HpBar");
 		shield_bar->set_name("ShieldBar");
@@ -811,21 +811,21 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		auto ui_hpbar_material = Scene::FindMaterial("HpBar", materials_);
 		auto ui_shieldbar_material = Scene::FindMaterial("ShieldBar", materials_);
 
-		auto ui_background_component = new UiMeshComponent(progress_bar_background,
+		auto ui_background_component = std::make_shared<UiMeshComponent>(progress_bar_background,
 			Scene::FindMesh("ProgressBarBackground", meshes_), ui_background_material, this);
 		// ModelInfo를 수정할 때 MeshComponent를 추가하였다면 material에서 delete 해야함.(씬 렌더에 포함되기 때문)
 		ui_background_material->DeleteMeshComponent(ui_background_component);
 		progress_bar_background->AddComponent(ui_background_component);
 		ui_background_component->set_ui_layer(UiLayer::kOne);
 
-		auto ui_hpbar_component = new UiMeshComponent(hp_bar,
+		auto ui_hpbar_component = std::make_shared<UiMeshComponent>(hp_bar,
 			Scene::FindMesh("ProgressBar", meshes_), ui_hpbar_material, this);
 		// ModelInfo를 수정할 때 MeshComponent를 추가하였다면 material에서 delete 해야함.(씬 렌더에 포함되기 때문)
 		ui_hpbar_material->DeleteMeshComponent(ui_hpbar_component);
 		ui_hpbar_component->set_ui_ratio(XMFLOAT2{ 1.f, 0.5f });
 		ui_hpbar_component->set_position_offset(XMFLOAT2{ 0.f, 5.f });
 		hp_bar->AddComponent(ui_hpbar_component);
-		ProgressBarComponent* progress_bar = new ProgressBarComponent(hp_bar);
+		auto progress_bar = std::make_shared<ProgressBarComponent>(hp_bar);
 		hp_bar->AddComponent(progress_bar);
 		progress_bar->set_get_current_value_func([](Object* object) -> float
 			{
@@ -840,13 +840,13 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 				return monster_component->max_hp();
 			});
 
-		auto ui_shieldbar_component = new UiMeshComponent(shield_bar,
+		auto ui_shieldbar_component = std::make_shared<UiMeshComponent>(shield_bar,
 			Scene::FindMesh("ProgressBar", meshes_), ui_shieldbar_material, this);
 		// ModelInfo를 수정할 때 MeshComponent를 추가하였다면 material에서 delete 해야함.(씬 렌더에 포함되기 때문)
 		ui_shieldbar_material->DeleteMeshComponent(ui_shieldbar_component);
 		ui_shieldbar_component->set_ui_ratio(XMFLOAT2{ 1.f, 0.5f });
 		shield_bar->AddComponent(ui_shieldbar_component);
-		progress_bar = new ProgressBarComponent(shield_bar);
+		progress_bar = std::make_shared<ProgressBarComponent>(shield_bar);
 		shield_bar->AddComponent(progress_bar);
 		progress_bar->set_get_current_value_func([](Object* object) -> float
 			{
@@ -866,9 +866,9 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 	{
 		ModelInfo* boss_hp_ui = new ModelInfo();
 		boss_hp_ui->set_model_name("Boss_Hp_UI");
-		auto progress_bar_background = new Object();
-		auto hp_bar = new Object();
-		auto shield_bar = new Object();
+		auto progress_bar_background = std::make_shared<Object>();
+		auto hp_bar = std::make_shared<Object>();
+		auto shield_bar = std::make_shared<Object>();
 		progress_bar_background->set_name("ProgressBarBackground");
 		hp_bar->set_name("HpBar");
 		shield_bar->set_name("ShieldBar");
@@ -885,14 +885,14 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		auto ui_mesh = Scene::FindMesh("BossHpBar", meshes_);
 		auto ui_size = static_cast<UIMesh*>(ui_mesh)->ui_size();
 
-		auto ui_background_component = new UiMeshComponent(progress_bar_background,
+		auto ui_background_component = std::make_shared<UiMeshComponent>(progress_bar_background,
 			ui_mesh, ui_background_material, this);
 		ui_background_material->DeleteMeshComponent(ui_background_component);
 		progress_bar_background->AddComponent(ui_background_component);
 		ui_background_component->set_ui_layer(UiLayer::kTwo);
 		ui_background_component->set_is_static(true);
 
-		auto ui_hpbar_component = new UiMeshComponent(hp_bar,
+		auto ui_hpbar_component = std::make_shared<UiMeshComponent>(hp_bar,
 			ui_mesh, ui_hpbar_material, this);
 		ui_hpbar_material->DeleteMeshComponent(ui_hpbar_component);
 		hp_bar->AddComponent(ui_hpbar_component);
@@ -901,7 +901,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		ui_hpbar_component->set_is_static(true);
 		ui_hpbar_component->set_position_offset({ ui_size.x * 0.025f, ui_size.y * 0.075f });
 
-		ProgressBarComponent* progress_bar = new ProgressBarComponent(hp_bar);
+		auto progress_bar = std::make_shared<ProgressBarComponent>(hp_bar);
 		hp_bar->AddComponent(progress_bar);
 		progress_bar->set_get_current_value_func([](Object* object) -> float
 			{
@@ -916,7 +916,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 				return monster_component->max_hp();
 			});
 
-		auto ui_shieldbar_component = new UiMeshComponent(shield_bar,
+		auto ui_shieldbar_component = std::make_shared<UiMeshComponent>(shield_bar,
 			ui_mesh, ui_shieldbar_material, this);
 		ui_shieldbar_material->DeleteMeshComponent(ui_shieldbar_component);
 		shield_bar->AddComponent(ui_shieldbar_component);
@@ -924,7 +924,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		ui_shieldbar_component->set_is_static(true);
 		ui_shieldbar_component->set_position_offset({ ui_size.x * 0.025f, ui_size.y * 0.075f });
 
-		progress_bar = new ProgressBarComponent(shield_bar);
+		progress_bar = std::make_shared<ProgressBarComponent>(shield_bar);
 		shield_bar->AddComponent(progress_bar);
 		progress_bar->set_get_current_value_func([](Object* object) -> float
 			{
@@ -944,7 +944,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 	{
 		ModelInfo* strong_dragon_icon = new ModelInfo();
 		strong_dragon_icon->set_model_name("Strong_Dragon_Icon");
-		auto strong_dragon_icon_object = new Object();
+		auto strong_dragon_icon_object = std::make_shared<Object>();
 		strong_dragon_icon->set_hierarchy_root(strong_dragon_icon_object);
 		model_infos_.emplace_back();
 		model_infos_.back().reset(strong_dragon_icon);
@@ -952,7 +952,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		auto ui_mesh = Scene::FindMesh("BossHeadIcon", meshes_);
 		auto ui_material = Scene::FindMaterial("Strong", materials_);
 
-		auto ui_component = new UiMeshComponent(strong_dragon_icon_object,
+		auto ui_component = std::make_shared<UiMeshComponent>(strong_dragon_icon_object,
 			ui_mesh, ui_material, this);
 		ui_material->DeleteMeshComponent(ui_component);
 		strong_dragon_icon_object->AddComponent(ui_component);
@@ -960,7 +960,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 
 		ModelInfo* super_dragon_icon = new ModelInfo();
 		super_dragon_icon->set_model_name("Super_Dragon_Icon");
-		auto super_dragon_icon_object = new Object();
+		auto super_dragon_icon_object = std::make_shared<Object>();
 		super_dragon_icon->set_hierarchy_root(super_dragon_icon_object);
 		model_infos_.emplace_back();
 		model_infos_.back().reset(super_dragon_icon);
@@ -968,7 +968,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		auto super_ui_mesh = Scene::FindMesh("BossHeadIcon", meshes_);
 		auto super_ui_material = Scene::FindMaterial("Super", materials_);
 
-		auto super_ui_component = new UiMeshComponent(super_dragon_icon_object,
+		auto super_ui_component = std::make_shared<UiMeshComponent>(super_dragon_icon_object,
 			super_ui_mesh, super_ui_material, this);
 		super_ui_material->DeleteMeshComponent(super_ui_component);
 		super_dragon_icon_object->AddComponent(super_ui_component);
@@ -985,7 +985,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		hit_dragon->hierarchy_root()->set_tag("Hit_Dragon");
 		auto ui_head_socket = hit_dragon->hierarchy_root()->FindFrame("Ui_Head");
 		auto monster_hp_ui = FindModelInfo("Monster_Hp_UI");
-		ui_head_socket->AddChild(monster_hp_ui->GetInstance());
+		ui_head_socket->AddChild(std::shared_ptr<Object>(monster_hp_ui->GetInstance()));
 		auto mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(hit_dragon->hierarchy_root());
 		for (auto& mesh_component : mesh_component_list)
 		{
@@ -1005,7 +1005,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		shot_dragon->hierarchy_root()->set_is_movable(true);
 		shot_dragon->hierarchy_root()->set_tag("Shot_Dragon");
 		ui_head_socket = shot_dragon->hierarchy_root()->FindFrame("Ui_Head");
-		ui_head_socket->AddChild(monster_hp_ui->GetInstance());
+		ui_head_socket->AddChild(std::shared_ptr<Object>(monster_hp_ui->GetInstance()));
 		mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(shot_dragon->hierarchy_root());
 		for (auto& mesh_component : mesh_component_list)
 		{
@@ -1024,7 +1024,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		bomb_dragon->hierarchy_root()->set_is_movable(true);
 		bomb_dragon->hierarchy_root()->set_tag("Bomb_Dragon");
 		ui_head_socket = bomb_dragon->hierarchy_root()->FindFrame("Ui_Head");
-		ui_head_socket->AddChild(monster_hp_ui->GetInstance());
+		ui_head_socket->AddChild(std::shared_ptr<Object>(monster_hp_ui->GetInstance()));
 		mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(bomb_dragon->hierarchy_root());
 		for (auto& mesh_component : mesh_component_list)
 		{
@@ -1044,7 +1044,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		strong_dragon->hierarchy_root()->set_collide_type(true, true);
 		strong_dragon->hierarchy_root()->set_is_movable(true);
 		strong_dragon->hierarchy_root()->set_tag("Strong_Dragon");
-		strong_dragon->hierarchy_root()->AddChild(boss_hp_ui->GetInstance());
+		strong_dragon->hierarchy_root()->AddChild(std::shared_ptr<Object>(boss_hp_ui->GetInstance()));
 		strong_dragon->hierarchy_root()->AddChild(FindModelInfo("Strong_Dragon_Icon")->GetInstance());
 		mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(strong_dragon->hierarchy_root());
 		for (auto& mesh_component : mesh_component_list)
@@ -1063,7 +1063,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		super_dragon->hierarchy_root()->set_collide_type(true, true);
 		super_dragon->hierarchy_root()->set_is_movable(true);
 		super_dragon->hierarchy_root()->set_tag("Super_Dragon");
-		super_dragon->hierarchy_root()->AddChild(boss_hp_ui->GetInstance());
+		super_dragon->hierarchy_root()->AddChild(std::shared_ptr<Object>(boss_hp_ui->GetInstance()));
 		super_dragon->hierarchy_root()->AddChild(FindModelInfo("Super_Dragon_Icon")->GetInstance());
 		mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(super_dragon->hierarchy_root());
 		for (auto& mesh_component : mesh_component_list)
@@ -1080,10 +1080,10 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		//Create Hit Dragon Spawner
 		ModelInfo* hit_dragon_spawner = new ModelInfo();
 		hit_dragon_spawner->set_model_name("Hit_Dragon_Spawner");
-		Object* spawner = new Object();
-		auto monster_component = new MonsterComponent(nullptr);
-		monster_component->set_target(player_);
-		auto spawner_component = new SpawnerComponent(spawner, this, hit_dragon);
+		auto spawner = std::make_shared<Object>();
+		auto monster_component = std::make_shared<MonsterComponent>(nullptr);
+		monster_component->set_target(player_.lock());
+		auto spawner_component = std::make_shared<SpawnerComponent>(spawner, this, hit_dragon);
 		spawner_component->AddComponent(monster_component);
 		spawner->AddComponent(spawner_component);
 		hit_dragon_spawner->set_hierarchy_root(spawner);
@@ -1093,8 +1093,8 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		//Create Shot Dragon Spawner
 		ModelInfo* shot_dragon_spawner = new ModelInfo();
 		shot_dragon_spawner->set_model_name("Shot_Dragon_Spawner");
-		spawner = new Object();
-		spawner_component = new SpawnerComponent(spawner, this, shot_dragon);
+		spawner = std::make_shared<Object>();
+		spawner_component = std::make_shared<SpawnerComponent>(spawner, this, shot_dragon);
 		spawner_component->AddComponent(monster_component->GetCopy());
 		spawner->AddComponent(spawner_component);
 		shot_dragon_spawner->set_hierarchy_root(spawner);
@@ -1104,8 +1104,8 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		//Create Bomb Dragon Spawner
 		ModelInfo* bomb_dragon_spawner = new ModelInfo();
 		bomb_dragon_spawner->set_model_name("Bomb_Dragon_Spawner");
-		spawner = new Object();
-		spawner_component = new SpawnerComponent(spawner, this, bomb_dragon);
+		spawner = std::make_shared<Object>();
+		spawner_component = std::make_shared<SpawnerComponent>(spawner, this, bomb_dragon);
 		spawner_component->AddComponent(monster_component->GetCopy());
 		spawner->AddComponent(spawner_component);
 		bomb_dragon_spawner->set_hierarchy_root(spawner);
@@ -1115,8 +1115,8 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		//Create Strong Dragon Spawner
 		ModelInfo* strong_dragon_spawner = new ModelInfo();
 		strong_dragon_spawner->set_model_name("Strong_Dragon_Spawner");
-		spawner = new Object();
-		spawner_component = new SpawnerComponent(spawner, this, strong_dragon);
+		spawner = std::make_shared<Object>();
+		spawner_component = std::make_shared<SpawnerComponent>(spawner, this, strong_dragon);
 		spawner_component->AddComponent(monster_component->GetCopy());
 		spawner->AddComponent(spawner_component);
 		strong_dragon_spawner->set_hierarchy_root(spawner);
@@ -1134,12 +1134,12 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			classic_model->set_hierarchy_root(classic_object);
 			classic_model->set_model_name("Classic");
 
-			GunComponent* gun_component = new GunComponent(classic_object);
+			auto gun_component = std::make_shared<GunComponent>(classic_object);
 			gun_component->LoadGunInfo("classic");
 			classic_object->AddComponent(gun_component);
 			classic_object->Rotate(0, 170, -17);
 
-			Object* player_gun_particle_pivot = new Object("gun_particle_pivot");
+			auto player_gun_particle_pivot = std::make_shared<Object>("gun_particle_pivot");
 			classic_object->AddChild(player_gun_particle_pivot);
 			player_gun_particle_pivot->set_local_position(XMFLOAT3(0.0f, 0.2f, 0.3f));
 
@@ -1147,7 +1147,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			Material* particleMaterial = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
 				return material->name() == "Trail_1";
 				})->get();
-			ParticleComponent* particleComponent = new ParticleComponent(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
+			auto particleComponent = std::make_shared<ParticleComponent>(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
 			particleComponent->set_scene(this);
 			particleComponent->set_color({ 0.9f,0.1f,0.1f,0.5f });
 			player_gun_particle_pivot->AddComponent(particleComponent);
@@ -1163,12 +1163,12 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			vandal_model->set_hierarchy_root(vandal_object);
 			vandal_model->set_model_name("Vandal");
 
-			GunComponent* gun_component = new GunComponent(vandal_object);
+			auto gun_component = std::make_shared<GunComponent>(vandal_object);
 			gun_component->LoadGunInfo("vandal");
 			vandal_object->AddComponent(gun_component);
 			vandal_object->Rotate(0, 170, -17);
 
-			Object* player_gun_particle_pivot = new Object("gun_particle_pivot");
+			auto player_gun_particle_pivot = std::make_shared<Object>("gun_particle_pivot");
 			vandal_object->AddChild(player_gun_particle_pivot);
 			player_gun_particle_pivot->set_local_position(XMFLOAT3(-0.018f, 0.2f, 0.58f));
 
@@ -1176,7 +1176,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			Material* particleMaterial = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
 				return material->name() == "Trail_1";
 				})->get();
-			ParticleComponent* particleComponent = new ParticleComponent(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
+			auto particleComponent = std::make_shared<ParticleComponent>(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
 			particleComponent->set_scene(this);
 			particleComponent->set_color({ 0.9f,0.1f,0.1f,0.5f });
 			player_gun_particle_pivot->AddComponent(particleComponent);
@@ -1192,12 +1192,12 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			odin_model->set_hierarchy_root(odin_object);
 			odin_model->set_model_name("Odin");
 
-			GunComponent* gun_component = new GunComponent(odin_object);
+			auto gun_component = std::make_shared<GunComponent>(odin_object);
 			gun_component->LoadGunInfo("odin");
 			odin_object->AddComponent(gun_component);
 			odin_object->Rotate(0, 170, -17);
 
-			Object* player_gun_particle_pivot = new Object("gun_particle_pivot");
+			auto player_gun_particle_pivot = std::make_shared<Object>("gun_particle_pivot");
 			odin_object->AddChild(player_gun_particle_pivot);
 			player_gun_particle_pivot->set_local_position(XMFLOAT3(0.013f, 0.123f, 0.81f));
 
@@ -1205,7 +1205,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			Material* particleMaterial = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
 				return material->name() == "Trail_1";
 				})->get();
-			ParticleComponent* particleComponent = new ParticleComponent(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
+			auto particleComponent = std::make_shared<ParticleComponent>(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
 			particleComponent->set_scene(this);
 			particleComponent->set_color({ 0.9f,0.1f,0.1f,0.5f });
 			player_gun_particle_pivot->AddComponent(particleComponent);
@@ -1221,24 +1221,24 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			flamethrower_model->set_hierarchy_root(flamethrower_object);
 			flamethrower_model->set_model_name("Flamethrower");
 
-			GunComponent* gun_component = new GunComponent(flamethrower_object);
+			auto gun_component = std::make_shared<GunComponent>(flamethrower_object);
 			gun_component->LoadGunInfo("flamethrower");
 			flamethrower_object->AddComponent(gun_component);
 			flamethrower_object->Rotate(0, 170, -17);
 
-			Object* player_gun_particle_pivot = new Object("gun_particle_pivot");
+			auto player_gun_particle_pivot = std::make_shared<Object>("gun_particle_pivot");
 			flamethrower_object->AddChild(player_gun_particle_pivot);
 			player_gun_particle_pivot->set_local_position(XMFLOAT3(0.0f, 0.143f, 1.24f));
 
 			// 화염방사기에 충돌 박스 달기
-			auto flamethrow_box_component = new BoxColliderComponent(player_gun_particle_pivot, gun_component->flamethrow_box());
+			auto flamethrow_box_component = std::make_shared<BoxColliderComponent>(player_gun_particle_pivot, gun_component->flamethrow_box());
 			player_gun_particle_pivot->AddComponent(flamethrow_box_component);
 
 			// 총 발사 파티클 생성
 			Material* particleMaterial = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
 				return material->name() == "Trail_1";
 				})->get();
-			ParticleComponent* particleComponent = new ParticleComponent(player_gun_particle_pivot, device, 1000, ParticleComponent::BigCone, particleMaterial);
+			auto particleComponent = std::make_shared<ParticleComponent>(player_gun_particle_pivot, device, 1000, ParticleComponent::BigCone, particleMaterial);
 			particleComponent->set_scene(this);
 			particleComponent->set_color({ 0.9f,0.1f,0.1f,0.5f });
 			player_gun_particle_pivot->AddComponent(particleComponent);
@@ -1254,12 +1254,12 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			sherif_model->set_hierarchy_root(sherif_object);
 			sherif_model->set_model_name("Sherif");
 
-			GunComponent* gun_component = new GunComponent(sherif_object);
+			auto gun_component = std::make_shared<GunComponent>(sherif_object);
 			gun_component->LoadGunInfo("sherif");
 			sherif_object->AddComponent(gun_component);
 			sherif_object->Rotate(0, 170, -17);
 
-			Object* player_gun_particle_pivot = new Object("gun_particle_pivot");
+			auto player_gun_particle_pivot = std::make_shared<Object>("gun_particle_pivot");
 			sherif_object->AddChild(player_gun_particle_pivot);
 			player_gun_particle_pivot->set_local_position(XMFLOAT3(0.0f, 0.317f, 0.1f));
 
@@ -1267,7 +1267,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			Material* particleMaterial = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
 				return material->name() == "Trail_1";
 				})->get();
-			ParticleComponent* particleComponent = new ParticleComponent(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
+			auto particleComponent = std::make_shared<ParticleComponent>(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
 			particleComponent->set_scene(this);
 			particleComponent->set_color({ 0.9f,0.1f,0.1f,0.5f });
 			player_gun_particle_pivot->AddComponent(particleComponent);
@@ -1283,12 +1283,12 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			specter_model->set_hierarchy_root(specter_object);
 			specter_model->set_model_name("Specter");
 
-			GunComponent* gun_component = new GunComponent(specter_object);
+			auto gun_component = std::make_shared<GunComponent>(specter_object);
 			gun_component->LoadGunInfo("specter");
 			specter_object->AddComponent(gun_component);
 			specter_object->Rotate(0, 170, -17);
 
-			Object* player_gun_particle_pivot = new Object("gun_particle_pivot");
+			auto player_gun_particle_pivot = std::make_shared<Object>("gun_particle_pivot");
 			specter_object->AddChild(player_gun_particle_pivot);
 			player_gun_particle_pivot->set_local_position(XMFLOAT3(0.016f, 0.1477f, 0.823f));
 
@@ -1296,7 +1296,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			Material* particleMaterial = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
 				return material->name() == "Trail_1";
 				})->get();
-			ParticleComponent* particleComponent = new ParticleComponent(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
+			auto particleComponent = std::make_shared<ParticleComponent>(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
 			particleComponent->set_scene(this);
 			particleComponent->set_color({ 0.9f,0.1f,0.1f,0.5f });
 			player_gun_particle_pivot->AddComponent(particleComponent);
@@ -1323,7 +1323,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 				ModelInfo* gun_ui = new ModelInfo();
 				gun_ui->set_model_name("Gun_UI_" + ui_name);
 
-				auto bar_object = new Object();
+				auto bar_object = std::make_shared<Object>();
 				bar_object->set_name("Gun_UI_Object_" + ui_name);
 				gun_ui->set_hierarchy_root(bar_object);
 
@@ -1331,7 +1331,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 				Mesh* mesh = Scene::FindMesh("ProgressBar", meshes_);
 				Material* material = Scene::FindMaterial(ui_name, materials_);
 
-				auto ui_component = new UiMeshComponent(bar_object, mesh, material, this);
+				auto ui_component = std::make_shared<UiMeshComponent>(bar_object, mesh, material, this);
 				ui_component->set_ui_ratio({ 2.0f, 2.0f });
 				ui_component->set_ui_layer(UiLayer::kZero);
 				bar_object->AddComponent(ui_component);
@@ -1357,19 +1357,19 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			model_infos_.emplace_back();
 			model_infos_.back().reset(scroll_model_info);
 	
-			Object* scroll = model_infos_[scroll_model_index]->GetInstance();
+			auto scroll = std::shared_ptr<Object>(model_infos_[scroll_model_index]->GetInstance());
 			scroll_model_info->set_hierarchy_root(scroll);
 			scroll->set_name("Scroll_" + std::to_string(i));
 			scroll->set_tag("Scroll");
 			scroll->set_is_movable(true);
 	
-			auto scroll_component = new ScrollComponent(scroll);
+			auto scroll_component = std::make_shared<ScrollComponent>(scroll);
 			scroll_component->set_type(static_cast<ScrollType>(i));
 			scroll->AddComponent(scroll_component);
 	
 			//scroll->set_local_rotation(scroll_rotations[0]);
 	
-			Object* ui_bar = new Object();
+			auto ui_bar = std::make_shared<Object>();
 			ui_bar->set_tag("Scroll_UI");
 	
 			// 메쉬 및 머티리얼 설정
@@ -1378,7 +1378,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 			Material* material = Scene::FindMaterial(material_name, materials_);
 	
 			// UI 컴포넌트 생성
-			auto ui_component = new UiMeshComponent(ui_bar, mesh, material, this);
+			auto ui_component = std::make_shared<UiMeshComponent>(ui_bar, mesh, material, this);
 			ui_bar->AddComponent(ui_component);
 			material->DeleteMeshComponent(ui_component); // 씬 렌더에서 제외
 			ui_component->set_ui_layer(UiLayer::kZero);
@@ -1402,9 +1402,9 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 	////Create Razer Model
 	{
 		ModelInfo* razer_model = new ModelInfo();
-		auto razer_object = new Object("Razer");
-		auto razer_component = new RazerComponent(razer_object);
-		auto mesh_component = new MeshComponent(razer_object,
+		auto razer_object = std::make_shared<Object>("Razer");
+		auto razer_component = std::make_shared<RazerComponent>(razer_object);
+		auto mesh_component = std::make_shared<MeshComponent>(razer_object,
 			FindMesh("RazerMesh", meshes_), FindMaterial("Razer", materials_));
 		FindMaterial("Razer", materials_)->DeleteMeshComponent(mesh_component);
 		razer_object->AddComponent(mesh_component);
@@ -1420,11 +1420,11 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 
 void BaseScene::CreatePlayerUI()
 {
-	UiMeshComponent* ui_mesh_component;
+	std::shared_ptr<UiMeshComponent> ui_mesh_component;
 	//Create CroosHair
 	{
-		Object* ui = new Object();
-		ui_mesh_component = new UiMeshComponent(ui,
+		auto ui = std::make_shared<Object>();
+		ui_mesh_component = std::make_shared<UiMeshComponent>(ui,
 			Scene::FindMesh("CrossHair", meshes_), Scene::FindMaterial("CrossHair", materials_), this);
 		ui_mesh_component->set_is_static(true);
 		ui->AddComponent(ui_mesh_component);
@@ -1433,27 +1433,27 @@ void BaseScene::CreatePlayerUI()
 
 	//Create Main Skill Star Icon
 	{
-		Object* star_icon = new Object();
-		Object* star_icon_background = new Object();
+		auto star_icon = std::make_shared<Object>();
+		auto star_icon_background = std::make_shared<Object>();
 		star_icon->AddChild(star_icon_background);
 
 		star_icon_background->set_name("Star_Icon_Background");
-		ui_mesh_component = new UiMeshComponent(star_icon_background,
+		ui_mesh_component = std::make_shared<UiMeshComponent>(star_icon_background,
 			Scene::FindMesh("Star", meshes_), Scene::FindMaterial("Star_Dark", materials_), this);
 		ui_mesh_component->set_is_static(true);
 		ui_mesh_component->set_ui_layer(UiLayer::kOne);
 		star_icon_background->AddComponent(ui_mesh_component);
 
 		star_icon->set_name("Star_Icon");
-		ui_mesh_component = new UiMeshComponent(star_icon,
+		ui_mesh_component = std::make_shared<UiMeshComponent>(star_icon,
 			Scene::FindMesh("Star", meshes_), Scene::FindMaterial("Star", materials_), this);
 		ui_mesh_component->set_is_static(true);
 		star_icon->AddComponent(ui_mesh_component);
 
-		ProgressBarComponent* progress_bar = new ProgressBarComponent(star_icon);
+		auto progress_bar = std::make_shared<ProgressBarComponent>(star_icon);
 		progress_bar->set_type(UiType::kProgressBarY);
 
-		progress_bar->set_view(player_);
+		progress_bar->set_view(player_.lock());
 
 		progress_bar->set_get_max_value_func([](Object* object) -> float
 			{
@@ -1474,9 +1474,9 @@ void BaseScene::CreatePlayerUI()
 
 	//Create Player Hp, Shield Bar
 	{
-		Object* player_shield_bar = new Object();
-		Object* player_hp_bar = new Object();
-		Object* player_hp_bar_background = new Object();
+		auto player_shield_bar = std::make_shared<Object>();
+		auto player_hp_bar = std::make_shared<Object>();
+		auto player_hp_bar_background = std::make_shared<Object>();
 		player_shield_bar->set_name("PlayerShieldBar");
 		player_hp_bar->set_name("PlayerHpBar");
 		player_hp_bar_background->set_name("PlayerHpBarBackground");
@@ -1490,22 +1490,22 @@ void BaseScene::CreatePlayerUI()
 		auto ui_hpbar_material = Scene::FindMaterial("HpBar", materials_);
 		auto ui_shieldbar_material = Scene::FindMaterial("ShieldBar", materials_);
 
-		auto ui_background_component = new UiMeshComponent(player_hp_bar_background,
+		auto ui_background_component = std::make_shared<UiMeshComponent>(player_hp_bar_background,
 			ui_mesh, ui_background_material, this);
 		player_hp_bar_background->AddComponent(ui_background_component);
 		ui_background_component->set_ui_layer(UiLayer::kOne);
 		ui_background_component->set_is_static(true);
 
-		auto player_component = Object::GetComponent<PlayerComponent>(player_);
+		auto player_component = Object::GetComponent<PlayerComponent>(player_.lock());
 
-		auto ui_hpbar_component = new UiMeshComponent(player_hp_bar,
+		auto ui_hpbar_component = std::make_shared<UiMeshComponent>(player_hp_bar,
 			ui_mesh, ui_hpbar_material, this);
 		player_hp_bar->AddComponent(ui_hpbar_component);
 		ui_hpbar_component->set_is_static(true);
 		ui_hpbar_component->set_ui_ratio({0.9f, 0.4f});
 		ui_hpbar_component->set_position_offset({ ui_size.x * 0.05f, ui_size.y * 0.5f });
-		auto hp_progress_bar = new ProgressBarComponent(player_hp_bar);
-		hp_progress_bar->set_view(player_);
+		auto hp_progress_bar = std::make_shared<ProgressBarComponent>(player_hp_bar);
+		hp_progress_bar->set_view(player_.lock());
 		hp_progress_bar->set_max_value(player_component->max_hp());
 		hp_progress_bar->set_get_current_value_func([](Object* object) -> float
 			{
@@ -1514,14 +1514,14 @@ void BaseScene::CreatePlayerUI()
 			});
 		player_hp_bar->AddComponent(hp_progress_bar);
 
-		auto ui_shieldbar_component = new UiMeshComponent(player_shield_bar,
+		auto ui_shieldbar_component = std::make_shared<UiMeshComponent>(player_shield_bar,
 			ui_mesh, ui_shieldbar_material, this);
 		player_shield_bar->AddComponent(ui_shieldbar_component);
 		ui_shieldbar_component->set_is_static(true);
 		ui_shieldbar_component->set_ui_ratio({ 0.9f, 0.4f });
 		ui_shieldbar_component->set_position_offset({ ui_size.x * 0.05f, ui_size.y * 0.1f });
-		auto shield_progress_bar = new ProgressBarComponent(player_shield_bar);
-		shield_progress_bar->set_view(player_);
+		auto shield_progress_bar = std::make_shared<ProgressBarComponent>(player_shield_bar);
+		shield_progress_bar->set_view(player_.lock());
 		shield_progress_bar->set_max_value(player_component->max_shield());
 		shield_progress_bar->set_get_current_value_func([](Object* object) -> float
 			{
@@ -1535,15 +1535,15 @@ void BaseScene::CreatePlayerUI()
 
 	//Create Dash
 	{
-		Object* dash_icon = new Object();
-		Object* dash_icon_background = new Object();
+		auto dash_icon = std::make_shared<Object>();
+		auto dash_icon_background = std::make_shared<Object>();
 		dash_icon->AddChild(dash_icon_background);
 
 		// 배경 설정 (dash_background.dds)
 		dash_icon_background->set_name("Dash_Icon_Background");
 		auto dash_background_material = Scene::FindMaterial("Dash_Background", materials_);
 		auto dash_mesh = Scene::FindMesh("Dash", meshes_); // Star와 동일 크기 mesh 재사용
-		auto dash_back_comp = new UiMeshComponent(dash_icon_background, dash_mesh, dash_background_material, this);
+		auto dash_back_comp = std::make_shared<UiMeshComponent>(dash_icon_background, dash_mesh, dash_background_material, this);
 		dash_back_comp->set_is_static(true);
 		dash_back_comp->set_ui_layer(UiLayer::kOne);
 		dash_icon_background->AddComponent(dash_back_comp);
@@ -1551,19 +1551,19 @@ void BaseScene::CreatePlayerUI()
 		// 전면 설정 (dash.dds)
 		dash_icon->set_name("Dash_Icon");
 		auto dash_material = Scene::FindMaterial("Dash", materials_);
-		auto dash_comp = new UiMeshComponent(dash_icon, dash_mesh, dash_material, this);
+		auto dash_comp = std::make_shared<UiMeshComponent>(dash_icon, dash_mesh, dash_material, this);
 		dash_comp->set_is_static(true);
 		dash_icon->AddComponent(dash_comp);
 
 		// ProgressBarComponent
-		auto progress_bar = new ProgressBarComponent(dash_icon);
+		auto progress_bar = std::make_shared<ProgressBarComponent>(dash_icon);
 		progress_bar->set_type(UiType::kProgressBarY); // 위에서 아래로 차오르게
-		progress_bar->set_view(player_);
-		progress_bar->set_get_max_value_func([](Object* object) -> float {
+		progress_bar->set_view(player_.lock());
+		progress_bar->set_get_max_value_func([](std::shared_ptr<Object> object) -> float {
 			auto player_component = Object::GetComponent<PlayerComponent>(object);
 			return player_component->dash_max_gage();
 			});
-		progress_bar->set_get_current_value_func([](Object* object) -> float {
+		progress_bar->set_get_current_value_func([](std::shared_ptr<Object> object) -> float {
 			auto player_component = Object::GetComponent<PlayerComponent>(object);
 			return player_component->dash_gage();
 			});
@@ -1574,7 +1574,7 @@ void BaseScene::CreatePlayerUI()
 
 	//Create Player's Bullet Count Text
 	{
-		Object* bullet_count_text = new Object();
+		auto bullet_count_text = std::make_shared<Object>();
 		bullet_count_text->set_name("BulletCountText");
 		const auto client_size = game_framework_->client_size();
 		const float l = client_size.x - (client_size.x / 16.f * 2.f);
@@ -1582,8 +1582,8 @@ void BaseScene::CreatePlayerUI()
 		const float r = client_size.x;
 		const float b = client_size.y - (client_size.y / 9.f);
 		auto d2d1_rect = D2D1::RectF(l, t, r, b);
-		std::function<std::wstring (Object*)> get_bullet_count_func =
-			[](Object* object)
+		std::function<std::wstring (std::shared_ptr<Object>)> get_bullet_count_func =
+			[](std::shared_ptr<Object> object)
 			{
 				auto player_component = Object::GetComponentInChildren<GunComponent>(object);
 				if (player_component)
@@ -1592,21 +1592,21 @@ void BaseScene::CreatePlayerUI()
 				}
 				return std::wstring(L"None");
 			};
-		auto text_component = new TextComponent(
+		auto text_component = std::make_shared<TextComponent>(
 			bullet_count_text,
 			text_formats_["BulletCount"].get(),
 			d2d1_rect,
 			get_bullet_count_func
 		);
-		text_component->set_view(player_);
+		text_component->set_view(player_.lock());
 		text_component->set_color(D2D1::ColorF(D2D1::ColorF::Green));
 		bullet_count_text->AddComponent(text_component);
-		player_->AddChild(bullet_count_text);
+		player_.lock()->AddChild(bullet_count_text);
 	}
 
 	//Create Player's hp, shield text
 	{
-		Object* player_hp_text = new Object();
+		auto player_hp_text = std::make_shared<Object>();
 		player_hp_text->set_name("PlayerHpText");
 		const auto client_size = game_framework_->client_size();
 		const float l = client_size.x / 16.f * 4.1f;
@@ -1614,46 +1614,46 @@ void BaseScene::CreatePlayerUI()
 		const float r = client_size.x / 16.f * 6.f;
 		const float b = client_size.y - (client_size.y / 9.f * 0.5f);
 		auto d2d1_rect = D2D1::RectF(l, t, r, b);
-		std::function<std::wstring (Object*)> get_hp_func =
-			[](Object* object)
+		std::function<std::wstring (std::shared_ptr<Object>)> get_hp_func =
+			[](std::shared_ptr<Object> object)
 			{
 				auto player_component = Object::GetComponentInChildren<PlayerComponent>(object);
 				return std::to_wstring((int)player_component->hp());
 			};
-		auto text_component = new TextComponent(
+		auto text_component = std::make_shared<TextComponent>(
 			player_hp_text,
 			text_formats_["HpCount"].get(),
 			d2d1_rect,
 			get_hp_func
 		);
-		text_component->set_view(player_);
+		text_component->set_view(player_.lock());
 		text_component->set_color(D2D1::ColorF(D2D1::ColorF::Red));
 		player_hp_text->AddComponent(text_component);
-		player_->AddChild(player_hp_text);
+		player_.lock()->AddChild(player_hp_text);
 
-		Object* player_shield_text = new Object();
+		auto player_shield_text = std::make_shared<Object>();
 		player_shield_text->set_name("PlayerHpText");
 		const float l2 = client_size.x / 16.f * 4.1f;
 		const float t2 = client_size.y - (client_size.y / 9.f * 1.5f);
 		const float r2 = client_size.x / 16.f * 6.f;
 		const float b2 = client_size.y - (client_size.y / 9.f * 0.5f);
 		d2d1_rect = D2D1::RectF(l2, t2, r2, b2);
-		std::function<std::wstring(Object*)> get_shield_func =
-			[](Object* object)
+		std::function<std::wstring(std::shared_ptr<Object>)> get_shield_func =
+			[](std::shared_ptr<Object> object)
 			{
 				auto player_component = Object::GetComponentInChildren<PlayerComponent>(object);
 				return std::to_wstring((int)player_component->shield());
 			};
-		text_component = new TextComponent(
+		text_component = std::make_shared<TextComponent>(
 			player_shield_text,
 			text_formats_["HpCount"].get(),
 			d2d1_rect,
 			get_shield_func
 		);
-		text_component->set_view(player_);
+		text_component->set_view(player_.lock());
 		text_component->set_color(D2D1::ColorF(D2D1::ColorF::SkyBlue));
 		player_shield_text->AddComponent(text_component);
-		player_->AddChild(player_shield_text);
+		player_.lock()->AddChild(player_shield_text);
 
 	}
 
@@ -1661,11 +1661,11 @@ void BaseScene::CreatePlayerUI()
 
 void BaseScene::CreateMonsterSpawner()
 {
-	std::function<Object* (ModelInfo*, int&, XMFLOAT3, int, float, float)> create_spawner =
+	std::function<std::shared_ptr<Object> (ModelInfo*, int&, XMFLOAT3, int, float, float)> create_spawner =
 		[this]
 		(ModelInfo* spawner_model, int& spawner_id, XMFLOAT3 spawn_position, int spawn_count, float spawn_time, float spawn_cool_time)
 		{
-			Object* spawner = spawner_model->GetInstance();
+			auto spawner = spawner_model->GetInstance();
 			spawner->set_name(spawner_model->model_name() + "_" + std::to_string(++spawner_id));
 			spawner->set_position_vector(spawn_position);
 			auto spawner_component = Object::GetComponent<SpawnerComponent>(spawner);
@@ -1786,8 +1786,10 @@ void BaseScene::ActivateStageMonsterSpawner(int stage_num)
 	{
 		return;
 	}
-	for (auto& spawner : stage_monster_spawner_list_[stage_num])
-	{
+	for (auto it = stage_monster_spawner_list_[stage_num].begin(); it != stage_monster_spawner_list_[stage_num].end(); ) {
+	auto spawner = it->lock();
+	if (!spawner) { it = stage_monster_spawner_list_[stage_num].erase(it); continue; }
+	++it;
 		spawner->ActivateSpawn();
 	}
 }
@@ -1796,17 +1798,17 @@ void BaseScene::ShowClearRogo()
 {
 	//Create SandyHeroes
 	{
-		Object* sandy_ui = new Object("SandyHeroesUI");
+		auto sandy_ui = std::make_shared<Object>("SandyHeroesUI");
 		Mesh* mesh = Scene::FindMesh("SandyHeroesMesh", meshes_);
 		Material* material = Scene::FindMaterial("SandyHeroes", materials_);
 
-		auto ui_comp = new UiMeshComponent(sandy_ui, mesh, material, this);
+		auto ui_comp = std::make_shared<UiMeshComponent>(sandy_ui, mesh, material, this);
 		ui_comp->set_is_static(true); // 화면 고정
 		ui_comp->set_ui_layer(UiLayer::kZero); // 다른 UI 위/아래 조정 가능
 		ui_comp->set_alpha(0.f);
 		sandy_ui->AddComponent(ui_comp);
 
-		auto fade_in_component = new FadeInUIComponent(sandy_ui, 5.0f);
+		auto fade_in_component = std::make_shared<FadeInUIComponent>(sandy_ui, 5.0f);
 		sandy_ui->AddComponent(fade_in_component);
 
 		AddObject(sandy_ui);
@@ -1829,179 +1831,25 @@ bool BaseScene::ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time
 	{
 	case WM_KEYDOWN:
 	{
-		Object* player_gun_frame = player_->FindFrame("WeaponR_locator");
-		if (w_param == '1')
-		{
-			// classic
-			for (int i = 0; i < guns.size(); ++i)
-			{
-				if (i == 0) continue;
-				player_gun_frame->ChangeChild(FindModelInfo(guns[0])->GetInstance(), guns[i], false);
-			}
-		}
-		if (w_param == '2')
-		{
-			// sherif
-			for (int i = 0; i < guns.size(); ++i)
-			{
-				if (i == 1) continue;
-				player_gun_frame->ChangeChild(FindModelInfo(guns[1])->GetInstance(), guns[i], false);
-			}
-		}
-		if (w_param == '3')
-		{
-			// spector
-			for (int i = 0; i < guns.size(); ++i)
-			{
-				if (i == 2) continue;
-				player_gun_frame->ChangeChild(FindModelInfo(guns[2])->GetInstance(), guns[i], false);
-			}
-		}
-		if (w_param == '4')
-		{
-			// vandal
-			for (int i = 0; i < guns.size(); ++i)
-			{
-				if (i == 3) continue;
-				player_gun_frame->ChangeChild(FindModelInfo(guns[3])->GetInstance(), guns[i], false);
-			}
-		}
-		if (w_param == '5')
-		{
-			// odin
-			for (int i = 0; i < guns.size(); ++i)
-			{
-				if (i == 4) continue;
-				player_gun_frame->ChangeChild(FindModelInfo(guns[4])->GetInstance(), guns[i], false);
-			}
-		}
-		if (w_param == '6')
-		{
-			// flamethrower
-			for (int i = 0; i < guns.size(); ++i)
-			{
-				if (i == 5) continue;
-				player_gun_frame->ChangeChild(FindModelInfo(guns[5])->GetInstance(), guns[i], false);
-			}
-		}
-		if (w_param == '8')
-		{
-			ParticleComponent* particle = Object::GetComponentInChildren<ParticleComponent>(player_gun_frame);
-			particle->set_color({ 0.9f,0.1f,0.1f,0.5f });	//red
-		}
-		if (w_param == '9')
-		{
-			ParticleComponent* particle = Object::GetComponentInChildren<ParticleComponent>(player_gun_frame);
-			particle->set_color({ 0.1f,0.9f,0.1f,0.5f });	//yellow
-		}
-		if (w_param == '0')
-		{
-			ParticleComponent* particle = Object::GetComponentInChildren<ParticleComponent>(player_gun_frame);
-			particle->set_color({ 0.9f,0.9f,0.1f,0.5f });	//green
-		}
-		//if (w_param == 'F')
-		//{
-		//	f_key_ = true;
-		//	CheckPlayerHitGun(player_);
-		//}
-		// 카메라 전환 테스트
-		if (w_param == 'K')
-		{
-			ShowCursor(true);
-			//바꿀 카메라 오브젝트를 찾고
-			Object* camera = FindObject("CAMERA_2");
-
-			//그 오브젝트의 카메라와 컨트롤러를 씬으로 가져온다
-			CameraComponent* new_camera = Object::GetComponent<CameraComponent>(camera);
-			if (new_camera) // nullptr 방지
-			{
-				main_camera_ = new_camera;
-			}
-			main_input_controller_ = Object::GetComponent<TestControllerComponent>(camera);
-
-			// UI off
-			shaders_[(int)ShaderType::kUI]->set_is_render(false);
-			GameFramework::Instance()->text_renderer()->set_is_render(false);
-
-			return true;
-		}
-		if (w_param == 'L')
-		{
-			ShowCursor(false);
-			//바꿀 카메라 오브젝트를 찾고
-			//그 오브젝트의 카메라와 컨트롤러를 씬으로 가져온다
-			CameraComponent* new_camera = Object::GetComponentInChildren<CameraComponent>(player_);
-			if (new_camera) // nullptr 방지
-			{
-				main_camera_ = new_camera;
-			}
-			main_input_controller_ = Object::GetComponent<FPSControllerComponent>(player_);
-			shaders_[(int)ShaderType::kUI]->set_is_render(true);
-			GameFramework::Instance()->text_renderer()->set_is_render(true);
-
-			return true;
-		}
 		if (w_param == 'O')
 		{
 			cut_scene_tracks_[0].Play(this);
-			auto movement = Object::GetComponent<MovementComponent>(player_);
+			auto movement = Object::GetComponent<MovementComponent>(player_.lock());
 			movement->Stop();
-			return true;
-		}
-		if (w_param == 'P')
-		{
-			catch_monster_num_ = 1;
-			//++stage_clear_num_;
 			return true;
 		}
 		if (w_param == 'N')
 		{
-			auto& mesh_list = Object::GetComponentsInChildren<SkinnedMeshComponent>(player_);
+			auto& mesh_list = Object::GetComponentsInChildren<SkinnedMeshComponent>(player_.lock());
 			for (auto& mesh : mesh_list)
 			{
 				mesh->set_is_visible(!mesh->IsVisible());
 			}
 			return true;
 		}
-		if (w_param == '0')
-		{
-			auto& mesh_list = Object::GetComponentsInChildren<SkinnedMeshComponent>(player_);
-			for (auto& mesh : mesh_list)
-			{
-				if (mesh->owner()->name() == "Face01")
-				{
-					mesh->ChangeMaterial(0, Scene::FindMaterial("Face27", materials_));
-				}
-			}
-			return true;
-		}
 		if (w_param == 'M')
 		{
 			is_render_debug_mesh_ = !is_render_debug_mesh_;
-			return true;
-		}
-		if (w_param == 'B')
-		{
-			auto pos = player_->position_vector();
-			player_->set_position_vector(pos.x, pos.y + 10.f, pos.z);
-			return true;
-		}
-		if (w_param == VK_OEM_COMMA) // ,
-		{
-			auto player_component = Object::GetComponent<PlayerComponent>(player_);
-			if (player_component)
-			{
-				player_component->HitDamage(10.f);
-			}
-			return true;
-		}
-		if (w_param == VK_OEM_PERIOD) // .
-		{
-			auto player_component = Object::GetComponent<PlayerComponent>(player_);
-			if (player_component)
-			{
-				player_component->Heal(10.f);
-			}
 			return true;
 		}
 		if (w_param == VK_F1)
@@ -2024,7 +1872,7 @@ bool BaseScene::ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time
 	return false;
 }
 
-const std::list<MeshComponent*>& BaseScene::GetShadowMeshList(int index)
+const std::list<std::weak_ptr<MeshComponent>>& BaseScene::GetShadowMeshList(int index)
 {
 	return stage_mesh_list_[index];
 }
@@ -2041,26 +1889,13 @@ void BaseScene::Update(float elapsed_time)
 
 	FMODSoundManager::Instance().system()->update();
 
-	DeleteDeadObjects();
+	
 
 }
 
-void BaseScene::AddObject(Object* object)
+void BaseScene::AddObject(std::shared_ptr<Object> object)
 {
 	Scene::AddObject(object);
-
-	CollideType collide_type = object->collide_type();
-	if (collide_type.ground_check)
-	{
-		ground_check_object_list_.push_back(object);
-	}
-
-	if (collide_type.wall_check)
-	{
-		auto movement = Object::GetComponentInChildren<MovementComponent>(object);
-		if(movement)
-			wall_check_object_list_.emplace_back(object, movement);
-	}
 
 	auto monster_component = Object::GetComponent<MonsterComponent>(object);
 	if (monster_component)
@@ -2073,603 +1908,62 @@ void BaseScene::AddObject(Object* object)
 	{
 		razer_list_.push_back(razer_component);
 	}
-
 }
 
-void BaseScene::DeleteObject(Object* object)
+void BaseScene::DeleteObject(std::shared_ptr<Object> object)
 {
-	CollideType collide_type = object->collide_type();
-	if (collide_type.ground_check)
-	{
-		ground_check_object_list_.remove(object);
-	}
-	if (collide_type.wall_check)
-	{
-		wall_check_object_list_.remove_if([object](const WallCheckObject& wall_check_object) {
-			return wall_check_object.object == object;
-			});
-	}
-
 	Scene::DeleteObject(object);
-
-}
-
-void BaseScene::DeleteDeadObjects()
-{
-	ground_check_object_list_.remove_if([](const Object* object) {
-		return object->is_dead();
-		});
-	wall_check_object_list_.remove_if([](const WallCheckObject& wall_check_object) {
-		return wall_check_object.object->is_dead();
-		});
-	monster_list_.remove_if([](const MonsterComponent* monster_component) {
-		return monster_component->owner()->is_dead();
-		});
-	razer_list_.remove_if([](const RazerComponent* razer_component) {
-		return razer_component->owner()->is_dead();
-		});
-	Scene::DeleteDeadObjects();
 }
 
 void BaseScene::DeleteKeyObject(int idx)
 {
-	constexpr float kKeyCount = 3;
-	std::vector<Object*> key_objects;
-	key_objects.reserve(kKeyCount);
 	auto state_6_object = FindObject("STAGE6");
 	if (!state_6_object) return;
-	key_objects.push_back(state_6_object->FindFrame("Key_00"));
-	key_objects.push_back(state_6_object->FindFrame("Key_01"));
-	key_objects.push_back(state_6_object->FindFrame("Key_02"));
 
-	if (key_objects[idx] && !key_objects[idx]->is_dead())
-	{
-		auto mesh_component = Object::GetComponent<MeshComponent>(key_objects[idx]);
-		if (mesh_component)
-		{
-			mesh_component->set_is_visible(false);
-		}
-		key_objects[idx]->set_is_dead(true);
-	}
-
-}
-
-
-
-
-void BaseScene::CheckObjectIsGround(Object* object)
-{
-	XMFLOAT3 position = object->world_position_vector();
-	constexpr float kGroundYOffset = 0.75f;
-	position.y += kGroundYOffset;
-	XMVECTOR ray_origin = XMLoadFloat3(&position);
-	position.y -= kGroundYOffset;
-	XMVECTOR ray_direction = XMVectorSet(0, -1, 0, 0);
-
-	bool is_collide = false;
-	float distance{ std::numeric_limits<float>::max() };
-	//int a = 0;
-	for (auto& mesh_collider : stage_ground_collider_list_[stage_clear_num_])
-	{
-		//++a;
-		float t{};
-		if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
-		{
-			is_collide = true;
-			if (t < distance)
-			{
-				distance = t;
-			}
-		}
-	}
-	if (stage_clear_num_ - 1 >= 0)
-	{
-		for (auto& mesh_collider : stage_ground_collider_list_[stage_clear_num_ - 1])
-		{
-			//++a;
-			float t{};
-			if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
-			{
-				is_collide = true;
-				if (t < distance)
-				{
-					distance = t;
-				}
-			}
-		}
-	}
-	//OutputDebugString(std::wstring(L"GroundColliderComponent Count: " + std::to_wstring(a) + L"\n").c_str());
-
-	if (is_collide)
-	{
-		float distance_on_ground = distance - kGroundYOffset; //지면까지의 거리
-		if (distance_on_ground > 0.005f)
-		{
-			object->set_is_ground(false);
-			return;
-		}
-		position.y -= distance_on_ground;
-		object->set_is_ground(true);
-		object->set_position_vector(position);
-		return;
-	}
-
-	object->set_is_ground(false);
+	state_6_object->DeleteChild("Key_0" + std::to_string(idx));
 }
 
 void BaseScene::PrepareGroundChecking()
 {
-	static const std::array<std::string, kStageMaxCount>
+	const std::array<std::string, kStageMaxCount>
 		stage_names{ "BASE", "STAGE1", "STAGE2", "STAGE3", "STAGE4", "STAGE5", "STAGE6", "STAGE7", };
 	for (int i = 0; i < stage_names.size(); ++i)
 	{
-		Object* object = Scene::FindObject(stage_names[i]);
-		stage_mesh_list_[i] = Object::GetComponentsInChildren<MeshComponent>(object);
-		stage_mesh_list_[i].remove_if([](MeshComponent* mesh_component) {
-			auto material = mesh_component->GetMaterial();
-		if (material)
+		auto object = Scene::FindObject(stage_names[i]);
+		auto mesh_list = Object::GetComponentsInChildren<MeshComponent>(object);
+		stage_mesh_list_[i].assign(mesh_list.begin(), mesh_list.end());
+		for (auto it = stage_mesh_list_[i].begin(); it != stage_mesh_list_[i].end(); ) 
 		{
-			return material->shader_type() != (int)ShaderType::kStandardMesh;
+			auto mesh_component = it->lock();
+			if (!mesh_component) 
+			{ 
+				it = stage_mesh_list_[i].erase(it); continue; 
+			}
+			auto material = mesh_component->GetMaterial();
+			if (!material || material->shader_type() != (int)ShaderType::kStandardMesh)
+			{
+				it = stage_mesh_list_[i].erase(it); continue;
+			}
+			auto mesh_owner = mesh_component->owner();
+			if(!mesh_owner && mesh_owner->name() == "Cube")
+			{
+				it = stage_mesh_list_[i].erase(it); continue;
+			}
+			++it;
 		}
-		else
-			return true;
-			});
-		stage_mesh_list_[i].remove_if([](MeshComponent* mesh_component) {
-			return mesh_component->GetMesh()->name() == "Cube";
-			});
-		stage_ground_collider_list_[i] = Object::GetComponentsInChildren<GroundColliderComponent>(object);
-		stage_wall_collider_list_[i] = Object::GetComponentsInChildren<WallColliderComponent>(object);
+
+		auto ground_collider_list = Object::GetComponentsInChildren<GroundColliderComponent>(object);
+		stage_ground_collider_list_[i].assign(ground_collider_list.begin(), ground_collider_list.end());
+
+		auto wall_collider_list = Object::GetComponentsInChildren<WallColliderComponent>(object);
+		stage_wall_collider_list_[i].assign(wall_collider_list.begin(), wall_collider_list.end());
 	}
 	is_prepare_ground_checking_ = true;
 }
 
-void BaseScene::CheckPlayerHitWall(Object* object, MovementComponent* movement)
-{
-	XMFLOAT3 velocity = movement->velocity();
-
-	XMFLOAT3 position = object->world_position_vector();
-	constexpr float kGroundYOffset = 0.75f;
-	position.y += kGroundYOffset;
-	XMVECTOR ray_origin = XMLoadFloat3(&position);
-	position.y -= kGroundYOffset;
-
-	XMVECTOR ray_direction = XMLoadFloat3(&velocity);
-	ray_direction = XMVectorSetY(ray_direction, 0);
-	ray_direction = XMVector3Normalize(ray_direction);
-
-	if (0 == XMVectorGetX(XMVector3Length(ray_direction)))
-		return;
-
-	bool is_collide = false;
-	float distance{ std::numeric_limits<float>::max() };
-	int a = 0;
-	constexpr float MAX_DISTANCE = 0.5f;
-	for(auto& mesh_collider : stage_wall_collider_list_[stage_clear_num_])
-	{
-		++a;
-		float t{};
-		if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
-		{
-			if (t < distance)
-			{
-				distance = t;
-			}
-		}
-	}		
-	if (stage_clear_num_ - 1 >= 0)
-	{
-		for (auto& mesh_collider : stage_wall_collider_list_[stage_clear_num_ - 1])
-		{
-			++a;
-			float t{};
-			if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
-			{
-				if (t < distance)
-				{
-					distance = t;
-				}
-			}
-		}
-	}
-	if (distance < MAX_DISTANCE)
-		is_collide = true;
-
-	//OutputDebugString(std::wstring(L"MeshColliderComponent Count: " + std::to_wstring(a) + L"\n").c_str());
-
-	if (is_collide)
-	{
-		movement->Stop();
-		return;
-	}
-}
-
-void BaseScene::CheckObjectHitObject(Object* object)
-{
-	//TODO: 몬스터 AI완성 이후 충돌시에 밀리는 기능 추가 및 return; 삭제!!
-	return;
-
-
-	if (!object || object->is_dead()) return;
-
-	auto movement = Object::GetComponentInChildren<MovementComponent>(object);
-	if (!movement) return;
-
-	XMFLOAT3 object_pos = object->world_position_vector();
-
-	auto mesh_collider = Object::GetComponentInChildren<MeshColliderComponent>(object);
-	if (mesh_collider)
-	{
-		BoundingOrientedBox obb1 = mesh_collider->GetWorldOBB();
-
-		for (auto& other : ground_check_object_list_)
-		{
-			if (!other || other == object || other->is_dead()) continue;
-
-			auto other_box = Object::GetComponentInChildren<BoxColliderComponent>(other);
-			if (!other_box) continue;
-
-			if (obb1.Intersects(other_box->animated_box()))
-			{
-				XMFLOAT3 position = object->world_position_vector();
-				constexpr float kGroundYOffset = 0.75f;
-				position.y += kGroundYOffset;
-				XMVECTOR ray_origin = XMLoadFloat3(&position);
-				position.y -= kGroundYOffset;
-
-				XMFLOAT3 other_pos = other->world_position_vector();
-				XMFLOAT3 dir = xmath_util_float3::Normalize(object_pos - other_pos);
-
-				XMVECTOR ray_direction = XMLoadFloat3(&dir);
-				ray_direction = XMVectorSetY(ray_direction, 0);
-				ray_direction = XMVector3Normalize(ray_direction);
-
-				if (0 == XMVectorGetX(XMVector3Length(ray_direction)))
-					return;
-
-				bool is_collide = false;
-				float distance{ std::numeric_limits<float>::max() };
-				for (auto& mesh_collider : stage_wall_collider_list_[stage_clear_num_])
-				{
-					float t{};
-					if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
-					{
-						if (t < distance)
-						{
-							distance = t;
-						}
-					}
-				}
-
-				constexpr float kMinSafeDistance = 1.5f; // 살짝 밀려도 충돌 안나도록 여유
-				if (distance > kMinSafeDistance) // 벽에 안 부딪힌다면 밀기
-				{
-					object->set_position_vector(object_pos + dir * 0.1f);
-
-					// TODO : 몬스터 AI완성 이후 충돌시에 밀리는 기능 추가
-
-					auto monster = Object::GetComponent<MonsterComponent>(object);
-					if (monster)
-					{
-						monster->set_is_pushed(true);
-						monster->set_push_timer(5.0f);
-					}
-				}
-				return;
-			}
-		}
-	}
-}
-
-
-void BaseScene::CheckObjectHitFlamethrow(Object* object)
-{
-	FPSControllerComponent* controller = Object::GetComponent<FPSControllerComponent>(player_);
-	if (!controller || !controller->is_firekey_down())
-		return;
-
-	GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_);
-	auto& bullet_list = gun->fired_bullet_list();
-
-	auto& box_collider_list = Object::GetComponentsInChildren<BoxColliderComponent>(object);
-	if (!box_collider_list.size())
-		return;
-
-	if (gun->gun_name() == "flamethrower") // 화염방사기 조건
-	{
-		Object* flame_tip = player_->FindFrame("gun_particle_pivot");
-		auto flame_collider = Object::GetComponent<BoxColliderComponent>(flame_tip);
-		if (!flame_collider) return;
-
-		for (auto& monster_box : Object::GetComponentsInChildren<BoxColliderComponent>(object))
-		{
-			if (flame_collider->animated_box().Intersects(monster_box->animated_box()))
-			{
-				ParticleComponent* gun_particle = nullptr;
-				{
-					Object* flame_tip = player_->FindFrame("gun_particle_pivot");
-					if (flame_tip)
-						gun_particle = Object::GetComponent<ParticleComponent>(flame_tip);
-				}
-
-				// 데미지 적용
-				MonsterComponent* monster = Object::GetComponent<MonsterComponent>(object);
-				if (monster && !monster->IsDead())
-				{
-					ParticleComponent* gun_particle = nullptr;
-					{
-						Object* flame_tip = player_->FindFrame("gun_particle_pivot");
-						if (flame_tip)
-							gun_particle = Object::GetComponent<ParticleComponent>(flame_tip);
-					}
-
-					// 몬스터 HIT 파티클 출력
-					ParticleComponent* particle_component = Object::GetComponent<ParticleComponent>(monster_hit_particles_.front());
-					particle_component->set_hit_position(monster->owner()->world_position_vector());
-					particle_component->set_color(gun_particle->color());
-					particle_component->Play(50);
-
-					monster->HitDamage(gun->damage() * (1 + gun->upgrade() * 0.2));
-
-					if (monster->IsDead())
-					{
-						catch_monster_num_++;
-
-						// 총기 이름 목록
-						std::vector<std::string> gun_names = { "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
-
-						std::vector<int> drop_weights = { 15, 10, 7, 5, 3, 1 }; // 전체 합 = 41
-
-						// 드랍할지 말지: 41% 확률로 총기 드랍, 나머지 59%는 아무것도 안 떨어짐
-						if (rand() % 100 >= 41) return; // 59% 확률로 드랍 안 함
-
-						// 랜덤 엔진 및 분포 생성
-						std::random_device rd;
-						std::mt19937 gen(rd());
-						std::discrete_distribution<> dist(drop_weights.begin(), drop_weights.end());
-
-						int random_index = dist(gen);
-						std::string gun_name = gun_names[random_index];
-						Object* dropped_gun = FindModelInfo(gun_names[random_index])->GetInstance();
-
-						XMFLOAT3 drop_pos = monster->owner()->world_position_vector();
-						drop_pos.y += 0.1f;
-						dropped_gun->set_position_vector(drop_pos);
-						dropped_gun->set_is_movable(true);
-
-						BoundingBox gun_bb{ {0.f, 0.f, 0.f}, {0.5f, 0.3f, 1.0f} };
-						auto box_comp = new BoxColliderComponent(dropped_gun, gun_bb);
-						dropped_gun->AddComponent(box_comp);
-
-						// UI
-						/*Object* ui_texture = FindModelInfo("Gun_UI")->GetInstance();
-						ui_texture->set_local_position({ 0.0f, 0.5f, 0.1f });
-						dropped_gun->AddChild(ui_texture);*/
-
-						std::string dropped_name = dropped_gun->name();  // 예: "Dropped_Classic"
-
-						GunComponent* dropped_gun_component = Object::GetComponent<GunComponent>(dropped_gun);
-						std::string gun_ui_name = "Gun_UI_" + dropped_name.substr(dropped_name.find('_') + 1); // "Classic", "Sherif" 등
-
-						// 랜덤 강화, 속성
-						int upgrade = rand() % 4;
-						dropped_gun_component->set_upgrade(upgrade);
-
-						// [2] 속성 타입: 0 = Fire, 1 = Electric, 2 = Poison
-						int element_random = rand() % 3;
-						ElementType element = static_cast<ElementType>(element_random);
-						dropped_gun_component->set_element(element);
-
-						if (upgrade > 0)
-						{
-							gun_ui_name += "+" + std::to_string(upgrade);
-						}
-
-						ModelInfo* ui_model = FindModelInfo(gun_ui_name);
-						if (ui_model)
-						{
-							Object* ui_texture = ui_model->GetInstance();
-							ui_texture->set_local_position({ 0.0f, 0.5f, 0.1f }); // 위치는 필요 시 조정
-							dropped_gun->AddChild(ui_texture);
-						}
-
-						// 파티클 추가
-						Material* particle_material = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
-							return material->name() == "Trail_1";
-							})->get();
-						ParticleComponent* particle = new ParticleComponent(
-							dropped_gun,
-							device_,
-							100,
-							ParticleComponent::Circle,
-							particle_material
-						);
-						particle->set_scene(this);
-						particle->set_loop(true);
-						particle->set_color({ 1.0f, 1.0f, 1.0f, 1.0f });
-						switch (dropped_gun_component->element())
-						{
-						case ElementType::kFire:
-							particle->set_color({ 0.9f, 0.1f, 0.1f, 0.5f }); // Red
-							break;
-						case ElementType::kElectric:
-							particle->set_color({ 0.1f, 0.9f, 0.1f, 0.5f }); // Yellowish Green
-							break;
-						case ElementType::kPoison:
-							particle->set_color({ 0.9f, 0.9f, 0.1f, 0.5f }); // Greenish Yellow
-							break;
-						default:
-							particle->set_color({ 1.0f, 1.0f, 1.0f, 0.5f }); // fallback white
-							break;
-						}
-
-						dropped_gun->AddComponent(particle);
-						particle->Play(50);
-
-						AddObject(dropped_gun);
-						dropped_guns_.push_back(dropped_gun);
-					}
-				}
-			}
-		}
-		return;
-	}
-}
-
-void BaseScene::CheckPlayerHitGun(Object* object)
-{
-	auto player_box = Object::GetComponentInChildren<MeshColliderComponent>(object);
-	if (!player_box)
-	{
-		f_key_ = false;
-		return;
-	}
-	
-	BoundingOrientedBox player_obb = player_box->GetWorldOBB();
-
-	for (auto it = dropped_guns_.begin(); it != dropped_guns_.end(); )
-	{
-		Object* gun = *it;
-		auto gun_box = Object::GetComponent<BoxColliderComponent>(gun);
-		if (!gun_box) { ++it; continue; }
-
-		if (player_obb.Intersects(gun_box->animated_box()) && f_key_)
-		{
-			GunComponent* gun_component = Object::GetComponent<GunComponent>(gun);
-			if (!gun_component) { ++it; continue; }
-
-			// 드랍된 총기 정보 저장
-			std::string dropped_name = gun->name(); // "Dropped_Classic"
-			std::string gun_name = dropped_name.substr(dropped_name.find('_') + 1); // "Classic"
-
-			int upgrade = gun_component->upgrade();
-			ElementType element = gun_component->element();
-			XMFLOAT4 particle_color = { 1.f, 1.f, 1.f, 0.5f };
-
-			// 드랍 총기의 파티클 색상 추출
-			ParticleComponent* drop_particle = Object::GetComponentInChildren<ParticleComponent>(gun);
-			if (drop_particle)
-				particle_color = drop_particle->color();
-
-			// 플레이어 무기 위치
-			Object* player_gun_frame = player_->FindFrame("WeaponR_locator");
-			if (!player_gun_frame) { ++it; continue; }
-
-			// 기존 총기들 중 일치하지 않는 이름에 교체 수행 (기존 방식 유지)
-			std::vector<std::string> guns{ "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
-			for (const auto& name : guns)
-			{
-				if (name == gun_name) continue;
-				player_gun_frame->ChangeChild(FindModelInfo(gun_name)->GetInstance(), name, false);
-			}
-
-			// 새로 장착된 총기에서 GunComponent에 능력치 적용
-			Object* new_gun = player_gun_frame->FindFrame(gun_name);
-			GunComponent* new_gun_component = Object::GetComponent<GunComponent>(new_gun);
-			if (new_gun_component)
-			{
-				new_gun_component->set_upgrade(upgrade);
-				new_gun_component->set_element(element);
-			}
-
-			// 파티클 색상도 적용
-			if (new_gun)
-			{
-				Object* muzzle = new_gun->FindFrame("gun_particle_pivot");
-				if (muzzle)
-				{
-					ParticleComponent* new_particle = Object::GetComponent<ParticleComponent>(muzzle);
-					if (new_particle)
-					{
-						new_particle->set_color(particle_color);
-						new_particle->set_loop(false); // 상시 재생 방지
-						new_particle->set_direction_pivot_object(player_->FindFrame("CAMERA_1"));
-					}
-				}
-			}
-
-			// 드랍 총기 제거
-			gun->set_is_dead(true);
-			it = dropped_guns_.erase(it);
-			f_key_ = false;
-		}
-		else
-		{
-			++it;
-		}
-	}
-}
-
-void BaseScene::CheckPlayerHitPyramid(Object* object)
-{
-	if (stage_clear_num_ != 6) return; // 스테이지 6에서만 체크
-
-	auto mesh_collider = Object::GetComponentInChildren<MeshColliderComponent>(object);
-	if (!mesh_collider) return;
-
-	BoundingOrientedBox player_obb = mesh_collider->GetWorldOBB();
-
-	//for (auto& pyramid_collider : checking_maps_mesh_collider_list_[6])
-	//{
-	//	if (!pyramid_collider || !pyramid_collider->mesh()) continue;
-	//
-	//	auto name = pyramid_collider->mesh()->name();
-	//
-	//	if (name != "Pyramid_01") continue;
-	//	BoundingOrientedBox pyramid_obb = pyramid_collider->GetWorldOBB();
-	//
-	//	if (player_obb.Intersects(pyramid_obb))
-	//	{
-	//		// 피라미드 획득 처리
-	//		get_key_num_++;
-	//
-	//		// 피라미드 제거 (Scene과 충돌 리스트에서 제거)
-	//		Object* pyramid_object = pyramid_collider->owner();
-	//		MeshComponent* mesh_component = Object::GetComponent<MeshComponent>(pyramid_object);
-	//		MeshColliderComponent* mesh_collider_component = Object::GetComponent<MeshColliderComponent>(pyramid_object);
-	//		mesh_component->set_is_visible(false);
-	//		//DeleteObject(pyramid_object); // Scene::DeleteObject 호출 포함됨
-	//		auto& mesh_list = checking_maps_mesh_collider_list_[6];
-	//		mesh_list.remove_if([&](MeshColliderComponent* collider) {
-	//			return collider == mesh_collider_component;
-	//			});
-	//
-	//		break;
-	//	}
-	//}
-}
-
-void BaseScene::CheckSpawnBoxHitPlayer()
-{
-	if (stage_clear_num_ < 1)
-		return;
-	const auto& const spawn_box = spawn_boxs_[stage_clear_num_ - 1];
-	auto& player_meshes = Object::GetComponentsInChildren<MeshComponent>(player_);
-	for (const auto& mesh : player_meshes)
-	{
-		BoundingBox mesh_animated_aabb;
-		mesh->GetMesh()->bounds().Transform(mesh_animated_aabb, XMLoadFloat4x4(&mesh->owner()->world_matrix()));
-		if (spawn_box->animated_box().Intersects(mesh_animated_aabb) && !is_activate_spawner_)
-		{
-			if (stage_clear_num_ == 4)
-			{
-				auto& mesh_list = Object::GetComponentsInChildren<SkinnedMeshComponent>(player_);
-				for (auto& mesh : mesh_list)
-				{
-					mesh->set_is_visible(!mesh->IsVisible());
-				}
-				cut_scene_tracks_[0].Play(this);
-				auto controller = Object::GetComponent<FPSControllerComponent>(player_);
-				controller->Stop();
-			}
-			ActivateStageMonsterSpawner(stage_clear_num_ - 1);
-			is_activate_spawner_ = true;
-		}
-	}
-}
-
 void BaseScene::SpawnMonsterDamagedParticle(const XMFLOAT3& position, const XMFLOAT4& color)
 {
-	ParticleComponent* particle_component = Object::GetComponent<ParticleComponent>(monster_hit_particles_.front());
+	auto particle_component = Object::GetComponent<ParticleComponent>(monster_hit_particles_.front().lock());
 	particle_component->set_hit_position(position);
 	particle_component->set_color(color);
 	particle_component->Play(50);
@@ -2699,16 +1993,16 @@ void BaseScene::add_catch_monster_num()
 
 void BaseScene::add_remote_player(int id, const std::string& name, const XMFLOAT4X4& value)
 {
-	Object* remote = model_infos_[0]->GetInstance();
+	auto remote = std::shared_ptr<Object>(model_infos_[0]->GetInstance());
 
 	remote->set_transform_matrix(value);
 	remote->set_collide_type(true, true);
 	remote->set_is_movable(true);
 	remote->set_is_player();
 
-	remote->AddComponent(new MovementComponent(remote));
+	remote->AddComponent(std::make_shared<MovementComponent>(remote));
 
-	AnimatorComponent* m_animator = Object::GetComponent<AnimatorComponent>(remote);
+	auto m_animator = Object::GetComponent<AnimatorComponent>(remote);
 	m_animator->set_animation_state(new PlayerAnimationState);
 
 	auto& mesh_list = Object::GetComponentsInChildren<SkinnedMeshComponent>(remote);
@@ -2717,13 +2011,13 @@ void BaseScene::add_remote_player(int id, const std::string& name, const XMFLOAT
 		mesh->set_is_visible(true);
 	}
 
-	Object* remote_gun_frame = remote->FindFrame("WeaponR_locator");
+	auto remote_gun_frame = remote->FindFrame("WeaponR_locator");
 	remote_gun_frame->AddChild(FindModelInfo("Flamethrower")->GetInstance());
 
 	remote->set_id(id);
 	remote->set_name(name);
 
-	auto player_component = new PlayerComponent(remote);
+	auto player_component = std::make_shared<PlayerComponent>(remote);
 	player_component->set_scene(this);
 	remote->AddComponent(player_component);
 
@@ -2733,12 +2027,12 @@ void BaseScene::add_remote_player(int id, const std::string& name, const XMFLOAT
 void BaseScene::add_monster(uint32_t id, const XMFLOAT4X4& matrix, int32_t max_hp, int32_t max_shield, int32_t attack_force, int32_t monster_type_int)
 {
 	int type = static_cast<int>(monster_type_int);
-	Object* new_monster = model_infos_[2 + static_cast<int>(type)]->GetInstance();
+	auto new_monster = model_infos_[2 + static_cast<int>(type)]->GetInstance();
 	
 	new_monster->set_transform_matrix(matrix);
 	new_monster->set_id(id);
 	
-	auto* monster_component = new MonsterComponent(new_monster);
+	auto monster_component = std::make_shared<MonsterComponent>(new_monster);
 	
 	monster_component->set_hp(max_hp);
 	monster_component->set_shield(max_shield);
@@ -2756,7 +2050,7 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 {
 	std::vector<std::string> gun_names = { "Classic", "Sherif", "Specter", "Vandal", "Odin", "Flamethrower" };
 	std::string gun_name = gun_names[gun_type];
-	Object* dropped_gun = FindModelInfo(gun_names[gun_type])->GetInstance();
+	auto dropped_gun = FindModelInfo(gun_names[gun_type])->GetInstance();
 
 	dropped_gun->set_transform_matrix(matrix);
 	dropped_gun->set_is_movable(true);
@@ -2766,7 +2060,7 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 
 
 	BoundingBox gun_bb{ {0.f, 0.f, 0.f}, {0.5f, 0.3f, 1.0f} };
-	auto box_comp = new BoxColliderComponent(dropped_gun, gun_bb);
+	auto box_comp = std::make_shared<BoxColliderComponent>(dropped_gun, gun_bb);
 	dropped_gun->AddComponent(box_comp);
 
 	// UI
@@ -2776,7 +2070,7 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 
 	std::string dropped_name = dropped_gun->name();  // 예: "Dropped_Classic"
 
-	GunComponent* dropped_gun_component = Object::GetComponent<GunComponent>(dropped_gun);
+	auto dropped_gun_component = Object::GetComponent<GunComponent>(dropped_gun);
 	std::string gun_ui_name = "Gun_UI_" + dropped_name.substr(dropped_name.find('_') + 1); // "Classic", "Sherif" 등
 
 	// 랜덤 강화, 속성
@@ -2794,7 +2088,7 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 	ModelInfo* ui_model = FindModelInfo(gun_ui_name);
 	if (ui_model)
 	{
-		Object* ui_texture = ui_model->GetInstance();
+		auto ui_texture = std::shared_ptr<Object>(ui_model->GetInstance()));
 		ui_texture->set_local_position({ 0.0f, 0.5f, 0.1f }); // 위치는 필요 시 조정
 		dropped_gun->AddChild(ui_texture);
 	}
@@ -2803,7 +2097,7 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 	Material* particle_material = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
 		return material->name() == "Trail_1";
 		})->get();
-		ParticleComponent* particle = new ParticleComponent(
+		auto particle = std::make_shared<ParticleComponent>(
 			dropped_gun,
 			device_,
 			100,
@@ -2841,17 +2135,29 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 
 void BaseScene::change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t upgrade_level, uint8_t element_type, uint32_t player_id)
 {
-	Object* player = FindObject(player_id);
+	auto player = FindObject(player_id);
 
-	auto it = std::find_if(dropped_guns_.begin(), dropped_guns_.end(),
-		[gun_id](Object* obj) { return obj->id() == gun_id; });
+	std::shared_ptr<Object> found_gun = nullptr;
+	for(auto it = dropped_guns_.begin(); it != dropped_guns_.end(); )
+	{
+		auto gun = it->lock();
+		if(!gun) 
+		{ 
+			it = dropped_guns_.erase(it); 
+			continue; 
+		}
+		if (gun->id() == gun_id)
+		{
+			found_gun = gun;
+			break;
+		}
+		++it;
+	}
 
-	Object* found_gun = *it;
-
-	GunComponent* gun_component = Object::GetComponent<GunComponent>(found_gun);
+	auto gun_component = Object::GetComponent<GunComponent>(found_gun);
 	if (!gun_component) return;
 
-	Object* player_gun_frame = player->FindFrame("WeaponR_locator");
+	auto player_gun_frame = player->FindFrame("WeaponR_locator");
 	if (!player_gun_frame) return;
 
 	// 기존 총기 교체 처리
@@ -2859,49 +2165,17 @@ void BaseScene::change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t
 	for (const auto& name : guns)
 	{
 		if (name == gun_name) continue;
-		//std::cout << "[change_gun] 기존 무기 제거 시도: " << name << std::endl;
 		ModelInfo* model_info = FindModelInfo(gun_name);
 		if (!model_info) return;
-		// { 
-		//	std::cout << "[change_gun] 모델 인포가 없음 " << name << std::endl;
-		//	continue; 
-		//}
 		player_gun_frame->ChangeChild(model_info->GetInstance(), name, false);
 	}
-
-	Object* new_gun = player_gun_frame->FindFrame(gun_name);
-	if (!new_gun) return;
-	//{
-	//	std::cout << "[change_gun] 새 총기 프레임(" << gun_name << ")을 찾을 수 없음" << std::endl;
-	//	return;
-	//}
-	//else
-	//{
-	//	std::cout << "[change_gun] 새 총기 프레임(" << gun_name << ") 찾음: id=" << new_gun->id() << std::endl;
-	//}
-
-	GunComponent* new_gun_component = Object::GetComponent<GunComponent>(new_gun);
-	if (!new_gun_component) return;
-	//{
-	//	std::cout << "[change_gun] 새 총기에서 GunComponent 없음" << std::endl;
-	//}
-	//else
-	//{
-	//	new_gun_component->set_upgrade(upgrade_level);
-	//	new_gun_component->set_element(static_cast<ElementType>(element_type));
-	//	std::cout << "[change_gun] 새 총기 능력치 설정 완료 (upgrade=" << static_cast<int>(upgrade_level)
-	//		<< ", element=" << static_cast<int>(element_type) << ")" << std::endl;
-	//}
-
-	found_gun->set_is_dead(true);
-	it = dropped_guns_.erase(it);
-
-	//std::cout << "[change_gun] 총기 교체 완료 및 드랍 총기 제거" << std::endl;
 }
 
 void BaseScene::OpenScrollChest(uint8_t scroll_type, uint8_t chest_num)
 {
-	Object* chest = chests_[chest_num];
+	auto chest = chests_[chest_num].lock();
+	if (!chest) return;
+
 	auto chest_component = Object::GetComponent<ChestComponent>(chest);
 	if (!chest_component) return;
 
@@ -2911,7 +2185,8 @@ void BaseScene::OpenScrollChest(uint8_t scroll_type, uint8_t chest_num)
 
 void BaseScene::TakeScroll(uint8_t chest_num)
 {
-	Object* chest = chests_[chest_num];
+	auto chest = chests_[chest_num].lock();
+	if (!chest) return;
 	auto chest_component = Object::GetComponent<ChestComponent>(chest);
 	if (!chest_component) return;
 	chest_component->TakeScroll();
@@ -2919,7 +2194,7 @@ void BaseScene::TakeScroll(uint8_t chest_num)
 
 void BaseScene::PlayCutScene(uint8_t track_num)
 {
-	auto& mesh_list = Object::GetComponentsInChildren<SkinnedMeshComponent>(player_);
+	auto& mesh_list = Object::GetComponentsInChildren<SkinnedMeshComponent>(player_.lock());
 	for (auto& mesh : mesh_list)
 	{
 		mesh->set_is_visible(!mesh->IsVisible());
@@ -2928,7 +2203,7 @@ void BaseScene::PlayCutScene(uint8_t track_num)
 }
 
 
-std::list<MonsterComponent*> BaseScene::monster_list() const
+std::list<std::weak_ptr<MonsterComponent>> BaseScene::monster_list() const
 {
 	return monster_list_;
 }

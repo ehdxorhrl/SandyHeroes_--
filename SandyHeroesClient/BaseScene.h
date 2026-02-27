@@ -39,32 +39,17 @@ public:
 	void ShowClearRogo();
 
 	virtual bool ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time) override;
-	virtual const std::list<MeshComponent*>& GetShadowMeshList(int index) override;
+	virtual const std::list<std::weak_ptr<MeshComponent>>& GetShadowMeshList(int index) override;
 
 	virtual void Update(float elapsed_time) override;
 
-	virtual void AddObject(Object* object) override;
-	virtual void DeleteObject(Object* object) override;
-	virtual void DeleteDeadObjects() override;
+	virtual void AddObject(std::shared_ptr<Object> object) override;
+	virtual void DeleteObject(std::shared_ptr<Object> object) override;
+	
 
 	void DeleteKeyObject(int idx);	//키 오브젝트 삭제
 
-	void UpdateObjectIsGround();
-	void UpdateObjectHitWall();
-	void UpdateObjectHitBullet();
-	void UpdateObjectHitObject();
-	void UpdateStageClear();
-
 	void PrepareGroundChecking();	//맵 바닥체크를 위한 사전 작업
-
-	void CheckObjectIsGround(Object* object);
-	void CheckPlayerHitWall(Object* object, MovementComponent* movement);
-	void CheckObjectHitObject(Object* object);
-	void CheckObjectHitBullet(Object* object);
-	void CheckObjectHitFlamethrow(Object* object);
-	void CheckPlayerHitGun(Object* object);
-	void CheckPlayerHitPyramid(Object* object);
-	void CheckSpawnBoxHitPlayer();
 
 	void SpawnMonsterDamagedParticle(const XMFLOAT3& position, const XMFLOAT4& color);
 
@@ -72,7 +57,7 @@ public:
 	void set_stage_clear_num(int value);
 
 	//getter
-	std::list<MonsterComponent*> monster_list() const;
+	std::list<std::weak_ptr<MonsterComponent>> monster_list() const;
 	int stage_clear_num();
 	ParticleComponent* dragon_particle() const { return dragon_particle_; }
 
@@ -98,9 +83,9 @@ private:
 	ID3D12Device* device_{ nullptr };	//Direct3D 12 디바이스
 
 	//스테이지별 몬스터 스포너 리스트
-	std::array<std::list<SpawnerComponent*>, kStageMaxCount> stage_monster_spawner_list_;
+	std::array<std::list<std::weak_ptr<SpawnerComponent>>, kStageMaxCount> stage_monster_spawner_list_;
 
-	ParticleComponent* dragon_particle_{ nullptr };	//드래곤 파티클
+	std::shared_ptr<ParticleComponent> dragon_particle_;	//드래곤 파티클
 
 	// 몬스터 잡은 횟수
 	int catch_monster_num_{ 0 };
@@ -115,35 +100,33 @@ private:
 
 	struct WallCheckObject
 	{
-		Object* object{ nullptr };
-		MovementComponent* movement{ nullptr };
+		std::weak_ptr<Object> object;
+		std::weak_ptr<MovementComponent> movement;
 
-		WallCheckObject(Object* obj, MovementComponent* move)
+		WallCheckObject(std::shared_ptr<Object> obj, std::shared_ptr<MovementComponent> move)
 			: object(obj), movement(move) {
 		}
 	};
 
-	std::list<RazerComponent*> razer_list_;	//레이저 리스트
+	std::list<std::weak_ptr<RazerComponent>> razer_list_;	//레이저 리스트
 
-	std::list<WallCheckObject> wall_check_object_list_;	//벽 체크가 필요한 객체들의 리스트(플레이어, monster, NPC)
+	std::array<std::list<std::weak_ptr<GroundColliderComponent>>, 8> stage_ground_collider_list_;	//스테이지 바닥 콜라이더 리스트
 
-	std::array<std::list<GroundColliderComponent*>, 8> stage_ground_collider_list_;	//스테이지 바닥 콜라이더 리스트
+	std::array<std::list<std::weak_ptr<MeshComponent>>, 8> stage_mesh_list_;
 
-	std::array<std::list<MeshComponent*>, 8> stage_mesh_list_;
-
-	std::list<MonsterComponent*> monster_list_;	//몬스터 리스트
+	std::list<std::weak_ptr<MonsterComponent>> monster_list_;	//몬스터 리스트
 
 	std::unique_ptr<ParticleSystem> particle_system_{ nullptr };	//파티클 시스템
 
-	std::vector<Object*> monster_hit_particles_;
+	std::vector<std::weak_ptr<Object>> monster_hit_particles_;
 
-	std::vector<Object*> dropped_guns_;
+	std::vector<std::weak_ptr<Object>> dropped_guns_;
 
-	std::vector<Object*> chests_;
+	std::vector<std::weak_ptr<Object>> chests_;
 
-	std::vector<Object*> sounds_;
+	std::vector<std::weak_ptr<Object>> sounds_;
 
-	std::vector<BoxColliderComponent*> spawn_boxs_{}; // 스테이지 몬스터 생성 체크를 위한 박스들
+	std::vector<std::weak_ptr<BoxColliderComponent>> spawn_boxs_{}; // 스테이지 몬스터 생성 체크를 위한 박스들
 
 	std::vector<CutSceneTrack> cut_scene_tracks_{};
 

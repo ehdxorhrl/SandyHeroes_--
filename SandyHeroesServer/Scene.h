@@ -38,7 +38,7 @@ public:
 
 	void UpdateObjectWorldMatrix();
 
-	Object* FindObject(const std::string& object_name);
+	std::shared_ptr<Object> FindObject(const std::string& object_name);
 	ModelInfo* FindModelInfo(const std::string& name);
 
 	
@@ -62,7 +62,7 @@ protected:
 
 	GameFramework* game_framework_{ nullptr };
 
-	InputControllerComponent* main_input_controller_{ nullptr };
+	std::shared_ptr<InputControllerComponent> main_input_controller_{ nullptr };
 
 	float total_time_{ 0 };
 	

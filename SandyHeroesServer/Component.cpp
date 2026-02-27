@@ -2,7 +2,7 @@
 #include "Component.h"
 #include "Object.h"
 
-Component::Component(Object* owner) : owner_(owner)
+Component::Component(Object* owner) : owner_(owner->shared_from_this())
 {
 }
 
@@ -12,17 +12,20 @@ Component::Component(const Component& other) : owner_(nullptr)
 
 void Component::set_owner(Object* owner)
 {
-	owner_ = owner;
+	owner_ = owner->shared_from_this();
 }
 
-Object* Component::owner() const
+std::shared_ptr<Object> Component::owner() const
 {
-	return owner_;
+	return owner_.lock();
 }
 
-Object* Component::hierarchy_root()
+std::shared_ptr<Object> Component::hierarchy_root()
 {
-	if (!hierarchy_root_)
-		hierarchy_root_ = owner_->GetHierarchyRoot();
-	return hierarchy_root_;
+	if (hierarchy_root_.expired())
+	{
+		auto locked_owner = owner_.lock();
+		if(locked_owner) hierarchy_root_ = locked_owner->GetHierarchyRoot()->shared_from_this();
+	}
+	return hierarchy_root_.lock();
 }

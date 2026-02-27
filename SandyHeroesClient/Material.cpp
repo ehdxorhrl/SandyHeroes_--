@@ -110,25 +110,34 @@ void Material::UpdateShaderVariables(ID3D12GraphicsCommandList* command_list,
 }
 
 void Material::Render(ID3D12GraphicsCommandList* command_list, 
-	FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, CameraComponent* camera, bool bShadow)
+	FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, std::shared_ptr<CameraComponent> camera, bool bShadow)
 {
 	//set current material at graphics pipeline
 	if(!bShadow)
 		UpdateShaderVariables(command_list, curr_frame_resource, descriptor_manager);
 
-	std::unordered_map<Mesh*, std::vector<MeshComponent*>> batches;
+	std::unordered_map<Mesh*, std::vector<std::shared_ptr<MeshComponent>>> batches;
 
-	for (const auto& mesh_component : mesh_component_list_)
+	for (auto it = mesh_component_list_.begin(); it != mesh_component_list_.end();)
 	{
+		auto mesh_component = it->lock();
+		if(!mesh_component)
+		{
+			it = mesh_component_list_.erase(it);
+			continue;
+		}
+
 		const auto& mesh = mesh_component->GetMesh();
 		if (mesh->instance_count())
 		{
 			batches[mesh].push_back(mesh_component);
+			++it;
 			continue;
 		}
 		if (bShadow)
 		{
 			mesh_component->Render(this, command_list, curr_frame_resource);
+			++it;
 			continue;
 		}
 		if (camera)
@@ -145,6 +154,7 @@ void Material::Render(ID3D12GraphicsCommandList* command_list,
 		{
 			mesh_component->Render(this, command_list, curr_frame_resource);
 		}
+		++it;
 	}
 
 	//instance rendering
@@ -352,12 +362,12 @@ std::string Material::GetTextureName(UINT index) const
 	}
 }
 
-void Material::AddMeshComponent(MeshComponent* component)
+void Material::AddMeshComponent(std::weak_ptr<MeshComponent> component)
 {
 	mesh_component_list_.push_back(component);
 }
 
-bool Material::DeleteMeshComponent(MeshComponent* component)
+bool Material::DeleteMeshComponent(std::weak_ptr<MeshComponent> component)
 {
 	auto remove_count = mesh_component_list_.remove(component);
 

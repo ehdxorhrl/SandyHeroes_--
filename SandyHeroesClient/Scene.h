@@ -49,7 +49,7 @@ public:
 	virtual void UpdateRenderPassConstantBuffer(ID3D12GraphicsCommandList* command_list);
 	virtual void UpdateRenderPassShadowBuffer(ID3D12GraphicsCommandList* command_list);
 
-	virtual const std::list<MeshComponent*>& GetShadowMeshList(int index = 0);
+	virtual const std::list<std::weak_ptr<MeshComponent>>& GetShadowMeshList(int index = 0);
 
 	void UpdateObjectConstantBuffer(FrameResource* curr_frame_resource);
 
@@ -60,9 +60,6 @@ public:
 
 	virtual bool ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time) = 0;
 
-	//반환 값: 월드 좌표계에서 피킹된 지점
-	//설명: 스크린 x, y좌표를 받아 피킹 광선과 오브젝트들간 충돌검사를 시행
-	XMVECTOR GetPickingPointAtWorld(float sx, float sy, Object* picked_object);
 
 	virtual void Update(float elapsed_time);
 
@@ -74,8 +71,8 @@ public:
 	//View Frustum Culling 실시
 	void RunViewFrustumCulling();
 
-	Object* FindObject(const std::string& object_name);
-	Object* FindObject(const long long id);
+	std::shared_ptr<Object> FindObject(const std::string& object_name);
+	std::shared_ptr<Object> FindObject(const long long id);
 	ModelInfo* FindModelInfo(const std::string& name);
 
 	static Mesh* FindMesh(const std::string& mesh_name, const std::vector<std::unique_ptr<Mesh>>& meshes);
@@ -84,14 +81,14 @@ public:
 
 	//getter
 	const std::vector<std::unique_ptr<Mesh>>& meshes() const;
-	CameraComponent* main_camera() const;
+	std::shared_ptr<CameraComponent> main_camera() const;
 	XMFLOAT2 screen_size() const;
 	bool is_play_cutscene() const;
 	Object* player() const;
 	std::list<std::weak_ptr<WallColliderComponent>> stage_wall_collider_list(int index) const { return stage_wall_collider_list_[index]; }
 
 	//setter
-	void set_main_camera(CameraComponent* value);
+	void set_main_camera(std::shared_ptr<CameraComponent> value);
 	void set_is_play_cutscene(bool value);
 
 protected:
@@ -111,8 +108,8 @@ protected:
 	int cb_skinned_mesh_object_capacity_{ 0 };
 	int cb_ui_mesh_capacity_{ 0 };
 
-	CameraComponent* main_camera_{ nullptr };
-	InputControllerComponent* main_input_controller_{ nullptr };
+	std::shared_ptr<CameraComponent> main_camera_{ nullptr };
+	std::shared_ptr<InputControllerComponent> main_input_controller_{ nullptr };
 
 	bool is_render_debug_mesh_ = false;	//디버그용 와이어프레임 obb를 렌더하는지 여부
 
@@ -125,7 +122,6 @@ protected:
 	bool is_prepare_ground_checking_ = false;
 	//맵 바닥체크를 위한 메쉬 콜라이더 리스트 배열
 	std::array<std::list<std::weak_ptr<WallColliderComponent>>, 8> stage_wall_collider_list_;
-	std::list<std::weak_ptr<Object>> ground_check_object_list_;	//지면 체크가 필요한 객체들의 리스트(플레이어, monster, NPC)
 
 	// 플레이어의 스테이지 진행도
 	int stage_clear_num_{ 0 };

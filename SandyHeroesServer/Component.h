@@ -1,10 +1,11 @@
 #pragma once
+#include <memory>
 
 class Object;
 
 // 오브젝트에 기능을 추가해주는 클래스의 기초 클래스
 // 
-class Component
+class Component : public std::enable_shared_from_this<Component>
 {
 public:
 	Component() = default;
@@ -16,7 +17,7 @@ public:
 	virtual ~Component() {}
 
 	void set_owner(Object* owner);
-	Object* owner() const;
+	std::shared_ptr<Object> owner() const;
 
 	/*
 	컴포넌트의 복사본을 리턴(이 클래스를 상속받는 클래스에서 반드시 작성해야한다.)
@@ -30,10 +31,10 @@ public:
 	virtual Component* GetCopy() = 0;
 	virtual void Update(float elapsed_time) {};
 
-	Object* hierarchy_root();
+	std::shared_ptr<Object> hierarchy_root();
 
 protected:
-	Object* owner_ = nullptr;
-	Object* hierarchy_root_ = nullptr; // 오브젝트의 계층 구조에서 루트 오브젝트를 가리킴
+	std::weak_ptr<Object> owner_;
+	std::weak_ptr<Object> hierarchy_root_; // 오브젝트의 계층 구조에서 루트 오브젝트를 가리킴
 };
 

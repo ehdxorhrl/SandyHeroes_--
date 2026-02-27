@@ -297,14 +297,14 @@ void Object::AddComponent(std::shared_ptr<Component> component)
 	component_list_.push_back(component);
 }
 
-Object* Object::FindFrame(const std::string& name)
+std::shared_ptr<Object> Object::FindFrame(const std::string& name)
 {
 	if(name_ == name)
-		return this;
+		return shared_from_this();
 
 	if (child_)
 	{
-		Object* found = child_->FindFrame(name);
+		auto found = child_->FindFrame(name);
 		if (found)
 			return found;
 	}
@@ -315,11 +315,11 @@ Object* Object::FindFrame(const std::string& name)
 	return nullptr;
 }
 
-Object* Object::GetHierarchyRoot()
+std::shared_ptr<Object> Object::GetHierarchyRoot()
 {
 	if (!parent_.expired())
 		return parent_.lock()->GetHierarchyRoot();
-	return this;
+	return shared_from_this();
 }
 
 void Object::DeleteChild(const std::string& name)

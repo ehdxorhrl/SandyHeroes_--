@@ -17,9 +17,9 @@ public:
 
 	void Run(float elapsed_time);
 
-	void set_camera(Object* value);
+	void set_camera(std::shared_ptr<Object> value);
 
-	Object* camera() const;
+	std::shared_ptr<Object> camera() const;
 
 private:
 	std::string name_{};
@@ -27,8 +27,8 @@ private:
 	float track_position_{};	// ÇöÀç Æ®·¢ Àç»ı ½Ã°£
 	std::vector<CutSceneData> cut_scene_data_buffer_{};
 
-	Object* camera_;
-	Object* scene_camera_;	//ÄÆ¾À Àç»ıÀü ¾ÀÀÇ Ä«¸Ş¶ó
+	std::shared_ptr<Object> camera_;
+	std::shared_ptr<Object> scene_camera_;	//ÄÆ¾À Àç»ıÀü ¾ÀÀÇ Ä«¸Ş¶ó
 
 	Scene* scene_{};		//ÄÆ¾À Àç»ıÁßÀÎ ¾À
 };

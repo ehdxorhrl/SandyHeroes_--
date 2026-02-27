@@ -86,8 +86,8 @@ public:
 	void AddSibling(std::shared_ptr<Object> object);
 	void AddComponent(std::shared_ptr<Component> component);
 
-	Object* FindFrame(const std::string& name);
-	Object* GetHierarchyRoot();
+	std::shared_ptr<Object> FindFrame(const std::string& name);
+	std::shared_ptr<Object> GetHierarchyRoot();
 
 	void DeleteChild(const std::string& name);
 	void ChangeChild(std::shared_ptr<Object> src, const std::string& dst_name, bool is_delete = true);
@@ -107,72 +107,72 @@ public:
 	static std::shared_ptr<Object> DeepCopy(const std::shared_ptr<Object>& value, const std::shared_ptr<Object>& parent = nullptr);
 
 	template<class T>
-	static T* GetComponent(Object* object)
+	static std::shared_ptr<T> GetComponent(std::shared_ptr<Object> object)
 	{
 		for (auto& component : object->component_list_)
 		{
-			if (dynamic_cast<T*>(component.get()))
-				return static_cast<T*>(component.get());
+			if (std::shared_ptr<T> res = std::dynamic_pointer_cast<T>(component))
+				return res;
 		}
 		return nullptr;
 	}
 
 	template<class T>
-	static std::list<T*> GetComponents(Object* object)
+	static std::list<std::shared_ptr<T>> GetComponents(std::shared_ptr<Object> object)
 	{
-		std::list<T*> r_value;
+		std::list<std::shared_ptr<T>> r_value;
 		for (auto& component : object->component_list_)
 		{
-			if (dynamic_cast<T*>(component.get()))
+			if (std::shared_ptr<T> res = std::dynamic_pointer_cast<T>(component))
 			{
-				r_value.push_back(static_cast<T*>(component.get()));
+				r_value.push_back(res);
 			}
 		}
 		return r_value;
 	}
 
 	template<class T>
-	static T* GetComponentInChildren(Object* object)
+	static std::shared_ptr<T> GetComponentInChildren(std::shared_ptr<Object> object)
 	{
-		T* component = GetComponent<T>(object);
+		std::shared_ptr<T> component = GetComponent<T>(object);
 		if (component)
 			return component;
 
 		if (object->sibling_)
 		{
-			component = GetComponentInChildren<T>(object->sibling_);
+			component = GetComponentInChildren<T>(object->sibling_.get());
 			if (component)
 				return component;
 		}
 		if (object->child_)
-			return GetComponentInChildren<T>(object->child_);
+			return GetComponentInChildren<T>(object->child_.get());
 
 		return nullptr;
 	}
 
 	template<class T>
-	static std::list<T*> GetComponentsInChildren(Object* object)
+	static std::list<std::shared_ptr<T>> GetComponentsInChildren(std::shared_ptr<Object> object)
 	{
-		std::list<T*> component_list = GetComponents<T>(object);
-		std::list<T*> r_value;
+		std::list<std::shared_ptr<T>> component_list = GetComponents<T>(object);
+		std::list<std::shared_ptr<T>> r_value;
 
-		for (T* component : component_list)
+		for (auto& component : component_list)
 		{
 			r_value.push_back(component);
 		}
 
 		if (object->sibling_)
 		{
-			component_list = GetComponentsInChildren<T>(object->sibling_);
-			for (T* component : component_list)
+			auto sibling_components = GetComponentsInChildren<T>(object->sibling_.get());
+			for (auto& component : sibling_components)
 			{
 				r_value.push_back(component);
 			}
 		}
 		if (object->child_)
 		{
-			component_list = GetComponentsInChildren<T>(object->child_);
-			for (T* component : component_list)
+			auto child_components = GetComponentsInChildren<T>(object->child_.get());
+			for (auto& component : child_components)
 			{
 				r_value.push_back(component);
 			}

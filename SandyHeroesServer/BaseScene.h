@@ -30,11 +30,11 @@ public:
 
 	virtual void Update(float elapsed_time) override;
 
-	Object* CreateAndRegisterPlayer(long long session_id);
+	std::shared_ptr<Object> CreateAndRegisterPlayer(long long session_id);
 
-	void AddObject(Object* object) override;
-	void DeleteObject(Object* object);
-	void DeleteDeadObjects();
+	void AddObject(std::shared_ptr<Object> object) override;
+	void DeleteObject(std::shared_ptr<Object> object);
+	
 
 	//TODO: 단일 플레이어 뿐만 아니라 적, 다른 플레이어에 대한 ground 체크도 필요
 	void UpdateObjectIsGround();
@@ -46,39 +46,38 @@ public:
 
 	void PrepareGroundChecking();	//맵 바닥체크를 위한 사전 작업
 
-	void CheckPlayerHitGun(Object* object);
-	void CheckObjectIsGround(Object* object);
-	void CheckPlayerHitWall(Object* object, MovementComponent* movement);
-	void CheckObjectHitObject(Object* object);
-	void CheckObjectHitBullet(Object* object);
-	void CheckPlayerHitPyramid(Object* object);
+	void CheckPlayerHitGun(std::shared_ptr<Object> object);
+	void CheckObjectIsGround(std::shared_ptr<Object> object);
+	void CheckPlayerHitWall(std::shared_ptr<Object> object, std::shared_ptr<MovementComponent> movement);
+	void CheckObjectHitObject(std::shared_ptr<Object> object);
+	void CheckPlayerHitPyramid(std::shared_ptr<Object> object);
 	void CheckSpawnBoxHitPlayers();
 	void CheckPlayerHitChest();
 	void CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray_direction, int id);
-	void CheckObjectHitFlamethrow(Object* object, int id, float elapsed_time);
+	void CheckObjectHitFlamethrow(std::shared_ptr<Object> object, int id, float elapsed_time);
 
-	void CheckRazerHitEnemy(RazerComponent* razer_component, MonsterComponent* monster_component);
+	void CheckRazerHitEnemy(std::shared_ptr<RazerComponent> razer_component, std::shared_ptr<MonsterComponent> monster_component);
 
 	void TickNoClipTimers(float elapsed_time); // Update()에서 호출
 
 
-	std::list<MeshColliderComponent*> checking_maps_mesh_collider_list(int index);
-	std::list<WallColliderComponent*> stage_wall_collider_list(int index);
+	std::list<std::weak_ptr<MeshColliderComponent>> checking_maps_mesh_collider_list(int index);
+	std::list<std::weak_ptr<WallColliderComponent>> stage_wall_collider_list(int index);
 	int stage_clear_num();
 
-	bool InRangeXZ(Object* self, Object* target, float r);
+	bool InRangeXZ(std::shared_ptr<Object> self, std::shared_ptr<Object> target, float r);
 
 	void ActivateStageMonsterSpawner(int stage_num);
 
 	void add_catch_monster_num();
 	void add_stage_clear_num() { ++stage_clear_num_; }
-	const std::list<MonsterComponent*>& monster_list() const;
+	const std::list<std::weak_ptr<MonsterComponent>>& monster_list() const;
 
 	void set_is_activate_spawner(bool is_activate) { is_activate_spawner_ = is_activate; }
 
 private:
 	//스테이지별 몬스터 스포너 리스트
-	std::array<std::list<SpawnerComponent*>, kStageMaxCount> stage_monster_spawner_list_;
+	std::array<std::list<std::weak_ptr<SpawnerComponent>>, kStageMaxCount> stage_monster_spawner_list_;
 
 	// 몬스터 잡은 횟수
 	int catch_monster_num_{ 0 };
@@ -95,29 +94,30 @@ private:
 
 	struct WallCheckObject
 	{
-		Object* object{ nullptr };
-		MovementComponent* movement{ nullptr };
+		std::weak_ptr<Object> object;
+		std::weak_ptr<MovementComponent> movement;
 
-		WallCheckObject(Object* obj, MovementComponent* move)
+		WallCheckObject(std::shared_ptr<Object> obj, std::shared_ptr<MovementComponent> move)
 			: object(obj), movement(move) {
 		}
 	};
-	std::list<MonsterComponent*> monster_list_;
 
-	std::list<RazerComponent*> razer_list_;	//레이저 리스트
+	std::list<std::weak_ptr<MonsterComponent>> monster_list_;
+
+	std::list<std::weak_ptr<RazerComponent>> razer_list_;	//레이저 리스트
 
 	std::list<WallCheckObject> wall_check_object_list_;	//벽 체크가 필요한 객체들의 리스트(플레이어, monster, NPC)
 
-	std::array<std::list<GroundColliderComponent*>, 8> stage_ground_collider_list_;	//스테이지 바닥 콜라이더 리스트
-	std::array<std::list<WallColliderComponent*>, 8> stage_wall_collider_list_;	//스테이지 벽 콜라이더 리스트
+	std::array<std::list<std::weak_ptr<GroundColliderComponent>>, 8> stage_ground_collider_list_;	//스테이지 바닥 콜라이더 리스트
+	std::array<std::list<std::weak_ptr<WallColliderComponent>>, 8> stage_wall_collider_list_;	//스테이지 벽 콜라이더 리스트
 
 	std::unordered_map<uint64_t, float> noclip_monmon_;
 
-	std::vector<Object*> dropped_guns_;
+	std::vector<std::weak_ptr<Object>> dropped_guns_;
 
-	std::vector<Object*> chests_;
+	std::vector<std::weak_ptr<Object>> chests_;
 
-	std::vector<BoxColliderComponent*> spawn_boxs_{}; // 스테이지 몬스터 생성 체크를 위한 박스들
+	std::vector<std::weak_ptr<BoxColliderComponent>> spawn_boxs_{}; // 스테이지 몬스터 생성 체크를 위한 박스들
 
 	BoundingOrientedBox stage3_clear_box_;
 

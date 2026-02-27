@@ -9,7 +9,7 @@ void ParticleRenderer::ParticleRender(
 	ID3D12GraphicsCommandList* command_list, 
 	FrameResource* curr_frame_resource,
 	DescriptorManager* descriptor_manager,
-	CameraComponent* camera)
+	std::shared_ptr<CameraComponent> camera)
 {
 	for (ParticleComponent* particleComponent : particle_components_)
 	{

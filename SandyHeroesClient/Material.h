@@ -53,7 +53,7 @@ public:
         FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager);
 
     void Render(ID3D12GraphicsCommandList* command_list,
-        FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, CameraComponent* camera, bool bShadow = false);
+        FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, std::shared_ptr<CameraComponent> camera, bool bShadow = false);
 
     // SRV를 생성하고 다음 시작 인덱스를 리턴(리턴값을 받아서 다음 머터리얼의 srv 생성에 사용하면 됨)
     int CreateShaderResourceViews(ID3D12Device* device, DescriptorManager* descriptor_manager, int start_index);
@@ -64,8 +64,8 @@ public:
 
     std::string GetTextureName(UINT index) const;
 
-    void AddMeshComponent(MeshComponent* component);
-    bool DeleteMeshComponent(MeshComponent* component);
+    void AddMeshComponent(std::weak_ptr<MeshComponent> component);
+    bool DeleteMeshComponent(std::weak_ptr<MeshComponent> component);
 
     void CopyMaterialData(Material* material);
 private:
@@ -85,7 +85,7 @@ private:
     
     std::string name_{ "None" };
 
-    std::list<MeshComponent*> mesh_component_list_;
+    std::list<std::weak_ptr<MeshComponent>> mesh_component_list_;
 
 };
 

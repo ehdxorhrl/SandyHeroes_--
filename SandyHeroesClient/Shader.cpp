@@ -140,7 +140,7 @@ void Shader::AddMaterial(Material* material)
 }
 
 void Shader::Render(ID3D12GraphicsCommandList* command_list, 
-	FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, CameraComponent* camera, bool bShadow)
+	FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, std::shared_ptr<CameraComponent> camera, bool bShadow)
 {
 	if(!is_render_)
 		return;
