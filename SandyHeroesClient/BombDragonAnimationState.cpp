@@ -3,6 +3,8 @@
 #include "Object.h"
 #include "AnimatorComponent.h"
 #include "FMODSoundManager.h"
+#include "GameFramework.h"
+#include "Scene.h"
 
 BombDragonAnimationState::BombDragonAnimationState()
 {
@@ -10,7 +12,7 @@ BombDragonAnimationState::BombDragonAnimationState()
 	animation_loop_type_ = 1; //Once
 }
 
-void BombDragonAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
+void BombDragonAnimationState::Enter(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	if ((int)BombDragonAnimationTrack::kSpawn == animation_track)
 	{
@@ -25,7 +27,7 @@ void BombDragonAnimationState::Enter(int animation_track, Object* object, Animat
 
 }
 
-int BombDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
+int BombDragonAnimationState::Run(float elapsed_time, std::shared_ptr<Object> object, bool is_end, std::shared_ptr<AnimatorComponent> animator)
 {
 
 	switch ((BombDragonAnimationTrack)animation_track())
@@ -39,13 +41,13 @@ int BombDragonAnimationState::Run(float elapsed_time, Object* object, bool is_en
 	case BombDragonAnimationTrack::kDie:
 		if (is_end)
 		{
-			object->set_is_dead(true);
+			GameFramework::Instance()->scene()->DeleteObject(object);
 		}
 		break;
 	case BombDragonAnimationTrack::kExplode:
 		if (is_end)
 		{
-			object->set_is_dead(true);
+			GameFramework::Instance()->scene()->DeleteObject(object);
 		}
 		break;
 	default:
@@ -54,7 +56,7 @@ int BombDragonAnimationState::Run(float elapsed_time, Object* object, bool is_en
 	return animation_track();
 }
 
-void BombDragonAnimationState::Exit(int animation_track, Object* object, AnimatorComponent* animator)
+void BombDragonAnimationState::Exit(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	if ((int)BombDragonAnimationTrack::kSpawn == animation_track)
 	{

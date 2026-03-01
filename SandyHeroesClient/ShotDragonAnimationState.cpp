@@ -3,8 +3,10 @@
 #include "Object.h"
 #include "MovementComponent.h"
 #include "FMODSoundManager.h"
+#include "GameFramework.h"
+#include "Scene.h"
 
-void ShotDragonAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
+void ShotDragonAnimationState::Enter(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	if ((int)ShotDragonAnimationTrack::kAttack == animation_track)
 	{
@@ -12,7 +14,7 @@ void ShotDragonAnimationState::Enter(int animation_track, Object* object, Animat
 	}
 }
 
-int ShotDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
+int ShotDragonAnimationState::Run(float elapsed_time, std::shared_ptr<Object> object, bool is_end, std::shared_ptr<AnimatorComponent> animator)
 {
 
 	switch ((ShotDragonAnimationTrack)animation_track())
@@ -20,7 +22,7 @@ int ShotDragonAnimationState::Run(float elapsed_time, Object* object, bool is_en
 	case ShotDragonAnimationTrack::kDie:
 		if (is_end)
 		{
-			object->set_is_dead(true);
+			GameFramework::Instance()->scene()->DeleteObject(object);
 		}
 		break;
 	default:
@@ -29,7 +31,7 @@ int ShotDragonAnimationState::Run(float elapsed_time, Object* object, bool is_en
 	return animation_track();
 }
 
-void ShotDragonAnimationState::Exit(int animation_track, Object* object, AnimatorComponent* animator)
+void ShotDragonAnimationState::Exit(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 }
 

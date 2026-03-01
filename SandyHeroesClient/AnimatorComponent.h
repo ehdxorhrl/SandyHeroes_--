@@ -21,7 +21,7 @@ public:
     virtual Component* GetCopy() override;
     virtual void Update(float elapsed_time) override;
 
-    void AttachBoneFrames();
+    void AttachBoneFrames(std::shared_ptr<Object> owner_ptr);
 
     //setter
     void set_animation_state(AnimationState* value);
@@ -49,8 +49,8 @@ private:
 
 
     //애니메이션이 적용되는 뼈대
-    std::vector<Object*> bone_frames_;
-    Object* root_bone_frame_;
+    std::vector<std::weak_ptr<Object>> bone_frames_;
+    std::weak_ptr<Object> root_bone_frame_;
     bool is_attached_bone_frames_ = false;
 
     //활성화 시 스킨메쉬의 루트본에 가해지는 translation 값이 root_node에 적용됨

@@ -12,9 +12,9 @@ public:
 	SuperDragonAnimationState();
 	virtual ~SuperDragonAnimationState() {}
 
-	virtual void Enter(int animation_track, Object* object, AnimatorComponent* animator) override;
-	virtual int Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator) override;
-	virtual void Exit(int animation_track, Object* object, AnimatorComponent* animator) override;
+	virtual void Enter(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator) override;
+	virtual int Run(float elapsed_time, std::shared_ptr<Object> object, bool is_end, std::shared_ptr<AnimatorComponent> animator) override;
+	virtual void Exit(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator) override;
 
 	virtual AnimationState* GetCopy() override;
 

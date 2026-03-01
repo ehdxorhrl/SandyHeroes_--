@@ -9,7 +9,7 @@ ChestAnimationState::ChestAnimationState()
 
 }
 
-void ChestAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
+void ChestAnimationState::Enter(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	if ((int)ChestAnimationTrack::kClose == animation_track)
 	{
@@ -29,7 +29,7 @@ void ChestAnimationState::Enter(int animation_track, Object* object, AnimatorCom
 	}
 }
 
-int ChestAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
+int ChestAnimationState::Run(float elapsed_time, std::shared_ptr<Object> object, bool is_end, std::shared_ptr<AnimatorComponent> animator)
 {
 	switch ((ChestAnimationTrack)animation_track())
 	{
@@ -57,7 +57,7 @@ int ChestAnimationState::Run(float elapsed_time, Object* object, bool is_end, An
 	return animation_track();
 }
 
-void ChestAnimationState::Exit(int animation_track, Object* object, AnimatorComponent* animator)
+void ChestAnimationState::Exit(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 
 }

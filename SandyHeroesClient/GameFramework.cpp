@@ -1315,12 +1315,16 @@ void GameFramework::ProcessPacket(char* p)
     case S2C_P_OBJECT_SET_DEAD:
     {
         auto packet = reinterpret_cast<sc_packet_object_set_dead*>(p);
-        Object* obj = base_scene->FindObject(packet->id);
+        auto obj = base_scene->FindObject(packet->id);
         if (obj)
         {
             if (packet->monster_type == 3) break;
             auto animator = Object::GetComponentInChildren<AnimatorComponent>(obj);
-            if (!animator) { obj->set_is_dead(true); break; }
+            if (!animator) 
+            { 
+                scene_->DeleteObject(obj); 
+                break; 
+            }
             auto animation_state = animator->animation_state();
             if (animation_state)
             {

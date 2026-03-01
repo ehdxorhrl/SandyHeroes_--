@@ -3,6 +3,8 @@
 #include "Object.h"
 #include "AnimatorComponent.h"
 #include "FMODSoundManager.h"
+#include "GameFramework.h"
+#include "Scene.h"
 
 StrongDragonAnimationState::StrongDragonAnimationState()
 {
@@ -16,7 +18,7 @@ StrongDragonAnimationState::~StrongDragonAnimationState()
 	Exit(animation_track(), nullptr, nullptr);
 }
 
-void StrongDragonAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
+void StrongDragonAnimationState::Enter(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	if ((int)StrongDragonAnimationTrack::kSpawn == animation_track)
 	{
@@ -33,7 +35,7 @@ void StrongDragonAnimationState::Enter(int animation_track, Object* object, Anim
 	}
 }
 
-int StrongDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
+int StrongDragonAnimationState::Run(float elapsed_time, std::shared_ptr<Object> object, bool is_end, std::shared_ptr<AnimatorComponent> animator)
 {
 	switch ((StrongDragonAnimationTrack)animation_track())
 	{
@@ -48,7 +50,7 @@ int StrongDragonAnimationState::Run(float elapsed_time, Object* object, bool is_
 	case StrongDragonAnimationTrack::kDie:
 		if (is_end)
 		{
-			object->set_is_dead(true);
+			GameFramework::Instance()->scene()->DeleteObject(object);
 		}
 		break;
 	case StrongDragonAnimationTrack::kSpinAttackOnce:
@@ -63,7 +65,7 @@ int StrongDragonAnimationState::Run(float elapsed_time, Object* object, bool is_
 	return animation_track();
 }
 
-void StrongDragonAnimationState::Exit(int animation_track, Object* object, AnimatorComponent* animator)
+void StrongDragonAnimationState::Exit(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	if ((int)StrongDragonAnimationTrack::kSpawn == animation_track)
 	{
