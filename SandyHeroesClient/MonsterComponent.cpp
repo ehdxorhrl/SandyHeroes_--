@@ -33,10 +33,15 @@ void MonsterComponent::Update(float elapsed_time)
 
     if (hp_ <= 0)
     {
-        auto animator = Object::GetComponentInChildren<AnimatorComponent>(owner_);
+		auto owner = owner_.lock();
+        if(!owner)
+        {
+            return;
+		}
+        auto animator = Object::GetComponentInChildren<AnimatorComponent>(owner);
         if (!animator)
         {
-            std::string temp = owner_->name() + "ÀÇ MonsterComponent Á×À½ ¾Ö´Ï¸ÞÀÌ¼Ç Ãâ·Â °úÁ¤¿¡¼­ ¹®Á¦°¡ »ý°å½À´Ï´Ù.";
+            std::string temp = owner->name() + "ï¿½ï¿½ MonsterComponent ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.";
             std::wstring debug_str;
             debug_str.assign(temp.begin(), temp.end());
 
@@ -48,64 +53,15 @@ void MonsterComponent::Update(float elapsed_time)
         {
             if (animation_state->GetDeadAnimationTrack() == -1)
             {
-				// Á×´Â ¾Ö´Ï¸ÞÀÌ¼ÇÀÌ ¾øÀ¸¸é ±×³É Á×´Â´Ù.
-                owner_->set_is_dead(true);
+				scene_->DeleteObject(owner);
                 return;
             }
-			// Á×´Â ¾Ö´Ï¸ÞÀÌ¼ÇÀ¸·Î ÀüÈ¯
-			animation_state->ChangeAnimationTrack(animation_state->GetDeadAnimationTrack(), owner_, animator);
+			animation_state->ChangeAnimationTrack(animation_state->GetDeadAnimationTrack(), owner, animator);
 			animation_state->set_animation_loop_type(1); // Once
             is_dead_animationing_ = true;
             return;
         }
     }
-
-	//EX) ai->Update(owner_, elapsed_time);
-    if (target_)
-    {
-		auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
-		if (movement)
-		{
-			XMFLOAT3 look = owner_->look_vector();
-            look.y = 0.f;
-			look = xmath_util_float3::Normalize(look);
-			XMFLOAT3 direction = target_->world_position_vector() - owner_->world_position_vector();
-			direction.y = 0.f;
-			direction = xmath_util_float3::Normalize(direction);
-			float angle = xmath_util_float3::AngleBetween(look, direction);
-            if (angle > XM_PI / 180.f * 5.f)
-            {
-                //È¸Àü ¹æÇâ ¿¬»ê
-				XMFLOAT3 cross = xmath_util_float3::CrossProduct(look, direction);
-				if (cross.y < 0)
-				{
-					angle = -angle;
-				}
-				angle = XMConvertToDegrees(angle);
-				owner_->Rotate(0.f, angle, 0.f);
-            }
-            if (owner_->tag() == "Shot_Dragon")
-            {
-                auto animator = Object::GetComponent<AnimatorComponent>(owner_);
-                auto animation_state = animator->animation_state();
-                animation_state->ChangeAnimationTrack((int)ShotDragonAnimationTrack::kAttack, owner_, animator);
-                animation_state->set_animation_loop_type(0); // Loop
-
-                return;
-            }
-            if (owner_->tag() == "Strong_Dragon")
-            {
-                return;
-            }
-
-			movement->MoveXZ(direction.x, direction.z, 5.f);
-            if (!electric_slow_applied_)
-            {
-                movement->set_max_speed_xz(3.5f);
-            }
-        }
-	}
-
 }
 
 void MonsterComponent::HitDamage(float damage)
@@ -115,7 +71,7 @@ void MonsterComponent::HitDamage(float damage)
 		shield_ -= damage;
 		if (shield_ < 0)
 		{
-			hp_ += shield_; // shield°¡ À½¼ö¸é hp¿¡ ´õÇØÁÜ
+			hp_ += shield_; // shieldï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ hpï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			shield_ = 0;
 		}
         FMODSoundManager::Instance().PlaySound("hit", false, 0.3f);
@@ -161,7 +117,7 @@ void MonsterComponent::set_attack_force(float value)
     attack_force_ = value;
 }
 
-void MonsterComponent::set_target(Object* target)
+void MonsterComponent::set_target(std::shared_ptr<Object> target)
 {
 	target_ = target;
 }

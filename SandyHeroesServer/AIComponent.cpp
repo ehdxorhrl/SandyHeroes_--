@@ -152,7 +152,7 @@ bool AIComponent::Move_To_Target(float elapsed_time)
     return true;
 }
 
-bool AIComponent::Rotate_To_Target(float elapsed_time, Object* target) {
+bool AIComponent::Rotate_To_Target(float elapsed_time, std::shared_ptr<Object> target) {
 
     auto* monster = Object::GetComponentInChildren<MonsterComponent>(owner_);
     if (!monster) return false;

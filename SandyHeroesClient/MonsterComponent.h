@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "Component.h"
 #include "BaseScene.h"
 
@@ -19,7 +19,7 @@ struct StatusEffect
 	bool IsActive() const { return elapsed < duration; }
 };
 
-//Object¸¦ ¸ó½ºÅÍÀÇ ±â´ÉÀ» Ãß°¡ÇÏ´Â ÄÄÆ÷³ÍÆ®
+//Objectï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 class MonsterComponent :
     public Component
 {
@@ -32,7 +32,7 @@ public:
 
 	virtual void Update(float elapsed_time) override;
 
-	void HitDamage(float damage); //¸ó½ºÅÍ¿¡ µ¥¹ÌÁö¸¦ ÀÔÈû
+	void HitDamage(float damage);
 
 	void ApplyStatusEffect(StatusEffectType type, float duration, float damage,
 		bool flame_frenzy, bool acid_frenzy, bool electric_frenzy);
@@ -41,7 +41,7 @@ public:
 	void set_shield(float value);
 	void set_hp(float value);
 	void set_attack_force(float value);
-	void set_target(Object* target); //¸ó½ºÅÍ°¡ °ø°İÇÒ Å¸°Ù ¼³Á¤
+	void set_target(std::shared_ptr<Object> target);
 	void set_is_pushed(bool is_pushed);
 	void set_push_timer(float value);
 
@@ -51,6 +51,8 @@ public:
 	float max_hp()const;
 	float max_shield()const;
 	float attack_force()const;
+
+	std::shared_ptr<Object> target() const { return target_.lock(); }
 
 	void set_scene(Scene* value);
 	
@@ -66,17 +68,15 @@ private:
 
 	MonsterType monster_type_{ MonsterType::kNormal };
 
-	Object* target_{ nullptr };	//¸ó½ºÅÍ°¡ °ø°İÇÒ Å¸°Ù
+	std::weak_ptr<Object> target_;	
 
 	Scene* scene_{ nullptr };
 
-	bool is_dead_animationing_{ false };	//Á×´Â ¾Ö´Ï¸ŞÀÌ¼ÇÀÌ Àç»ıÁßÀÎÁö ¿©ºÎ
+	bool is_dead_animationing_{ false };	
 	
-	// ¸ó½ºÅÍ °ãÄ§ Çö»ó ¾ø¾Ö±â À§ÇÑ º¯¼ö
 	bool is_pushed_{ false };
-	float push_timer_{ 0.0f }; // ¹Ğ¸° ÈÄ ÀÏÁ¤ ½Ã°£ ÀÌµ¿ ±İÁö
+	float push_timer_{ 0.0f }; 
 
-	//TODO: ¼­¹ö°¡ °¡Áø ¸ó½ºÅÍ ÄÄÆ÷³ÍÆ®¿¡ ¼Ó¼º °ü·Ã ³»¿ë Ãß°¡
 	bool electric_slow_applied_{ false };
 	float original_speed_{ 3.5 };
 

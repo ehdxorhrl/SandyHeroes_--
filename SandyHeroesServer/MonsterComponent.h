@@ -1,4 +1,4 @@
-#pragma once
+癤�#pragma once
 #include "Component.h"
 #include "BaseScene.h"
 
@@ -21,7 +21,6 @@ struct StatusEffect
 	bool IsActive() const { return elapsed < duration; }
 };
 
-//Object를 몬스터의 기능을 추가하는 컴포넌트
 class MonsterComponent :
 	public Component
 {
@@ -38,7 +37,7 @@ public:
 
 	void InitAfterOwnerSet();
 
-	void HitDamage(float damage); //몬스터에 데미지를 입힘
+	void HitDamage(float damage); //占쏙옙占싶울옙 占쏙옙占쏙옙占쏙옙占쏙옙 占쏙옙占쏙옙
 
 	void ApplyStatusEffect(StatusEffectType type, float duration, float damage,
 		bool flame_frenzy, bool acid_frenzy, bool electric_frenzy);
@@ -49,7 +48,7 @@ public:
 	void set_max_hp(float value);
 	void set_hp(float value);
 	void set_attack_force(float value);
-	void set_target(Object* target); //몬스터가 공격할 타겟 설정
+	void set_target(std::shared_ptr<Object> target); 
 	void set_is_pushed(bool is_pushed);
 	void set_push_timer(float value);
 	void set_scene(Scene* value);
@@ -62,7 +61,7 @@ public:
 	float max_hp()const;
 	float max_shield()const;
 	float attack_force()const;
-	Object* target() const;
+	std::shared_ptr<Object> target() const;
 	Scene* scene() const;
 
 	bool IsDead() const;
@@ -74,15 +73,15 @@ private:
 	float max_shield_{ 50.f };
 	float attack_force_{};
 
-	Object* target_{ nullptr };	//몬스터가 공격할 타겟
+	std::weak_ptr<Object> target_;
 
-	bool is_dead_animationing_{ false };	//죽는 애니메이션이 재생중인지 여부
+	bool is_dead_animationing_{ false };	
 
 	Scene* scene_{ nullptr };
 
-	// 몬스터 겹침 현상 없애기 위한 변수
+	
 	bool is_pushed_{ false };
-	float push_timer_{ 0.0f }; // 밀린 후 일정 시간 이동 금지
+	float push_timer_{ 0.0f }; 
 
 	bool electric_slow_applied_{ false };
 	float original_speed_{ 3.5 };
@@ -91,12 +90,11 @@ private:
 
 	std::unordered_map<StatusEffectType, StatusEffect> status_effects_;
 
-	//TODO: 몬스터를 움직일 AI 추가
-	AIComponent* ai_ = nullptr;
-	int current_node_idx_{ 0 }; // 현재 노드 인덱스
-	Node* current_node_{ nullptr }; // 현재 노드
-	float astar_delta_cool_time_{ 0.0f }; // A* 알고리즘 쿨타임
-	std::vector<Node*> path_; // A* 알고리즘 경로
+	std::shared_ptr<AIComponent> ai_ = nullptr;
+	int current_node_idx_{ 0 }; 
+	Node* current_node_{ nullptr }; 
+	float astar_delta_cool_time_{ 0.0f }; 
+	std::vector<Node*> path_; 
 
 };
 

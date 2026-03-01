@@ -59,7 +59,7 @@ public:
 	//getter
 	std::list<std::weak_ptr<MonsterComponent>> monster_list() const;
 	int stage_clear_num();
-	ParticleComponent* dragon_particle() const { return dragon_particle_; }
+	std::shared_ptr<ParticleComponent> dragon_particle() const { return dragon_particle_; }
 
 
 	void add_stage_clear_num();

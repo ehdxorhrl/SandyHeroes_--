@@ -34,6 +34,9 @@ Component* MonsterComponent::GetCopy()
 
 void MonsterComponent::Update(float elapsed_time)
 {
+	auto owner = owner_.lock();
+	if (!owner) return;
+
     if (is_dead_animationing_)
     {
         return;
@@ -42,7 +45,7 @@ void MonsterComponent::Update(float elapsed_time)
     if (is_pushed_) {
         push_timer_ -= elapsed_time;
         if (push_timer_ > 0.f) {
-            if (auto mv = Object::GetComponentInChildren<MovementComponent>(owner_)) {
+            if (auto mv = Object::GetComponentInChildren<MovementComponent>(owner)) {
                 mv->Stop(); // 그 사이엔 속도 0으로
             }
             return; // 이 프레임은 이동/AI 중단
@@ -63,7 +66,7 @@ void MonsterComponent::Update(float elapsed_time)
         }
         else if (type == StatusEffectType::Electric)
         {
-            auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
+            auto movement = Object::GetComponentInChildren<MovementComponent>(owner);
             if (movement)
             {
                 if (!electric_slow_applied_)
@@ -78,7 +81,7 @@ void MonsterComponent::Update(float elapsed_time)
     auto& electric = status_effects_[StatusEffectType::Electric];
     if (!electric.IsActive() && electric_slow_applied_)
     {
-        auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
+        auto movement = Object::GetComponentInChildren<MovementComponent>(owner);
         if (movement)
         {
             movement->set_max_speed_xz(original_speed_);
@@ -87,8 +90,8 @@ void MonsterComponent::Update(float elapsed_time)
     }
 
     if (!ai_) {
-        ai_ = new AIComponent(owner_);
-        owner_->AddComponent(ai_);
+        ai_ = std::make_shared<AIComponent>(owner);
+        owner->AddComponent(ai_);
         RebuildBehaviorTree_();
     }
 
@@ -96,6 +99,7 @@ void MonsterComponent::Update(float elapsed_time)
 
 void MonsterComponent::UpdateTargetPath()
 {
+	auto owner = owner_.lock();
     auto base_scene = dynamic_cast<BaseScene*>(scene_);
     const auto& current_stage_node_buffer = kStageNodeBuffers[base_scene->stage_clear_num()];
 
@@ -105,28 +109,34 @@ void MonsterComponent::UpdateTargetPath()
     float start_min_distance_sq = FLT_MAX;
     float goal_min_distance_sq = FLT_MAX;
 
-    for (const auto& node : current_stage_node_buffer)
+    auto target = target_.lock();
+    if (target)
     {
-        float start_distance_sq = xmath_util_float3::LengthSq(node.position - owner_->world_position_vector());
-        if (start_distance_sq < start_min_distance_sq)
+        for (const auto& node : current_stage_node_buffer)
         {
-            start_min_distance_sq = start_distance_sq;
-            start_node = const_cast<Node*>(&node);
+            float start_distance_sq = xmath_util_float3::LengthSq(node.position - owner->world_position_vector());
+            if (start_distance_sq < start_min_distance_sq)
+            {
+                start_min_distance_sq = start_distance_sq;
+                start_node = const_cast<Node*>(&node);
+            }
+
+            float target_distance_sq = xmath_util_float3::LengthSq(node.position - target->world_position_vector());
+            if (target_distance_sq < goal_min_distance_sq)
+            {
+                goal_min_distance_sq = target_distance_sq;
+                goal_node = const_cast<Node*>(&node);
+            }
         }
 
-        float target_distance_sq = xmath_util_float3::LengthSq(node.position - target_->world_position_vector());
-        if (target_distance_sq < goal_min_distance_sq)
-        {
-            goal_min_distance_sq = target_distance_sq;
-            goal_node = const_cast<Node*>(&node);
-        }
+        path_ = a_star::AStar(start_node, goal_node);
     }
-
-    path_ = a_star::AStar(start_node, goal_node);
 }
 
-void MonsterComponent::InitAfterOwnerSet() {
-    if (!owner_) return;
+void MonsterComponent::InitAfterOwnerSet() 
+{
+	auto owner = owner_.lock();
+    if (!owner) return;
 
     sc_packet_monster_info mi;
     mi.size = sizeof(sc_packet_monster_info);
@@ -134,14 +144,14 @@ void MonsterComponent::InitAfterOwnerSet() {
    
     mi.attack_force = attack_force_;
     XMFLOAT4X4 xf;
-    const XMFLOAT4X4& mat = owner_->transform_matrix();
+    const XMFLOAT4X4& mat = owner->transform_matrix();
     XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
     memcpy(mi.matrix, &xf, sizeof(float) * 16);
     
-    mi.id = owner_->id();
+    mi.id = owner->id();
     mi.max_hp = hp_;
     mi.max_shield = shield_;
-    mi.monster_type = static_cast<int32_t>(owner_->monster_type());
+    mi.monster_type = static_cast<int32_t>(owner->monster_type());
     mi.animation_track = 0;
 
     //std::cout << mi.type << std::endl;
@@ -162,6 +172,8 @@ void MonsterComponent::InitAfterOwnerSet() {
 
 void MonsterComponent::HitDamage(float damage)
 {
+	auto owner = owner_.lock();
+	if (!owner) return;
     if (shield_ > 0)
     {
         //std::cout << "전: " << shield_ << std::endl;
@@ -188,13 +200,13 @@ void MonsterComponent::HitDamage(float damage)
                 base_scene->add_catch_monster_num();
             }
         }
-        owner_->set_is_dead(true);
+		scene_->DeleteObject(owner);
     }
 
     sc_packet_monster_damaged md;
     md.size = sizeof(sc_packet_monster_damaged);
     md.type = S2C_P_MONSTER_DAMAGED;
-    md.id = owner_->id();
+    md.id = owner->id();
     md.hp = hp_;
     md.shield = shield_;
 
@@ -242,7 +254,7 @@ void MonsterComponent::set_attack_force(float value)
     attack_force_ = value;
 }
 
-void MonsterComponent::set_target(Object* target)
+void MonsterComponent::set_target(std::shared_ptr<Object> target)
 {
     target_ = target;
 }
@@ -282,9 +294,9 @@ float MonsterComponent::attack_force() const
     return attack_force_;
 }
 
-Object* MonsterComponent::target() const
+std::shared_ptr<Object> MonsterComponent::target() const
 {
-    return target_;
+    return target_.lock();
 }
 
 Scene* MonsterComponent::scene() const
@@ -304,31 +316,35 @@ void MonsterComponent::set_scene(Scene* value)
 
 void MonsterComponent::RebuildBehaviorTree_()
 {
-    if (!ai_) {
-        ai_ = new AIComponent(owner_); // 또는 make_unique 사용
+	auto owner = owner_.lock();
+	if (!owner) return;
+
+    if (!ai_)
+    {
+        ai_ = std::make_shared<AIComponent>(owner); // 또는 make_unique 사용
     }
 
     BTNode* root = nullptr;
  
-    switch (owner_->monster_type()) {
+    switch (owner->monster_type()) {
     case MonsterType::Strong_Dragon:
-        root = Build_Strong_Dragon_Tree(owner_);
+        root = Build_Strong_Dragon_Tree(owner);
         //std::cout << "Build_Strong_Dragon_Tree 생성 완료" << std::endl;
         break;
     case MonsterType::Hit_Dragon:  
-        root = Build_Hit_Dragon_Tree(owner_);  
+        root = Build_Hit_Dragon_Tree(owner);
         std::cout << "Build_Hit_Dragon_Tree 생성 완료" << std::endl;
         break;
     case MonsterType::Bomb_Dragon:  
-        root = Build_Bomb_Dragon_Tree(owner_);
+        root = Build_Bomb_Dragon_Tree(owner);
         std::cout << "Build_Bomb_Dragon_Tree 생성 완료" << std::endl;
         break;
     case MonsterType::Shot_Dragon:  
-        root = Build_Shot_Dragon_Tree(owner_);
+        root = Build_Shot_Dragon_Tree(owner);
         std::cout << "Build_Shot_Dragon_Tree 생성 완료" << std::endl;
         break;
     case MonsterType::Super_Dragon:
-        root = Build_Super_Dragon_Tree(owner_);
+        root = Build_Super_Dragon_Tree(owner);
         break;
 
     default:
