@@ -21,7 +21,7 @@ struct BombState {
 };
 
 struct ShotState {
-	std::list<Object*> fired_thorn_list;
+	std::list<std::weak_ptr<Object>> fired_thorn_list;
     bool hit_someone = false;
     float acc = 0.f;
     float fuse = 0.83f;
@@ -154,13 +154,13 @@ private:
     XMFLOAT3 last_dir_{ 0.f, 0.f, 1.f };  // ���� ��������
 };
 
-static std::shared_ptr<Object> GetCurrentTarget(Object* self) {
-    auto* monster_component = Object::GetComponentInChildren<MonsterComponent>(self);
+static std::shared_ptr<Object> GetCurrentTarget(std::shared_ptr<Object> self) {
+    auto monster_component = Object::GetComponentInChildren<MonsterComponent>(self);
     return monster_component->target();
 }
 
-static std::shared_ptr<Object> Set_Target(Object* self) {
-    auto* monster_component = Object::GetComponentInChildren<MonsterComponent>(self);
+static std::shared_ptr<Object> Set_Target(std::shared_ptr<Object> self) {
+    auto monster_component = Object::GetComponentInChildren<MonsterComponent>(self);
 
     float min_distance_sq = FLT_MAX;
     std::shared_ptr<Object> nearest_player = nullptr;
@@ -170,7 +170,7 @@ static std::shared_ptr<Object> Set_Target(Object* self) {
     {
         const auto& session = pair.second;
         auto player = session->get_player_object();
-        if (!player || player->is_dead())
+        if (!player)
             continue;
 
         float dist_sq = xmath_util_float3::LengthSq(player->world_position_vector() - self->world_position_vector());
@@ -189,14 +189,14 @@ static std::shared_ptr<Object> Set_Target(Object* self) {
     return nearest_player;
 }
 
-static bool InRangeXZ(Object* self, std::shared_ptr<Object> target, float r) { // ���� ���
+static bool InRangeXZ(std::shared_ptr<Object> self, std::shared_ptr<Object> target, float r) { // ���� ���
     if (!self || !target) return false;
     auto d = target->world_position_vector() - self->world_position_vector();
     d.y = 0.f;
     return xmath_util_float3::LengthSq(d) <= r * r;
 }
 
-static bool InRange(Object* self, std::shared_ptr<Object> target, float r) { // ���� ���
+static bool InRange(std::shared_ptr<Object> self, std::shared_ptr<Object> target, float r) { // ���� ���
     if (!self || !target) return false;
     auto d = target->world_position_vector() - self->world_position_vector();
     return xmath_util_float3::LengthSq(d) <= r * r;
@@ -226,7 +226,7 @@ std::unique_ptr<AIComponent> CreateMonsterAI(MonsterPtr monster) {
 }
 
 
-static BTNode* Build_Bomb_Dragon_Tree(Object* self)
+static BTNode* Build_Bomb_Dragon_Tree(std::shared_ptr<Object> self)
 {
     auto state = std::make_shared<BombState>();
 
@@ -235,7 +235,7 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
 
         auto target = Set_Target(self);
         if (!target) return false; // Ÿ���� ������ ����
-        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(self);
         if (!ai) return false;
 
         bool is_range = InRangeXZ(self, target, 1.0f);
@@ -313,17 +313,17 @@ static BTNode* Build_Bomb_Dragon_Tree(Object* self)
         root->children.push_back(attack);
     }
 
-    auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+    auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_attack_force(50);
     monstercomp->set_shield(150);
     monstercomp->set_hp(100);
-    auto* movement = Object::GetComponentInChildren<MovementComponent>(self);
+    auto movement = Object::GetComponentInChildren<MovementComponent>(self);
     movement->set_max_speed_xz(2.5f);
 
     return root;
 }
 
-static BTNode* Build_Shot_Dragon_Tree(Object* self)
+static BTNode* Build_Shot_Dragon_Tree(std::shared_ptr<Object> self)
 {
     auto state = std::make_shared<ShotState>();
 
@@ -332,12 +332,19 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         auto& fired_thorns = state->fired_thorn_list;
         const auto& users = SessionManager::getInstance().getAllSessions();
 
-        for (auto it = fired_thorns.begin(); it != fired_thorns.end();) {
-			auto thorn = *it;
+        for (auto it = fired_thorns.begin(); it != fired_thorns.end();) 
+        {
+			auto thorn = (*it).lock();
+            if(!thorn) 
+            {
+                it = fired_thorns.erase(it);
+                continue;
+			}
+            ++it;
             auto thorn_position = thorn->world_position_vector();
             if (xmath_util_float3::LengthSq(thorn_position - self->world_position_vector()) > 10000.f)
             {
-                thorn->set_is_dead(true);
+				GameFramework::Instance()->GetScene()->DeleteObject(thorn);
                 sc_packet_object_set_dead osd;
                 osd.size = sizeof(sc_packet_object_set_dead);
                 osd.type = S2C_P_OBJECT_SET_DEAD;
@@ -346,42 +353,45 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
                 for (auto& u : users) {
                     u.second->do_send(&osd);
                 }
+                continue;
             }
-            // �浹 �˻�
-            auto box = Object::GetComponentInChildren<BoxColliderComponent>(*it);
-            for (const auto& user : users) // �÷��̾� �浹�˻�
+            auto box = Object::GetComponentInChildren<BoxColliderComponent>(thorn);
+			bool hit_player = false;
+            for (const auto& user : users)
             {
-                if (user.second->get_player_object()->is_dead()) {
-                    continue;   // �÷��̾ �׾����� �ǳʶٱ�
-                }    
-                auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(user.second->get_player_object());
-                if (!player_box) continue; // �÷��̾� �ڽ��� ������ �ǳʶٱ�
-                if (box->animated_box().Intersects(player_box->animated_box())) {
-                    auto playercomp = Object::GetComponentInChildren<PlayerComponent>(user.second->get_player_object());
+				auto player = user.second->get_player_object();
+                if (!player)  continue;
+                auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(player);
+                if (!player_box) continue;
+                hit_player = box->animated_box().Intersects(player_box->animated_box());
+                if (hit_player)
+                {
+                    auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player);
                     auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
                     playercomp->HitDamage(monstercomp->attack_force());
 
-                    //TODO: ���� ���� ��Ŷ ����
                     sc_packet_object_set_dead osd;
                     osd.size = sizeof(sc_packet_object_set_dead);
                     osd.type = S2C_P_OBJECT_SET_DEAD;
-                    osd.id = (*it)->id();
+                    osd.id = thorn->id();
 
                     for (auto& u : users) {
                         u.second->do_send(&osd);
                     }
 
-                    // ���� ����
-                    (*it)->set_is_dead(true);
+                    GameFramework::Instance()->GetScene()->DeleteObject(thorn);
                     state->hit_someone = true;
+                    break;
                 }
             }
 
+            if (!hit_player) continue;
+
             {
-                auto movement = Object::GetComponentInChildren<MovementComponent>(*it);
+                auto movement = Object::GetComponentInChildren<MovementComponent>(thorn);
                 XMFLOAT3 velocity = movement->velocity();
 
-                XMFLOAT3 position = (*it)->world_position_vector();
+                XMFLOAT3 position = thorn->world_position_vector();
                 constexpr float kGroundYOffset = 0.75f;
                 position.y += kGroundYOffset;
                 XMVECTOR ray_origin = XMLoadFloat3(&position);
@@ -403,10 +413,12 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
                 BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
                 int stage_num = base_scene->stage_clear_num();
 
-                for (auto& mesh_collider : base_scene->stage_wall_collider_list(stage_num))
+                for (auto& mesh_collider_wk : base_scene->stage_wall_collider_list(stage_num))
                 {
                     ++a;
                     float t{};
+					auto mesh_collider = mesh_collider_wk.lock();
+					if (!mesh_collider) continue;
                     if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
                     {
                         if (t < distance)
@@ -417,10 +429,11 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
                 }
                 if (stage_num - 1 >= 0)
                 {
-                    for (auto& mesh_collider : base_scene->stage_wall_collider_list(stage_num-1))
+                    for (auto& mesh_collider_wk : base_scene->stage_wall_collider_list(stage_num-1))
                     {
                         ++a;
                         float t{};
+						auto mesh_collider = mesh_collider_wk.lock();
                         if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
                         {
                             if (t < distance)
@@ -437,46 +450,33 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
 
                 if (is_collide)
                 {
-                    //TODO: ���� ���� ��Ŷ ����
                     sc_packet_object_set_dead osd;
                     osd.size = sizeof(sc_packet_object_set_dead);
                     osd.type = S2C_P_OBJECT_SET_DEAD;
-                    osd.id = (*it)->id();
+                    osd.id = thorn->id();
 
                     for (auto& u : users) {
                         u.second->do_send(&osd);
                     }
 
-                    // ���� ����
-                    (*it)->set_is_dead(true);
+					GameFramework::Instance()->GetScene()->DeleteObject(thorn);
                     state->hit_someone = true;
                 }
-            }
-
-            if (state->hit_someone) {
-                // ���� ������Ʈ �ı� ������ ������ ó��, ����Ʈ������ ��� ����
-                it = fired_thorns.erase(it);
-                state->hit_someone = false;
-            }
-            else {
-                ++it;
             }
         }
         return true;
     };
 
-    // ȸ��
     auto rotate = [self](float elapsed_time) -> bool {
         auto target = Set_Target(self);
-        if (!target) return false; // Ÿ���� ������ ����    
+        if (!target) return false;    
 
-        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(self);
         if (!ai) return false;
 
         return ai->Rotate_To_Target(elapsed_time, target);
     };
 
-    // ���� �߻�
     auto attack = [self, state](float elapsed_time) -> bool {
         if (state->attacked && (state->acc < state->fuse)) {
             state->acc += elapsed_time;
@@ -484,7 +484,7 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         }
 
         auto target = GetCurrentTarget(self);
-        if (!target) return false; // Ÿ���� ������ ����
+        if (!target) return false;
 
         sc_packet_monster_change_animation mca;
         mca.size = sizeof(sc_packet_monster_change_animation);
@@ -498,7 +498,6 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         for (auto& u : users) {
             u.second->do_send(&mca);
         }
-        // ���� ����
         XMFLOAT3 thorn_position = self->FindFrame("AttackL")->world_position_vector();
 		XMFLOAT3 direction = target->FindFrame("Root_M")->world_position_vector() - thorn_position;
 		direction = xmath_util_float3::Normalize(direction);
@@ -507,7 +506,6 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         auto thorn_projectile = base_scene->FindModelInfo("Thorn_Projectile")->GetInstance();
         thorn_projectile->set_is_movable(true);
 
-        //���� �߻� ����� �ٶ󺸴� ���� ��ġ
         XMFLOAT3 look = xmath_util_float3::Normalize(thorn_projectile->look_vector());
         XMFLOAT3 rotate_axis = xmath_util_float3::CrossProduct(look, direction);
         float angle = xmath_util_float3::AngleBetween(look, direction);
@@ -516,7 +514,7 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         XMStoreFloat4x4(&transform_matrix, rotation_matrix * XMLoadFloat4x4(&transform_matrix));
         thorn_projectile->set_transform_matrix(transform_matrix);
 
-        MovementComponent* movement = new MovementComponent(thorn_projectile);
+        auto movement = std::make_shared<MovementComponent>(thorn_projectile.get());
         thorn_projectile->AddComponent(movement);
 
         thorn_projectile->set_position_vector(thorn_position);
@@ -526,11 +524,6 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         movement->Move(direction, 4.f);
         thorn_projectile->Scale(1.f);
         base_scene->AddObject(thorn_projectile);
-
-        std::function<void(Object*)> on_destroy_func = [state](Object* thorn) {
-            state->fired_thorn_list.remove(thorn);
-            };
-        thorn_projectile->OnDestroy(on_destroy_func);
         
 		state->fired_thorn_list.push_back(thorn_projectile);
 
@@ -566,14 +559,14 @@ static BTNode* Build_Shot_Dragon_Tree(Object* self)
         root->children.push_back(seq);
     }
 
-    auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+    auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_attack_force(20);
     monstercomp->set_shield(100);
     monstercomp->set_hp(100);
     return root;
 }
 
-static BTNode* Build_Hit_Dragon_Tree(Object* self)
+static BTNode* Build_Hit_Dragon_Tree(std::shared_ptr<Object> self)
 {
     constexpr float range = 0.95f; // �ٰŸ� ���� ����
 	constexpr float attack_cool_time = 1.f; // ���� ��Ÿ��
@@ -612,17 +605,16 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
                     std::cout << "������ RigLArm2�� box collider�� �����ϴ�." << std::endl;
                     return false;
                 }
-                //�浹 �˻�
 				const auto& users = SessionManager::getInstance().getAllSessions();
                 for (const auto& user : users)
                 {
-                    if (user.second->get_player_object()->is_dead()) continue; // �÷��̾ �׾����� �ǳʶٱ�
-                    auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(user.second->get_player_object());
-                    if (!player_box) continue; // �÷��̾� �ڽ��� ������ �ǳʶٱ�
+					auto player = user.second->get_player_object();
+                    if (!player) continue; 
+                    auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(player);
+                    if (!player_box) continue; 
                     if (box->animated_box().Intersects(player_box->animated_box())) 
                     {
-                        //std::cout << "������ ���� ����" << std::endl;
-                        auto playercomp = Object::GetComponentInChildren<PlayerComponent>(user.second->get_player_object());
+                        auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player);
                         auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
                         playercomp->HitDamage(monstercomp->attack_force());
                         sc_packet_player_damaged pd;
@@ -707,7 +699,7 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
         auto target = Set_Target(self);
         if (!target) return false; 
 
-        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(self);
         if (!ai) return false;
 
         bool is_range = InRangeXZ(self, target, range - 0.1f);
@@ -734,17 +726,17 @@ static BTNode* Build_Hit_Dragon_Tree(Object* self)
         root->children.push_back(attack);
     }
 
-    auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+    auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_attack_force(15);
 	monstercomp->set_shield(80);
 	monstercomp->set_hp(150);
 
-    auto* movement = Object::GetComponentInChildren<MovementComponent>(self);
+    auto movement = Object::GetComponentInChildren<MovementComponent>(self);
     movement->set_max_speed_xz(3.f);
     return root;
 }
 
-static BTNode* Build_Strong_Dragon_Tree(Object* self)
+static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
 {
 	auto state = std::make_shared<StrongState>();
 	constexpr float range = 1.6f; // �ٰŸ� ���� ����
@@ -760,7 +752,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
         };
 
     auto shield = [self]() -> float {
-        auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
         if (!monstercomp) return 0.f;
         return monstercomp->shield();
     };
@@ -793,8 +785,9 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
                 const auto& users = SessionManager::getInstance().getAllSessions();
                 for (const auto& user : users)
                 {
-                    if (user.second->get_player_object()->is_dead()) continue; // �÷��̾ �׾����� �ǳʶٱ�
-                    auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(user.second->get_player_object());
+					auto player = user.second->get_player_object();
+                    if (!player) continue; // �÷��̾ �׾����� �ǳʶٱ�
+                    auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(player);
                     if (!player_box) continue; // �÷��̾� �ڽ��� ������ �ǳʶٱ�
                     bool is_collide = false;
                     for (const auto& box : box_list)
@@ -804,7 +797,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
                         if (box->animated_box().Intersects(player_box->animated_box()))
                         {
                             is_collide = true;
-                            auto playercomp = Object::GetComponentInChildren<PlayerComponent>(user.second->get_player_object());
+                            auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player);
                             auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
                             playercomp->HitDamage(monstercomp->attack_force());
                             sc_packet_player_damaged pd;
@@ -828,7 +821,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
         auto target = Set_Target(self);
         if (!target) return false; 
 
-        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(self);
         if (!ai) return false;
 
 		auto movement = Object::GetComponentInChildren<MovementComponent>(self);
@@ -958,8 +951,9 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
             const auto& users = SessionManager::getInstance().getAllSessions();
             for (const auto& user : users)
             {
-                if (user.second->get_player_object()->is_dead()) continue; // �÷��̾ �׾����� �ǳʶٱ�
-                auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(user.second->get_player_object());
+				auto player = user.second->get_player_object();
+                if (!player) continue; // �÷��̾ �׾����� �ǳʶٱ�
+                auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(player);
                 if (!player_box) continue; // �÷��̾� �ڽ��� ������ �ǳʶٱ�
                 bool is_collide = false;
                 for (const auto& box : box_list)
@@ -969,7 +963,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
                     if (box->animated_box().Intersects(player_box->animated_box()))
                     {
                         is_collide = true;
-                        auto playercomp = Object::GetComponentInChildren<PlayerComponent>(user.second->get_player_object());
+                        auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player);
                         auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
                         playercomp->HitDamage(monstercomp->attack_force());
                         sc_packet_player_damaged pd;
@@ -992,7 +986,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
 		auto target = Set_Target(self);
 		if (!target) return false; // Ÿ���� ������ ����
 
-        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(self);
         if (!ai) return false;
 
         auto movement = Object::GetComponentInChildren<MovementComponent>(self);
@@ -1119,7 +1113,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
         root->children.push_back(seq_right);
     }
 
-    auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+    auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_shield(1000.f);
     monstercomp->set_hp(2000.f);
     monstercomp->set_attack_force(40);
@@ -1132,7 +1126,7 @@ static BTNode* Build_Strong_Dragon_Tree(Object* self)
     return root;
 }
 
-static BTNode* Build_Super_Dragon_Tree(Object* self)
+static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
 {
     auto state = std::make_shared<SuperState>();
     constexpr float kRange = 7.f; // �ٰŸ� ���� ����
@@ -1140,7 +1134,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 
 
     auto shield = [self]() -> float {
-        auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
         if (!monstercomp) return 0.f;
         return monstercomp->shield();
         };
@@ -1170,12 +1164,13 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
                 const auto& users = SessionManager::getInstance().getAllSessions();
                 for (const auto& user : users)
                 {
-                    if (user.second->get_player_object()->is_dead()) continue; // �÷��̾ �׾����� �ǳʶٱ�
-                    auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(user.second->get_player_object());
+					auto player = user.second->get_player_object();
+                    if (!player) continue; // �÷��̾ �׾����� �ǳʶٱ�
+                    auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(player);
                     if (!player_box) continue; // �÷��̾� �ڽ��� ������ �ǳʶٱ�
                     if (box->animated_box().Intersects(player_box->animated_box()))
                     {
-                        auto playercomp = Object::GetComponentInChildren<PlayerComponent>(user.second->get_player_object());
+                        auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player);
                         auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
                         playercomp->HitDamage(monstercomp->attack_force());
                         sc_packet_player_damaged pd;
@@ -1195,7 +1190,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
 		return !state->is_attacking;
         };
     auto fly_to_sky = [self, state](float elapsed_time) -> bool {
-        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(self);
         if (!ai) return false;
 		auto movement = Object::GetComponentInChildren<MovementComponent>(self);
 		if (!movement) return false; 
@@ -1203,14 +1198,13 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         if (state->is_revolution) return true;
         if (state->is_move_to_target) return true;
 
-        // �ϴ÷� ���ƿ�����
 		constexpr XMFLOAT3 target_position{ 205.3f, 23.f, -91.f }; // �ϴ÷� ���ƿ��� ��ǥ ��ġ
         XMFLOAT3 direction = target_position - self->world_position_vector();
         if (xmath_util_float3::Length(direction) < 0.5f) 
         {
             state->is_fly_to_sky = false;
             movement->set_velocity(XMFLOAT3{ 0.f,0.f,0.f });
-            return true; // ��ǥ ��ġ�� �����ϸ� true ��ȯ
+            return true; 
 		}
         else
         {
@@ -1271,7 +1265,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         }
 		};
     auto revolution = [self, state](float elapsed_time) -> bool {
-        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(self);
         if (!ai) return false;
 
         if (state->is_move_to_target) return true;
@@ -1368,7 +1362,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
     auto move_to_target = [self, state](float elapsed_time) -> bool {
         auto target = Set_Target(self);
         if (!target) return false; // Ÿ���� ������ ����
-        auto* ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(self);
         if (!ai) return false;
 		auto movement = Object::GetComponentInChildren<MovementComponent>(self);
 		if (!movement) return false;
@@ -1512,12 +1506,13 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
                 const auto& users = SessionManager::getInstance().getAllSessions();
                 for (const auto& user : users)
                 {
-                    if (user.second->get_player_object()->is_dead()) continue; // �÷��̾ �׾����� �ǳʶٱ�
-                    auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(user.second->get_player_object());
+					auto player = user.second->get_player_object();
+                    if (!player) continue; // �÷��̾ �׾����� �ǳʶٱ�
+                    auto player_box = Object::GetComponentInChildren<BoxColliderComponent>(player);
                     if (!player_box) continue; // �÷��̾� �ڽ��� ������ �ǳʶٱ�
                     if (box->animated_box().Intersects(player_box->animated_box()))
                     {
-                        auto playercomp = Object::GetComponentInChildren<PlayerComponent>(user.second->get_player_object());
+                        auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player);
                         auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
 						playercomp->HitDamage(monstercomp->attack_force());
                         sc_packet_player_damaged pd;
@@ -1590,7 +1585,7 @@ static BTNode* Build_Super_Dragon_Tree(Object* self)
         root->children.push_back(seq_right);
     }
 
-    auto* monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+    auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
     monstercomp->set_attack_force(60);
 	monstercomp->set_hp(4000.f);
 	monstercomp->set_shield(2000.f);

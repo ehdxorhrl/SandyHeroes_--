@@ -28,3 +28,4 @@
 * \[2026-02-28] ModelInfo 클래스 리팩토링 완료 (hierarchy_root_ shared_ptr 적용 및 프레임/컴포넌트 객체 생성 시 shared_ptr 사용)
 * \[2026-02-28] FPSControllerComponent 클래스 리팩토링 완료 (참조 객체 멤버 weak_ptr 적용)
 * \[2026-02-28] MonsterComponent 클래스 리팩토링 완료 (target_ 멤버 weak_ptr 적용 및 관련 Getter/Setter 수정)
+* \[2026-03-01] AIComponent 클래스 리팩토링 완료 (Object 파라미터 shared_ptr 적용, GetComponentInChildren 리턴 타입에 맞게 auto 적용 및 owner_ weak_ptr 대응)

@@ -14,7 +14,7 @@ AIComponent::AIComponent(Object* owner) : Component(owner)
 {
 }
 
-AIComponent::AIComponent(const AIComponent& other) : Component(other.owner_)
+AIComponent::AIComponent(const AIComponent& other) : Component(other)
 {
 
 }
@@ -24,7 +24,7 @@ AIComponent::~AIComponent()
     delete behavior_tree_root_; // 메모리 누수 방지
 
     if (last_owned_node_id_ != -1) AIComponent::s_node_owner_[last_owned_node_id_] = 0;
-    AIComponent::s_desire_next_.erase(owner_->id());
+    if (auto owner_ptr = owner()) AIComponent::s_desire_next_.erase(owner_ptr->id());
 }
 
 Component* AIComponent::GetCopy()
@@ -49,14 +49,16 @@ void AIComponent::SetBehaviorTree(BTNode* root)
 
 bool AIComponent::Move_To_Target(float elapsed_time) 
 {
-    auto* monstercomponent = Object::GetComponentInChildren<MonsterComponent>(owner_);
+    auto owner_ptr = owner();
+    if (!owner_ptr) return false;
+    auto monstercomponent = Object::GetComponentInChildren<MonsterComponent>(owner_ptr);
     if (!monstercomponent) return false;
 
-    auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
+    auto movement = Object::GetComponentInChildren<MovementComponent>(owner_ptr);
 
     if (movement)
     {
-        XMFLOAT3 look = owner_->look_vector();
+        XMFLOAT3 look = owner_ptr->look_vector();
         look.y = 0.f;
         look = xmath_util_float3::Normalize(look);
 
@@ -74,7 +76,7 @@ bool AIComponent::Move_To_Target(float elapsed_time)
             float goal_min_distance_sq = FLT_MAX;
             for (const auto& node : current_stage_node_buffer)
             {
-                float start_distance_sq = xmath_util_float3::LengthSq(node.position - owner_->world_position_vector());
+                float start_distance_sq = xmath_util_float3::LengthSq(node.position - owner_ptr->world_position_vector());
                 if (start_distance_sq < start_min_distance_sq)
                 {
                     start_min_distance_sq = start_distance_sq;
@@ -108,11 +110,11 @@ bool AIComponent::Move_To_Target(float elapsed_time)
         XMFLOAT3 direction;
         if (path_.size() <= current_node_idx_ || path_.size() <= 2 )
         {
-            direction = monstercomponent->target()->world_position_vector() - owner_->world_position_vector();
+            direction = monstercomponent->target()->world_position_vector() - owner_ptr->world_position_vector();
         }
         else
         {
-            auto position_xz = owner_->world_position_vector();
+            auto position_xz = owner_ptr->world_position_vector();
             position_xz.y = 0.f;
 
             direction = path_[current_node_idx_]->position - position_xz;
@@ -136,7 +138,7 @@ bool AIComponent::Move_To_Target(float elapsed_time)
                 angle = -angle;
             }
             angle = XMConvertToDegrees(angle);
-            owner_->Rotate(0.f, angle, 0.f);
+            owner_ptr->Rotate(0.f, angle, 0.f);
         }
 
         movement->MoveXZ(direction.x, direction.z, 5.f);
@@ -153,17 +155,19 @@ bool AIComponent::Move_To_Target(float elapsed_time)
 }
 
 bool AIComponent::Rotate_To_Target(float elapsed_time, std::shared_ptr<Object> target) {
+    auto owner_ptr = owner();
+    if (!owner_ptr) return false;
 
-    auto* monster = Object::GetComponentInChildren<MonsterComponent>(owner_);
+    auto monster = Object::GetComponentInChildren<MonsterComponent>(owner_ptr);
     if (!monster) return false;
 
-    auto* movement = Object::GetComponentInChildren<MovementComponent>(owner_);
+    auto movement = Object::GetComponentInChildren<MovementComponent>(owner_ptr);
     if (!movement) return false;
 
-    XMFLOAT3 look = owner_->look_vector();
+    XMFLOAT3 look = owner_ptr->look_vector();
     look.y = 0.f;
     look = xmath_util_float3::Normalize(look);
-    XMFLOAT3 direction = target->world_position_vector() - owner_->world_position_vector();
+    XMFLOAT3 direction = target->world_position_vector() - owner_ptr->world_position_vector();
     direction.y = 0.f;
     direction = xmath_util_float3::Normalize(direction);
     float angle = xmath_util_float3::AngleBetween(look, direction);
@@ -176,7 +180,7 @@ bool AIComponent::Rotate_To_Target(float elapsed_time, std::shared_ptr<Object> t
             angle = -angle;
         }
         angle = XMConvertToDegrees(angle);
-        owner_->Rotate(0.f, angle, 0.f);
+        owner_ptr->Rotate(0.f, angle, 0.f);
     }
 
     Send_Move_Packet(elapsed_time, 0);
@@ -186,18 +190,20 @@ bool AIComponent::Rotate_To_Target(float elapsed_time, std::shared_ptr<Object> t
 
 void AIComponent::Send_Move_Packet(float elapsed_time, float speed)
 {
+    auto owner_ptr = owner();
+    if (!owner_ptr) return;
     sc_packet_monster_move mm{};
     mm.size = sizeof(sc_packet_monster_move);
     mm.type = S2C_P_MONSTER_MOVE;
-    mm.id = owner_->id();
+    mm.id = owner_ptr->id();
     mm.speed = speed;
     
     XMFLOAT4X4 xf;
-    const XMFLOAT4X4& mat = owner_->transform_matrix();
+    const XMFLOAT4X4& mat = owner_ptr->transform_matrix();
     XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
     memcpy(mm.matrix, &xf, sizeof(float) * 16);
     
-    switch (owner_->monster_type()) {
+    switch (owner_ptr->monster_type()) {
     case MonsterType::Strong_Dragon: 
         mm.animation_track = 3; break;
     case MonsterType::Hit_Dragon:   
