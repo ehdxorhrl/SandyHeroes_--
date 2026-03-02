@@ -11,18 +11,18 @@
 
 MeshComponent::MeshComponent(Object* owner, Mesh* mesh) : Component(owner), mesh_(mesh)
 {
-	mesh->AddMeshComponent(this);
+	mesh->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 }
 
 MeshComponent::MeshComponent(Object* owner, Mesh* mesh, Material* material) : Component(owner), mesh_(mesh)
 {
-	mesh->AddMeshComponent(this);
+	mesh->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 	AddMaterial(material);
 }
 
 MeshComponent::MeshComponent(const MeshComponent& other) : Component(other), mesh_(other.mesh_)
 {
-	other.mesh_->AddMeshComponent(this);
+	other.mesh_->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 	materials_.reserve(other.materials_.size());
 	for (const auto& const material : other.materials_)
 	{
@@ -33,9 +33,8 @@ MeshComponent::MeshComponent(const MeshComponent& other) : Component(other), mes
 MeshComponent& MeshComponent::operator=(const MeshComponent& rhs)
 {
 	//컴포넌트 복제시 owner_는 리셋되어야함
-	owner_ = nullptr;
 	mesh_ = rhs.mesh_;
-	mesh_->AddMeshComponent(this);
+	mesh_->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 	return *this;
 }
 
@@ -43,12 +42,7 @@ MeshComponent::~MeshComponent()
 {
 	if (mesh_)
 	{
-		mesh_->DeleteMeshComponent(this);
-	}
-
-	for (const auto& const material : materials_)
-	{
-		material->DeleteMeshComponent(this);
+		mesh_->DeleteMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 	}
 }
 
@@ -92,7 +86,7 @@ void MeshComponent::UpdateConstantBufferForShadow(FrameResource* current_frame_r
 void MeshComponent::AddMaterial(Material* material)
 {
 	materials_.push_back(material);
-	material->AddMeshComponent(this);
+	material->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 }
 
 bool MeshComponent::ChangeMaterial(int index, Material* material)
@@ -102,9 +96,9 @@ bool MeshComponent::ChangeMaterial(int index, Material* material)
 		return false;
 	}
 
-	materials_[index]->DeleteMeshComponent(this);
+	materials_[index]->DeleteMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 	materials_[index] = material;
-	material->AddMeshComponent(this);
+	material->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 
 	return true;
 }

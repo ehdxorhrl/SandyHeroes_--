@@ -20,7 +20,7 @@ public:
 
 	void CreateProjectionMatrix(float near_plane_distance, float far_plane_distance, float aspect_ratio, float fov_angle);
 
-	bool CollisionCheckByMeshComponent(MeshComponent* mesh_component);
+	bool CollisionCheckByMeshComponent(const std::shared_ptr<MeshComponent>& mesh_component);
 
 	void GetPickingRay(int screen_x, int screen_y, XMFLOAT3& ray_origin, XMFLOAT3& ray_direction);
 

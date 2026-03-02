@@ -6,7 +6,7 @@
 ProgressBarComponent::ProgressBarComponent(Object* owner)
 	: UiComponent(owner)
 {
-	type_ = UiType::kProgressBarX; // ±âº»ÀûÀ¸·Î °¡·Î ÁøÇà·ü Ç¥½ÃÁÙ·Î ¼³Á¤
+	type_ = UiType::kProgressBarX; // ï¿½âº»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½
 }
 
 ProgressBarComponent::ProgressBarComponent(const ProgressBarComponent& other)
@@ -17,10 +17,13 @@ ProgressBarComponent::ProgressBarComponent(const ProgressBarComponent& other)
 
 void ProgressBarComponent::Update(float elapsed_time)
 {
-	UiMeshComponent* ui_mesh = Object::GetComponent<UiMeshComponent>(owner_);
+	auto locked_owner = owner_.lock();
+	if(!locked_owner) return;
+
+	auto ui_mesh = Object::GetComponent<UiMeshComponent>(locked_owner);
 	if (!ui_mesh)
 	{
-		std::string name = owner_->name();
+		std::string name = locked_owner->name();
 		std::wstring wname(name.begin(), name.end());
 		wname = L"ProgressBarComponent: " + wname + L"'s UiMeshComponent not found!\n";
 		OutputDebugString(wname.c_str());
@@ -28,42 +31,43 @@ void ProgressBarComponent::Update(float elapsed_time)
 	}
 	if (!get_current_value_func_)
 	{
-		std::string name = owner_->name();
+		std::string name = locked_owner->name();
 		std::wstring wname(name.begin(), name.end());
 		wname = L"ProgressBarComponent: " + wname + L"'s get_current_value_func_ is not set!\n";
 		OutputDebugString(wname.c_str());
 		return;
 	}
-	if (view_)
+	auto locked_view = view_.lock();
+	if (locked_view)
 	{
-		// view_°¡ ¼³Á¤µÇ¾î ÀÖ´Ù¸é view_ÀÇ ÇöÀç°ªÀ» °¡Á®¿È
-		current_value_ = get_current_value_func_(view_);
+		// view_  Ö´Ù¸ view_ ç°ª 
+		current_value_ = get_current_value_func_(locked_view);
 	}
 	else
 	{
-		// view_°¡ ¼³Á¤µÇ¾î ÀÖÁö ¾Ê´Ù¸é owner_ÀÇ ÇöÀç°ªÀ» °¡Á®¿È
-		current_value_ = get_current_value_func_(owner_);
+		// view_    Ù¸ owner_ ç°ª 
+		current_value_ = get_current_value_func_(locked_owner);
 	}
-	current_value_ = std::clamp(current_value_, 0.f, max_value_); // ÇöÀç°ªÀ» ÃÖ´ë°ª°ú ÃÖ¼Ò°ª »çÀÌ·Î Á¦ÇÑ
+	current_value_ = std::clamp(current_value_, 0.f, max_value_); // ç°ª Ö´ë°ª Ö¼Ò° Ì· 
 
 	if (!is_correct_max_)
 	{
 		if (!get_max_value_func_)
 		{
-			std::string name = owner_->name();
+			std::string name = locked_owner->name();
 			std::wstring wname(name.begin(), name.end());
 			wname = L"ProgressBarComponent: " + wname + L"'s get_max_value_func_ is not set!\n";
 			OutputDebugString(wname.c_str());
 			return;
 		}
 
-		if (view_)
+		if (locked_view)
 		{
-			max_value_ = get_max_value_func_(view_);
+			max_value_ = get_max_value_func_(locked_view);
 		}
 		else
 		{
-			max_value_ = get_max_value_func_(owner_);
+			max_value_ = get_max_value_func_(locked_owner);
 		}
 	}
 	float progress = current_value_ / max_value_;

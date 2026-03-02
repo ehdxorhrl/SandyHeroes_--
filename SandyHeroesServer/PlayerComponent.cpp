@@ -54,11 +54,12 @@ void PlayerComponent::Update(float elapsed_time)
 			auto base_scene = dynamic_cast<BaseScene*>(scene_);
 			if (!base_scene) return;
 			auto monster_list = base_scene->monster_list();
-			for (auto& monster : monster_list)
+			for (auto& monster_wk : monster_list)
 			{
-				
+				auto monster = monster_wk.lock();
+				if (!monster) continue;
 				float length = xmath_util_float3::Length(
-					monster->owner()->world_position_vector() - owner_->world_position_vector());
+					monster->owner()->world_position_vector() - owner_.lock()->world_position_vector());
 				if (length <= main_skill_range_)
 				{
 					XMFLOAT3 monster_pos = monster->owner()->world_position_vector();
@@ -195,7 +196,7 @@ void PlayerComponent::HitDamage(float damage)
 	for (const auto& player : users)
 	{
 		const auto& player_object = player.second->get_player_object();
-		if (owner_->id() == player_object->id()) {
+		if (owner_.lock()->id() == player_object->id()) {
 			auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player_object);
 			sc_packet_player_damaged pd;
 			pd.size = sizeof(sc_packet_player_damaged);

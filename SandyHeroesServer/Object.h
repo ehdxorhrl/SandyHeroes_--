@@ -164,12 +164,12 @@ public:
 
 		if (object->sibling_)
 		{
-			component = GetComponentInChildren<T>(object->sibling_.get());
+			component = GetComponentInChildren<T>(object->sibling_);
 			if (component)
 				return component;
 		}
 		if (object->child_)
-			return GetComponentInChildren<T>(object->child_.get());
+			return GetComponentInChildren<T>(object->child_);
 
 		return nullptr;
 	}
@@ -187,19 +187,13 @@ public:
 
 		if (object->sibling_)
 		{
-			auto sibling_components = GetComponentsInChildren<T>(object->sibling_.get());
-			for (auto& component : sibling_components)
-			{
-				r_value.push_back(component);
-			}
+			std::list<std::shared_ptr<T>> sibling_components = GetComponentsInChildren<T>(object->sibling_);
+			r_value.splice(r_value.end(), sibling_components);
 		}
 		if (object->child_)
 		{
-			auto child_components = GetComponentsInChildren<T>(object->child_.get());
-			for (auto& component : child_components)
-			{
-				r_value.push_back(component);
-			}
+			std::list<std::shared_ptr<T>> child_components = GetComponentsInChildren<T>(object->child_);
+			r_value.splice(r_value.end(), child_components);
 		}
 
 		return r_value;

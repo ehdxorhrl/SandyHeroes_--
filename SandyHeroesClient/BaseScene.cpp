@@ -825,13 +825,13 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		hp_bar->AddComponent(ui_hpbar_component);
 		auto progress_bar = std::make_shared<ProgressBarComponent>(hp_bar);
 		hp_bar->AddComponent(progress_bar);
-		progress_bar->set_get_current_value_func([](Object* object) -> float
+		progress_bar->set_get_current_value_func([](const std::shared_ptr<Object>& object) -> float
 			{
 				auto root = object->GetHierarchyRoot();
 				auto monster_component = Object::GetComponent<MonsterComponent>(root);
 				return monster_component->hp();
 			});
-		progress_bar->set_get_max_value_func([](Object* object) -> float
+		progress_bar->set_get_max_value_func([](const std::shared_ptr<Object>& object) -> float
 			{
 				auto root = object->GetHierarchyRoot();
 				auto monster_component = Object::GetComponent<MonsterComponent>(root);
@@ -846,13 +846,13 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 		shield_bar->AddComponent(ui_shieldbar_component);
 		progress_bar = std::make_shared<ProgressBarComponent>(shield_bar);
 		shield_bar->AddComponent(progress_bar);
-		progress_bar->set_get_current_value_func([](Object* object) -> float
+		progress_bar->set_get_current_value_func([](const std::shared_ptr<Object>& object) -> float
 			{
 				auto root = object->GetHierarchyRoot();
 				auto monster_component = Object::GetComponent<MonsterComponent>(root);
 				return monster_component->shield();
 			});
-		progress_bar->set_get_max_value_func([](Object* object) -> float
+		progress_bar->set_get_max_value_func([](const std::shared_ptr<Object>& object) -> float
 			{
 				auto root = object->GetHierarchyRoot();
 				auto monster_component = Object::GetComponent<MonsterComponent>(root);
@@ -901,13 +901,13 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 
 		auto progress_bar = std::make_shared<ProgressBarComponent>(hp_bar);
 		hp_bar->AddComponent(progress_bar);
-		progress_bar->set_get_current_value_func([](Object* object) -> float
+		progress_bar->set_get_current_value_func([](const std::shared_ptr<Object>& object) -> float
 			{
 				auto root = object->GetHierarchyRoot();
 				auto monster_component = Object::GetComponentInChildren<MonsterComponent>(root);
 				return monster_component->hp();
 			});
-		progress_bar->set_get_max_value_func([](Object* object) -> float
+		progress_bar->set_get_max_value_func([](const std::shared_ptr<Object>& object) -> float
 			{
 				auto root = object->GetHierarchyRoot();
 				auto monster_component = Object::GetComponentInChildren<MonsterComponent>(root);
@@ -924,13 +924,13 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 
 		progress_bar = std::make_shared<ProgressBarComponent>(shield_bar);
 		shield_bar->AddComponent(progress_bar);
-		progress_bar->set_get_current_value_func([](Object* object) -> float
+		progress_bar->set_get_current_value_func([](const std::shared_ptr<Object>& object) -> float
 			{
 				auto root = object->GetHierarchyRoot();
 				auto monster_component = Object::GetComponentInChildren<MonsterComponent>(root);
 				return monster_component->shield();
 			});
-		progress_bar->set_get_max_value_func([](Object* object) -> float
+		progress_bar->set_get_max_value_func([](const std::shared_ptr<Object>& object) -> float
 			{
 				auto root = object->GetHierarchyRoot();
 				auto monster_component = Object::GetComponentInChildren<MonsterComponent>(root);
@@ -1453,14 +1453,14 @@ void BaseScene::CreatePlayerUI()
 
 		progress_bar->set_view(player_.lock());
 
-		progress_bar->set_get_max_value_func([](Object* object) -> float
+		progress_bar->set_get_max_value_func([](const std::shared_ptr<Object>& object) -> float
 			{
 				auto root = object ? object->GetHierarchyRoot() : nullptr;
 		auto player_component = root ? Object::GetComponent<PlayerComponent>(root) : nullptr;
 		return player_component ? player_component->main_skill_max_gage() : 0.0f;
 			});
 
-		progress_bar->set_get_current_value_func([](Object* object) -> float
+		progress_bar->set_get_current_value_func([](const std::shared_ptr<Object>& object) -> float
 			{
 				auto root = object ? object->GetHierarchyRoot() : nullptr;
 		auto player_component = root ? Object::GetComponent<PlayerComponent>(root) : nullptr;
@@ -1505,7 +1505,7 @@ void BaseScene::CreatePlayerUI()
 		auto hp_progress_bar = std::make_shared<ProgressBarComponent>(player_hp_bar);
 		hp_progress_bar->set_view(player_.lock());
 		hp_progress_bar->set_max_value(player_component->max_hp());
-		hp_progress_bar->set_get_current_value_func([](Object* object) -> float
+		hp_progress_bar->set_get_current_value_func([](const std::shared_ptr<Object>& object) -> float
 			{
 				auto player_component = Object::GetComponent<PlayerComponent>(object->GetHierarchyRoot());
 				return player_component->hp();
@@ -1521,7 +1521,7 @@ void BaseScene::CreatePlayerUI()
 		auto shield_progress_bar = std::make_shared<ProgressBarComponent>(player_shield_bar);
 		shield_progress_bar->set_view(player_.lock());
 		shield_progress_bar->set_max_value(player_component->max_shield());
-		shield_progress_bar->set_get_current_value_func([](Object* object) -> float
+		shield_progress_bar->set_get_current_value_func([](const std::shared_ptr<Object>& object) -> float
 			{
 				auto player_component = Object::GetComponent<PlayerComponent>(object->GetHierarchyRoot());
 				return player_component->shield();
@@ -1557,11 +1557,11 @@ void BaseScene::CreatePlayerUI()
 		auto progress_bar = std::make_shared<ProgressBarComponent>(dash_icon);
 		progress_bar->set_type(UiType::kProgressBarY); // 위에서 아래로 차오르게
 		progress_bar->set_view(player_.lock());
-		progress_bar->set_get_max_value_func([](std::shared_ptr<Object> object) -> float {
+		progress_bar->set_get_max_value_func([](const std::shared_ptr<Object>& object) -> float {
 			auto player_component = Object::GetComponent<PlayerComponent>(object);
 			return player_component->dash_max_gage();
 			});
-		progress_bar->set_get_current_value_func([](std::shared_ptr<Object> object) -> float {
+		progress_bar->set_get_current_value_func([](const std::shared_ptr<Object>& object) -> float {
 			auto player_component = Object::GetComponent<PlayerComponent>(object);
 			return player_component->dash_gage();
 			});

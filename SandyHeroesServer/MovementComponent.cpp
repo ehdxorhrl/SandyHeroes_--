@@ -18,7 +18,9 @@ Component* MovementComponent::GetCopy()
 
 void MovementComponent::Update(float elapsed_time)
 {
-    old_position_ = owner_->position_vector();
+    auto locked_owner = owner_.lock();
+    if(!locked_owner) return;
+    old_position_ = locked_owner->position_vector();
 
     if (is_gravity_)
     {
@@ -26,13 +28,13 @@ void MovementComponent::Update(float elapsed_time)
     }
 
     //지면에 서있으면 더 이상 떨어지지 않음.
-    if (owner_->is_ground() && velocity_.y < 0.f)
+    if (locked_owner->is_ground() && velocity_.y < 0.f)
     {
         velocity_.y = 0.f;
     }
 
     //점프 높이 제한
-    if (velocity_.y > 0 && (jump_before_y_ + jump_max_height_) <= owner_->position_vector().y)
+    if (velocity_.y > 0 && (jump_before_y_ + jump_max_height_) <= locked_owner->position_vector().y)
     {
         velocity_.y = 0.f;
     }
@@ -85,14 +87,14 @@ void MovementComponent::Update(float elapsed_time)
         }
     }
 
-    owner_->set_position_vector(owner_->position_vector() + (velocity_ * (elapsed_time)));
+    locked_owner->set_position_vector(locked_owner->position_vector() + (velocity_ * (elapsed_time)));
 
     
 
-    //if (owner_->is_player() && velocity_.y > 0)
+    //if (locked_owner->is_player() && velocity_.y > 0)
     //{
     //    std::cout << "[Session ID: " << "] "
-    //        << owner_->name() << "점프 후 y값" << owner_->position_vector().y << std::endl;
+    //        << locked_owner->name() << "점프 후 y값" << owner_->position_vector().y << std::endl;
     //    std::cout << "점프 후 velocity_.y값" << velocity_.y << std::endl;
     //}
 }
@@ -138,22 +140,26 @@ void MovementComponent::MoveXZ(float x, float z, float speed)
 
 void MovementComponent::Jump(float speed, float max_height)
 {
-    jump_before_y_ = owner_->position_vector().y;
+    auto locked_owner = owner_.lock();
+    if(!locked_owner) return;
+    jump_before_y_ = locked_owner->position_vector().y;
     velocity_.y = speed;
     jump_max_height_ = max_height;
 }
 
 void MovementComponent::Stop()
 {
+    auto locked_owner = owner_.lock();
+    if(!locked_owner) return;
     velocity_ = XMFLOAT3{ 0.f, 0.f, 0.f };
 
     sc_packet_monster_change_animation mca;
     mca.size = sizeof(sc_packet_monster_change_animation);
     mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-    mca.id = owner_->id();
+    mca.id = locked_owner->id();
     mca.loop_type = 0; // Once
 
-    switch (owner_->monster_type()) {
+    switch (locked_owner->monster_type()) {
     case MonsterType::Strong_Dragon:
     case MonsterType::Shot_Dragon:
         mca.animation_track = 0; // kIdle
@@ -199,5 +205,7 @@ float MovementComponent::max_speed_xz() const
 
 void MovementComponent::BackupPosition()
 {
-    old_position_ = owner_->position_vector();
+    auto locked_owner = owner_.lock();
+    if(!locked_owner) return;
+    old_position_ = locked_owner->position_vector();
 }

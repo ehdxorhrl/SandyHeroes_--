@@ -20,7 +20,7 @@ bool Sector::InsertObject(std::shared_ptr<Object> object)
 		return true;
 	}
 
-	auto box_collider = Object::GetComponentInChildren<BoxColliderComponent>(object.get());
+	auto box_collider = Object::GetComponentInChildren<BoxColliderComponent>(object);
 	if (box_collider)
 	{
 		box_collider->Update(0.f);

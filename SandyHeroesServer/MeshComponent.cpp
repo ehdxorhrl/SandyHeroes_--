@@ -50,7 +50,6 @@ MeshComponent::MeshComponent(const MeshComponent& other) : Component(other), mes
 
 MeshComponent& MeshComponent::operator=(const MeshComponent& rhs)
 {
-    owner_ = nullptr;
     mesh_ = rhs.mesh_;
     mesh_->AddMeshComponent(this);
     return *this;
@@ -61,11 +60,6 @@ MeshComponent::~MeshComponent()
     if (mesh_)
     {
         mesh_->DeleteMeshComponent(this);
-    }
-
-    for (const auto& const material : materials_)
-    {
-        material->DeleteMeshComponent(this);
     }
 }
 
@@ -97,7 +91,6 @@ bool MeshComponent::ChangeMaterial(int index, Material* material)
         return false;
     }
 
-    materials_[index]->DeleteMeshComponent(this);
     materials_[index] = material;
     material->AddMeshComponent(this);
 

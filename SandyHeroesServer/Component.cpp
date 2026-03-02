@@ -6,7 +6,7 @@ Component::Component(Object* owner) : owner_(owner->shared_from_this())
 {
 }
 
-Component::Component(const Component& other) : owner_(nullptr)
+Component::Component(const Component& other) : owner_()
 {
 }
 

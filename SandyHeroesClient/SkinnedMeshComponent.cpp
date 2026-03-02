@@ -15,9 +15,8 @@ SkinnedMeshComponent::SkinnedMeshComponent(const SkinnedMeshComponent& other) : 
 
 SkinnedMeshComponent& SkinnedMeshComponent::operator=(const SkinnedMeshComponent& rhs)
 {
-	owner_ = nullptr;
 	mesh_ = rhs.mesh_;
-	mesh_->AddMeshComponent(this);
+	mesh_->AddMeshComponent(std::dynamic_pointer_cast<SkinnedMeshComponent>(shared_from_this()));
 	return *this;
 }
 
@@ -96,12 +95,14 @@ void SkinnedMeshComponent::AttachBoneFrames(const std::vector<std::string>& bone
 	bone_frames_.clear();
 	bone_frames_.reserve(bone_names.size());
 
-	Object* hierarchy_root = owner_->GetHierarchyRoot();
+	auto locked_owner = owner_.lock();
+	if (!locked_owner) return;
+	std::shared_ptr<Object> hierarchy_root = locked_owner->GetHierarchyRoot();
 
 	for (const std::string& name : bone_names)
 	{
-		Object* bone_frame = hierarchy_root->FindFrame(name);
-		bone_frames_.push_back(bone_frame);
+		std::shared_ptr<Object> bone_frame = hierarchy_root->FindFrame(name);
+		bone_frames_.push_back(bone_frame.get());
 	}
 
 	is_attached_bone_frames_ = true;

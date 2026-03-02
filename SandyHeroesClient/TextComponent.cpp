@@ -27,7 +27,7 @@ TextComponent::TextComponent(
 	get_text_func_ = get_text_func;
 	if (get_text_func_)
 	{
-		is_static_ = false; // get_text_func_가 설정되면 동적 텍스트로 간주
+		is_static_ = false; // get_text_func_ 퓔  灣트 
 	}
 }
 
@@ -47,36 +47,41 @@ Component* TextComponent::GetCopy()
 
 void TextComponent::Update(float elapsed_time)
 {
-	GameFramework::Instance()->text_renderer()->AddText(this); // 텍스트 렌더러에 추가
+	GameFramework::Instance()->text_renderer()->AddText(this); // 灣트  煞
 
 	if(is_static_)
 	{
-		return; // 정적 텍스트는 업데이트하지 않음
+		return; //  灣트 트 
 	}
+
+	auto locked_owner = owner_.lock();
+
 	if (!get_text_func_)
 	{
-		// get_text_func_가 설정되지 않은 경우 디버그 메시지 출력
-		if (!owner_)
+		// get_text_func_     聘 
+		if (!locked_owner)
 		{
 			OutputDebugString(L"TextComponent: owner_ is nullptr!\n");
 			return;
 		}
-		// 오너의 이름을 가져와서 디버그 메시지 출력
-		std::string name = owner_->name();
+		//  見 暠  聘 
+		std::string name = locked_owner->name();
 		std::wstring wname(name.begin(), name.end());
 		wname = L"TextComponent: " + wname + L"'s get_text_func_ is not set!\n";
 		OutputDebugString(wname.c_str());
 		return;
 	}
 
-	if(view_)
+	auto locked_view = view_.lock();
+	if(locked_view)
 	{
-		text_ = get_text_func_(view_); // 뷰 오브젝트에서 텍스트를 가져오는 함수 호출
+		text_ = get_text_func_(locked_view.get()); //  트 灣트  獨 호
 
 	}
 	else
 	{
-		text_ = get_text_func_(owner_); // 오너 오브젝트에서 텍스트를 가져오는 함수 호출
+		if(!locked_owner) return;
+		text_ = get_text_func_(locked_owner.get()); //  트 灣트  獨 호
 	}
 
 }

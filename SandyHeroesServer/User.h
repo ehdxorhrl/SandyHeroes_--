@@ -67,8 +67,8 @@ public:
 	void process_packet(unsigned char* p, float elapsed_time);
 
 
-	void set_player_object(Object* obj);
-	void set_camera_object(Object* obj);
+	void set_player_object(std::shared_ptr<Object> obj);
+	void set_camera_object(std::shared_ptr<Object> obj);
 
 	long long get_id() const;
 

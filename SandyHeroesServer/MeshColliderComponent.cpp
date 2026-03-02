@@ -10,7 +10,7 @@ MeshColliderComponent::MeshColliderComponent(Object* owner) : Component(owner)
 {
 }
 
-MeshColliderComponent::MeshColliderComponent(const MeshColliderComponent& other) : Component(other.owner_)
+MeshColliderComponent::MeshColliderComponent(const MeshColliderComponent& other) : Component(other)
 {
 	mesh_ = other.mesh_;
 }
@@ -22,7 +22,8 @@ Component* MeshColliderComponent::GetCopy()
 
 bool MeshColliderComponent::CollisionCheckByRay(FXMVECTOR ray_origin, FXMVECTOR ray_direction, float& out_distance)
 {
-	XMFLOAT4X4 mat = owner_->world_matrix();
+	auto locked_owner = owner_.lock();
+	XMFLOAT4X4 mat = locked_owner->world_matrix();
 	XMMATRIX world = XMLoadFloat4x4(&mat);
 	XMVECTOR det = XMMatrixDeterminant(world);
 	XMMATRIX inverse_world = XMMatrixInverse(&det, world);
@@ -90,7 +91,8 @@ bool MeshColliderComponent::CollisionCheckByRay(FXMVECTOR ray_origin, FXMVECTOR 
 
 bool MeshColliderComponent::CollisionCheckByObb(BoundingOrientedBox obb)
 {
-	XMFLOAT4X4 world_matrix_copy = owner_->world_matrix(); 
+	auto locked_owner = owner_.lock();
+	XMFLOAT4X4 world_matrix_copy = locked_owner->world_matrix();
 	XMMATRIX world = XMLoadFloat4x4(&world_matrix_copy);
 
 	bool is_collide{ false };
@@ -133,8 +135,9 @@ BoundingOrientedBox MeshColliderComponent::GetWorldOBB() const
 	BoundingOrientedBox obb;
 	BoundingOrientedBox::CreateFromBoundingBox(obb, mesh_->bounds());
 
+	auto locked_owner = owner_.lock();
 	// 월드 좌표계로 변환
-	XMFLOAT4X4 world_mat = owner_->world_matrix();      
+	XMFLOAT4X4 world_mat = locked_owner->world_matrix();
 	XMMATRIX world = XMLoadFloat4x4(&world_mat);        
 	obb.Transform(obb, world);
 

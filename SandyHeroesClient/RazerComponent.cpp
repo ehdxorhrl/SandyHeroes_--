@@ -2,14 +2,16 @@
 #include "RazerComponent.h"
 #include "Object.h"
 #include "FMODSoundManager.h"
+#include "GameFramework.h"
+#include "Scene.h"
 
 RazerComponent::RazerComponent(Object* owner) : Component(owner)
 {
 }
 
-RazerComponent::RazerComponent(Object* owner, XMFLOAT3 start, XMFLOAT3 end)
+RazerComponent::RazerComponent(Object* owner, XMFLOAT3 start, XMFLOAT3 end) 
 {
-    owner_ = owner;
+    owner_ = owner->shared_from_this();
     InitRazer(start, end);
 }
 
@@ -37,7 +39,10 @@ void RazerComponent::Update(float elapsed_time)
 
     if (life_time_ > max_life_time_)
     {
-        owner_->set_is_dead(true); // 레이저가 죽으면 오브젝트를 제거한다.
+        if (auto locked_owner = owner_.lock())
+        {
+            GameFramework::Instance()->scene()->DeleteObject(locked_owner);
+        }
         return;
     }
 }
@@ -46,10 +51,12 @@ void RazerComponent::InitRazer(XMFLOAT3 start, XMFLOAT3 end)
 {
     start_position_ = start;
     end_position_ = end;
-    owner_->set_position_vector(start);
+    auto locked_owner = owner_.lock();
+    if (!locked_owner) return;
+    locked_owner->set_position_vector(start);
     XMFLOAT3 direction = { end.x - start.x, end.y - start.y, end.z - start.z };
     direction = xmath_util_float3::Normalize(direction);
-    owner_->set_up_vector(direction);
-    owner_->set_right_vector(xmath_util_float3::Normalize(xmath_util_float3::CrossProduct(owner_->up_vector(), owner_->look_vector())));
-    owner_->set_look_vector(xmath_util_float3::Normalize(xmath_util_float3::CrossProduct(owner_->right_vector(), owner_->up_vector())));
+    locked_owner->set_up_vector(direction);
+    locked_owner->set_right_vector(xmath_util_float3::Normalize(xmath_util_float3::CrossProduct(locked_owner->up_vector(), locked_owner->look_vector())));
+    locked_owner->set_look_vector(xmath_util_float3::Normalize(xmath_util_float3::CrossProduct(locked_owner->right_vector(), locked_owner->up_vector())));
 }

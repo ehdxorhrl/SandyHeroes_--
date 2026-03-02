@@ -7,7 +7,7 @@ MeshColliderComponent::MeshColliderComponent(Object* owner) : Component(owner)
 {
 }
 
-MeshColliderComponent::MeshColliderComponent(const MeshColliderComponent& other) : Component(other.owner_)
+MeshColliderComponent::MeshColliderComponent(const MeshColliderComponent& other) : Component(other)
 {
 	mesh_ = other.mesh_;
 }
@@ -19,7 +19,9 @@ Component* MeshColliderComponent::GetCopy()
 
 bool MeshColliderComponent::CollisionCheckByRay(FXMVECTOR ray_origin, FXMVECTOR ray_direction, float& out_distance)
 {
-	XMMATRIX world = XMLoadFloat4x4(&owner_->world_matrix());
+	auto locked_owner = owner_.lock();
+	if (!locked_owner) return false;
+	XMMATRIX world = XMLoadFloat4x4(&locked_owner->world_matrix());
 	XMMATRIX inverse_world = XMMatrixInverse(&XMMatrixDeterminant(world), world);
 
 	BoundingOrientedBox bounds;
@@ -32,7 +34,7 @@ bool MeshColliderComponent::CollisionCheckByRay(FXMVECTOR ray_origin, FXMVECTOR 
 	if (bounds.Intersects(ray_origin, ray_direction, t))
 	{
 		std::string name = mesh()->name();
-		//Ã¶ÀåÀº 1Â÷°Ë»ç¸¸ ÁøÇà
+		//Ã¶ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½Ë»ç¸¸ ï¿½ï¿½ï¿½ï¿½
 		if ("Fence_01" == name ||
 			"Fence_02" == name ||
 			"Fence_03" == name || 
@@ -65,7 +67,7 @@ bool MeshColliderComponent::CollisionCheckByRay(FXMVECTOR ray_origin, FXMVECTOR 
 					if (TriangleTests::Intersects(ray_origin, ray_direction, v0, v1, v2, t))
 					{
 						is_collide = true;
-						if (t < t_min) // °¡Àå ¹ÝÁ÷¼±¿¡ °¡±î¿î »ï°¢Çü°úÀÇ ±³Á¡ ¸Å°³º¯¼ö
+						if (t < t_min) // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï°¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Å°ï¿½ï¿½ï¿½ï¿½ï¿½
 						{
 							t_min = t;
 						}
@@ -84,7 +86,9 @@ bool MeshColliderComponent::CollisionCheckByRay(FXMVECTOR ray_origin, FXMVECTOR 
 
 bool MeshColliderComponent::CollisionCheckByObb(BoundingOrientedBox obb)
 {
-	XMMATRIX world = XMLoadFloat4x4(&owner_->world_matrix());
+	auto locked_owner = owner_.lock();
+	if (!locked_owner) return false;
+	XMMATRIX world = XMLoadFloat4x4(&locked_owner->world_matrix());
 
 	bool is_collide{ false };
 	if (mesh_->bounds().Intersects(obb))
@@ -125,8 +129,10 @@ BoundingOrientedBox MeshColliderComponent::GetWorldOBB() const
 	BoundingOrientedBox obb;
 	BoundingOrientedBox::CreateFromBoundingBox(obb, mesh_->bounds());
 
-	// ¿ùµå ÁÂÇ¥°è·Î º¯È¯
-	XMMATRIX world = XMLoadFloat4x4(&owner_->world_matrix());
+	//  Ç¥ È¯
+	auto locked_owner = owner_.lock();
+	if (!locked_owner) return BoundingOrientedBox{};
+	XMMATRIX world = XMLoadFloat4x4(&locked_owner->world_matrix());
 	obb.Transform(obb, world);
 
 	return obb;

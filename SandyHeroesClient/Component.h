@@ -29,7 +29,7 @@ public:
 	}
 	*/
 	virtual Component* GetCopy() = 0;
-	virtual void Update(float elapsed_time) {};
+	virtual void Update(float elapsed_time) {};\n\tvirtual void InitAfterOwnerSet() {}
 
 	Object* hierarchy_root();
 

@@ -7,9 +7,9 @@ class Object;
 
 struct Particle
 {
-	Object* particle_object{ nullptr };
+	std::weak_ptr<Object> particle_object{};
 	float life_time{ 2.f };
-	Particle(Object* object, float life_time) : particle_object(object), life_time(life_time) {}
+	Particle(std::shared_ptr<Object> object, float life_time) : particle_object(object), life_time(life_time) {}
 };
 
 class ParticleSystem
@@ -19,7 +19,7 @@ public:
 	ParticleSystem(Mesh* paricle_mesh, Material* particle_material);
 	~ParticleSystem() {}
 
-	Object* CreateParticle(XMFLOAT3 position, XMFLOAT3 direction, float speed);
+	std::shared_ptr<Object> CreateParticle(XMFLOAT3 position, XMFLOAT3 direction, float speed);
 	void SpawnParticle(Scene* scene, XMFLOAT3 position, int particle_count, float particle_time);
 
 	void Update(float elapsed_time);

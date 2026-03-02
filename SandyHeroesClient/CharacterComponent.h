@@ -16,11 +16,11 @@ public:
 
     virtual void Update(float elapsed_time) = 0;
 
-	virtual void HendleCollision(Object* other_object) = 0;
+	virtual void HendleCollision(std::shared_ptr<Object> other_object) = 0;
 
 protected:
-	AnimatorComponent* animator_{ nullptr }; // 애니메이터 컴포넌트 포인터
-	MovementComponent* movement_{ nullptr }; // 이동 컴포넌트 포인터
+	std::weak_ptr<AnimatorComponent> animator_{}; 
+	std::weak_ptr<MovementComponent> movement_{}; 
 
 };
 

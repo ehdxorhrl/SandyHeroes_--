@@ -5,19 +5,20 @@
 #include "Scene.h"
 #include "MovementComponent.h"
 #include "MeshComponent.h"
+#include "GameFramework.h"
 
 ParticleSystem::ParticleSystem(Mesh* particle_mesh, Material* particle_material) 
 	: particle_mesh_(particle_mesh), particle_material_(particle_material)
 {
 }
 
-Object* ParticleSystem::CreateParticle(XMFLOAT3 position, XMFLOAT3 direction, float speed)
+std::shared_ptr<Object> ParticleSystem::CreateParticle(XMFLOAT3 position, XMFLOAT3 direction, float speed)
 {
-	Object* particle = new Object();
+	auto particle = std::make_shared<Object>();
 	particle->Scale(0.06f);
 	particle->set_position_vector(position);
-	particle->AddComponent(new MeshComponent(particle, particle_mesh_, particle_material_));
-	MovementComponent* movement_component = new MovementComponent(particle);
+	particle->AddComponent(std::make_shared<MeshComponent>(particle.get(), particle_mesh_, particle_material_));
+	auto movement_component = std::make_shared<MovementComponent>(particle.get());
 	movement_component->DisableFriction();
 	movement_component->DisableGarvity();
 	movement_component->Move(direction, speed);
@@ -50,12 +51,12 @@ void ParticleSystem::SpawnParticle(Scene* scene, XMFLOAT3 position, int particle
 	scene->AddObject(CreateParticle(position, direction_f3, particle_speed));
 	for (int i = 0; i < 5; ++i)
 	{
-		// z축을 기준으로 기준축 회전
+		// z   회
 		direction = XMVector3Transform(direction, rotation_z);
 		XMStoreFloat3(&direction_f3, direction);
 		for (int j = 0; j < 12; ++j)
 		{
-			// 파티클 생성후 y축을 기준으로 회전
+			// 티클  y  회
 			particle_speed = dist(kRandomGenerator);
 			scene->AddObject(CreateParticle(position, direction_f3, particle_speed));
 			direction = XMVector3Transform(direction, rotation_y);
@@ -71,19 +72,20 @@ void ParticleSystem::SpawnParticle(Scene* scene, XMFLOAT3 position, int particle
 
 void ParticleSystem::Update(float elapsed_time)
 {
-	for (auto& particle : particle_list_)
+	for (auto it = particle_list_.begin(); it != particle_list_.end(); )
 	{
-		particle.life_time -= elapsed_time;
-		if (particle.life_time <= 0.f)
+		it->life_time -= elapsed_time;
+		if (it->life_time <= 0.f)
 		{
-			particle.particle_object->set_is_dead(true);
+			if (auto particle_obj = it->particle_object.lock())
+			{
+				GameFramework::Instance()->scene()->DeleteObject(particle_obj);
+			}
+			it = particle_list_.erase(it);
+		}
+		else
+		{
+			++it;
 		}
 	}
-	particle_list_.remove_if([](Particle& particle) {
-		if (particle.particle_object->is_dead())
-		{
-			return true;
-		}
-		return false;
-		});
 }

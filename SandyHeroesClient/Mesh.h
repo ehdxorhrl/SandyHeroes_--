@@ -15,8 +15,8 @@ public:
 	Mesh(const Mesh&) = delete;
 	Mesh& operator=(const Mesh&) = delete;
 
-	void AddMeshComponent(MeshComponent* mesh_component);
-	void DeleteMeshComponent(MeshComponent* mesh_component);
+	void AddMeshComponent(std::weak_ptr<MeshComponent> mesh_component);
+	void DeleteMeshComponent(std::weak_ptr<MeshComponent> mesh_component);
 
 	virtual void CreateShaderVariables(ID3D12Device* device, ID3D12GraphicsCommandList* command_list);
 
@@ -88,7 +88,7 @@ protected:
 
 	BoundingBox bounds_{};
 
-	std::list<MeshComponent*> mesh_component_list_;
+	std::list<std::weak_ptr<MeshComponent>> mesh_component_list_;
 
 	// 하드웨어 인스턴싱을 위한 변수들
 	int instance_count_ = 0;

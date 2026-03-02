@@ -27,7 +27,7 @@ void CutSceneTrack::Play(Scene* scene)
 {
 	is_playing_ = true;
 	scene_ = scene;
-	scene_camera_ = scene->main_camera()->owner().lock();
+	scene_camera_ = scene->main_camera()->owner();
 	auto camera_component = Object::GetComponent<CameraComponent>(camera_);
 	scene->set_main_camera(camera_component);
 	scene_->set_is_play_cutscene(true);

@@ -38,7 +38,7 @@ void CameraComponent::CreateProjectionMatrix(
 
 }
 
-bool CameraComponent::CollisionCheckByMeshComponent(MeshComponent* mesh_component)
+bool CameraComponent::CollisionCheckByMeshComponent(const std::shared_ptr<MeshComponent>& mesh_component)
 {
 	BoundingOrientedBox obb;
 	auto aabb = mesh_component->GetMesh()->bounds();

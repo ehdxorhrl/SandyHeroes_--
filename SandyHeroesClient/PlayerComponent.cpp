@@ -37,7 +37,7 @@ void PlayerComponent::Update(float elapsed_time)
 			for (auto& monster : monster_list)
 			{
 				float length = xmath_util_float3::Length(
-					monster->owner()->world_position_vector() - owner_->world_position_vector());
+					monster->owner()->world_position_vector() - owner_.lock()->world_position_vector());
 				if (length <= main_skill_range_)
 				{
 					XMFLOAT3 monster_pos = monster->owner()->world_position_vector();

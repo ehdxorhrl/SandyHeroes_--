@@ -20,5 +20,5 @@ private:
 	float duration_{ 5.0f };	// 서서히 보이는 데 걸리는 총 시간
 	float elapsed_{ 0.0f };		// 누적 시간
 
-	UiMeshComponent* ui_mesh_{ nullptr }; // 알파를 조절할 UI 컴포넌트
+	std::weak_ptr<UiMeshComponent> ui_mesh_; // 알파를 조절할 UI 컴포넌트
 };

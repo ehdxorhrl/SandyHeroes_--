@@ -30,7 +30,9 @@ Component* BoxColliderComponent::GetCopy()
 void BoxColliderComponent::Update(float elapsed_time)
 {
 	// Update the animated box based on the current world matrix of the owner object
-	XMFLOAT4X4 world_mat = owner_->world_matrix();
+	auto locked_owner = owner_.lock();
+	if(!locked_owner) return;
+	XMFLOAT4X4 world_mat = locked_owner->world_matrix();
 	XMMATRIX mat = XMLoadFloat4x4(&world_mat);    
 	box_.Transform(animated_box_, mat);           
 

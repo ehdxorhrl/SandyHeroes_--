@@ -27,13 +27,15 @@ Component* FadeInUIComponent::GetCopy()
 
 void FadeInUIComponent::Update(float elapsed_time)
 {
-	if (!ui_mesh_)
+	auto locked_ui_mesh = ui_mesh_.lock();
+	if (!locked_ui_mesh)
 	{
-		ui_mesh_ = Object::GetComponent<UiMeshComponent>(owner_);
-		if (!ui_mesh_) return;
+		auto locked_owner = owner_.lock();
+		if (!locked_owner) return;
+		ui_mesh_ = Object::GetComponent<UiMeshComponent>(locked_owner);
 	}
 
 	elapsed_ += elapsed_time;
 	float alpha = std::min(1.0f, elapsed_ / duration_);
-	ui_mesh_->set_alpha(alpha);
+	locked_ui_mesh->set_alpha(alpha);
 }

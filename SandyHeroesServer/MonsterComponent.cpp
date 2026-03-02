@@ -24,7 +24,6 @@ target_(other.target_), scene_(other.scene_)
 MonsterComponent::~MonsterComponent()
 {
 
-    if(ai_) delete ai_; // AIComponent 메모리 해제
 }
 
 Component* MonsterComponent::GetCopy()

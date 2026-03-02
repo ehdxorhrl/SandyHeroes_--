@@ -21,7 +21,7 @@ ParticleComponent::ParticleComponent(const ParticleComponent& other) : Component
 scene_(other.scene_),
 color_(other.color_)
 {
-	Initialize(other.owner_, other.device_, other.capacity_, other.shape_, other.material_);
+	Initialize(other.owner_.lock().get(), other.device_, other.capacity_, other.shape_, other.material_);
 }
 
 Component* ParticleComponent::GetCopy()
@@ -138,6 +138,9 @@ void ParticleComponent::Initialize(Object* owner, ID3D12Device* device, UINT par
 
 void ParticleComponent::Update(float elapsed_time)
 {
+	auto locked_owner = owner_.lock();
+	if (!locked_owner) return;
+
 	int particleIndex = 0;
 
 	auto base_scene = dynamic_cast<BaseScene*>(scene_);
@@ -180,7 +183,7 @@ void ParticleComponent::Update(float elapsed_time)
 				particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.6, 0.6f);
 				particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 				particle_data_[i].velocity_ = direction;
-				XMFLOAT3 pivot_position = owner_->world_position_vector();
+				XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 				XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 				XMStoreFloat3(&particles_[i].position_, rPosition);
 			}
@@ -188,8 +191,8 @@ void ParticleComponent::Update(float elapsed_time)
 			{
 				//if (!controller->is_firekey_down()) break;
 
-				position = owner_->world_position_vector();
-				XMFLOAT3 owner_forward = owner_->world_look_vector();
+				position = locked_owner->world_position_vector();
+				XMFLOAT3 owner_forward = locked_owner->world_look_vector();
 				XMVECTOR forward = XMLoadFloat3(&owner_forward); // 기준 방향
 				if (scene_)
 				{
@@ -211,20 +214,20 @@ void ParticleComponent::Update(float elapsed_time)
 				particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.01f, 0.1f);	// cone
 				particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 				particle_data_[i].velocity_ = direction;
-				XMFLOAT3 pivot_position = owner_->world_position_vector();
+				XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 				XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 				XMStoreFloat3(&particles_[i].position_, rPosition);
 			}
 			else if (shape_ == Circle)
 			{
-				position = owner_->world_position_vector();
+				position = locked_owner->world_position_vector();
 				XMVECTOR axis = XMVectorSet(0, 1, 0, 0); // 기준 방향
 				XMStoreFloat3(&position, RANDOM::CircleEdgePoint(axis, 0.5f, &direction));
 
 				particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.1f, 0.5f); // 기본
 				particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 				particle_data_[i].velocity_ = direction;
-				XMFLOAT3 pivot_position = owner_->world_position_vector();
+				XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 				XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 				XMStoreFloat3(&particles_[i].position_, rPosition);
 			}
@@ -232,8 +235,8 @@ void ParticleComponent::Update(float elapsed_time)
 			{
 				//if (!controller->is_firekey_down()) break;
 
-				position = owner_->world_position_vector();
-				XMFLOAT3 owner_forward = owner_->world_look_vector();
+				position = locked_owner->world_position_vector();
+				XMFLOAT3 owner_forward = locked_owner->world_look_vector();
 				XMVECTOR forward = XMLoadFloat3(&owner_forward); // 기준 방향
 				if (scene_)
 				{
@@ -255,26 +258,26 @@ void ParticleComponent::Update(float elapsed_time)
 				particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.1f, 0.5f);	// cone
 				particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 				particle_data_[i].velocity_ = direction;
-				XMFLOAT3 pivot_position = owner_->world_position_vector();
+				XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 				XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 				XMStoreFloat3(&particles_[i].position_, rPosition);
 			}
 			else if (shape_ == Rect)
 			{
-				position = owner_->world_position_vector();
+				position = locked_owner->world_position_vector();
 
 				particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.0, 0.0f);
 				particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 				particle_data_[i].velocity_ = direction;
 
-				XMFLOAT3 pivot_position = owner_->world_position_vector();
+				XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 				XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 				XMStoreFloat3(&particles_[i].position_, rPosition);
 			}
 			else if (shape_ == UpCone)
 			{
-				position = owner_->world_position_vector();
-				XMFLOAT3 owner_forward = owner_->world_up_vector();
+				position = locked_owner->world_position_vector();
+				XMFLOAT3 owner_forward = locked_owner->world_up_vector();
 				XMVECTOR forward = XMLoadFloat3(&owner_forward); 
 
 				constexpr float coneAngle = XMConvertToRadians(18.0f); 
@@ -286,7 +289,7 @@ void ParticleComponent::Update(float elapsed_time)
 				particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.01f, 0.8f);	// cone
 				particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 				particle_data_[i].velocity_ = direction;
-				XMFLOAT3 pivot_position = owner_->world_position_vector();
+				XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 				XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 				XMStoreFloat3(&particles_[i].position_, rPosition);
 			}
@@ -368,6 +371,9 @@ void ParticleComponent::set_color(const XMFLOAT4& color)
 
 void ParticleComponent::Play(int particle_count)
 {
+	auto locked_owner = owner_.lock();
+	if (!locked_owner) return;
+
 	for (int i = 0; i < capacity_; ++i)
 	{
 		if (particle_count == 0) return;
@@ -386,14 +392,14 @@ void ParticleComponent::Play(int particle_count)
 			particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.6, 0.6f);
 			particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 			particle_data_[i].velocity_ = direction;
-			XMFLOAT3 pivot_position = owner_->world_position_vector();
+			XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 			XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 			XMStoreFloat3(&particles_[i].position_, rPosition);
 		}
 		else if (shape_ == Cone)
 		{
-			position = owner_->world_position_vector();
-			XMFLOAT3 owner_forward = owner_->world_look_vector();
+			position = locked_owner->world_position_vector();
+			XMFLOAT3 owner_forward = locked_owner->world_look_vector();
 			XMVECTOR forward = XMLoadFloat3(&owner_forward); // 기준 방향
 			if (scene_)
 			{
@@ -415,27 +421,27 @@ void ParticleComponent::Play(int particle_count)
 			particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.01f, 0.1f);	// cone
 			particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 			particle_data_[i].velocity_ = direction;
-			XMFLOAT3 pivot_position = owner_->world_position_vector();
+			XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 			XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 			XMStoreFloat3(&particles_[i].position_, rPosition);
 		}
 		else if (shape_ == Circle)
 		{
-			position = owner_->world_position_vector();
+			position = locked_owner->world_position_vector();
 			XMVECTOR axis = XMVectorSet(0, 1, 0, 0); // 기준 방향
 			XMStoreFloat3(&position, RANDOM::CircleEdgePoint(axis, 0.5f, &direction));
 
 			particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.1f, 0.5f); // 기본
 			particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 			particle_data_[i].velocity_ = direction;
-			XMFLOAT3 pivot_position = owner_->world_position_vector();
+			XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 			XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 			XMStoreFloat3(&particles_[i].position_, rPosition);
 		}
 		else if (shape_ == BigCone)	// 총 발사 파티클
 		{
-			position = owner_->world_position_vector();
-			XMFLOAT3 owner_forward = owner_->world_look_vector();
+			position = locked_owner->world_position_vector();
+			XMFLOAT3 owner_forward = locked_owner->world_look_vector();
 			XMVECTOR forward = XMLoadFloat3(&owner_forward); // 기준 방향
 			if (scene_)
 			{
@@ -458,26 +464,26 @@ void ParticleComponent::Play(int particle_count)
 			particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.1f, 0.5f);	// cone
 			particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 			particle_data_[i].velocity_ = direction;
-			XMFLOAT3 pivot_position = owner_->world_position_vector();
+			XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 			XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 			XMStoreFloat3(&particles_[i].position_, rPosition);
 		}
 		else if (shape_ == Rect)
 		{
-			position = owner_->world_position_vector();
+			position = locked_owner->world_position_vector();
 
 			particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.0, 0.0f);
 			particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 			particle_data_[i].velocity_ = direction;
 
-			XMFLOAT3 pivot_position = owner_->world_position_vector();
+			XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 			XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 			XMStoreFloat3(&particles_[i].position_, rPosition);
 		}
 		else if (shape_ == UpCone)
 		{
-			position = owner_->world_position_vector();
-			XMFLOAT3 owner_forward = owner_->world_up_vector();
+			position = locked_owner->world_position_vector();
+			XMFLOAT3 owner_forward = locked_owner->world_up_vector();
 			XMVECTOR forward = XMLoadFloat3(&owner_forward); 
 
 			constexpr float coneAngle = XMConvertToRadians(18.0f);
@@ -490,7 +496,7 @@ void ParticleComponent::Play(int particle_count)
 			particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.01f, 0.8f);	// cone
 			particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 			particle_data_[i].velocity_ = direction;
-			XMFLOAT3 pivot_position = owner_->world_position_vector();
+			XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 			XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 			XMStoreFloat3(&particles_[i].position_, rPosition);
 		}

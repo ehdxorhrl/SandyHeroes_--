@@ -19,7 +19,7 @@ Component* ColliderComponent::GetCopy()
 
 void ColliderComponent::Update(float elapsed_time)
 {
-	bounding_box_->Transform(animated_bounding_box_, XMLoadFloat4x4(&owner_->world_matrix()));
+	if(auto locked_owner = owner_.lock()) bounding_box_->Transform(animated_bounding_box_, XMLoadFloat4x4(&locked_owner->world_matrix()));
 	XMStoreFloat4(&animated_bounding_box_.Orientation, XMQuaternionNormalize(XMLoadFloat4(&animated_bounding_box_.Orientation)));
 }
 

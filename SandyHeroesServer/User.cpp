@@ -479,12 +479,12 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 	}
 }
 
-void Session::set_player_object(Object* obj)
+void Session::set_player_object(std::shared_ptr<Object> obj)
 {
 	player_object_ = obj;
 }
 
-void Session::set_camera_object(Object* obj)
+void Session::set_camera_object(std::shared_ptr<Object> obj)
 {
 	camera_object_ = obj;
 }

@@ -15,14 +15,20 @@ Mesh::~Mesh()
 	}
 }
 
-void Mesh::AddMeshComponent(MeshComponent* mesh_component)
+void Mesh::AddMeshComponent(std::weak_ptr<MeshComponent> mesh_component)
 {
 	mesh_component_list_.push_back(mesh_component);
 }
 
-void Mesh::DeleteMeshComponent(MeshComponent* mesh_component)
+void Mesh::DeleteMeshComponent(std::weak_ptr<MeshComponent> mesh_component)
 {
-	mesh_component_list_.remove(mesh_component);
+		auto locked_comp = mesh_component.lock();
+	if(locked_comp)
+	{
+		mesh_component_list_.remove_if([&locked_comp](const std::weak_ptr<MeshComponent>& wp) {
+			return wp.lock() == locked_comp;
+		});
+	}
 }
 
 void Mesh::CreateShaderVariables(ID3D12Device* device, ID3D12GraphicsCommandList* command_list)

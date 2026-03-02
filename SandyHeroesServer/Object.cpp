@@ -35,7 +35,7 @@ Object::Object(const Object& other) :
 	child_ = nullptr;
 	sibling_ = nullptr;
 
-	//º¹»ç ´ë»ó ¿ÀºêÁ§Æ®ÀÇ ÄÄÆ÷³ÍÆ®µéÀ» °¡Á®¿À°í ÀÌ ¿ÀºêÁ§Æ®·Î owner¸¦ Àç¼³Á¤ÇÑ´Ù.
+	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ownerï¿½ï¿½ ï¿½ç¼³ï¿½ï¿½ï¿½Ñ´ï¿½.
 	for (const std::shared_ptr<Component>& component : other.component_list_)
 	{
 		component_list_.push_back(std::shared_ptr<Component>(component->GetCopy()));
@@ -291,6 +291,7 @@ void Object::AddSibling(std::shared_ptr<Object> object)
 void Object::AddComponent(std::shared_ptr<Component> component)
 {
 	component_list_.push_back(component);
+	component->InitAfterOwnerSet();
 }
 
 std::shared_ptr<Object> Object::GetHierarchyRoot()

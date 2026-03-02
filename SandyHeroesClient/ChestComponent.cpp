@@ -8,6 +8,7 @@
 #include "ScrollComponent.h"
 #include "Scene.h"
 #include "FMODSoundManager.h"
+#include "GameFramework.h"
 
 ChestComponent::ChestComponent(Object* owner, Scene* scene)
 	: CharacterComponent(owner), is_open_(false), scene_(scene)
@@ -23,8 +24,7 @@ void ChestComponent::Update(float elapsed_time)
 {
 }
 
-//상자는 플레이어와 충돌할 때 열리고 스크롤을 생성한다.
-void ChestComponent::HendleCollision(Object* other_object)
+void ChestComponent::HendleCollision(std::shared_ptr<Object> other_object)
 {
 	if (is_open_)
 	{
@@ -33,43 +33,41 @@ void ChestComponent::HendleCollision(Object* other_object)
 
 	is_open_ = true;
 	
-    if (!animator_)
+	auto locked_owner = owner_.lock();
+	if (!locked_owner) return;
+
+	auto locked_animator = animator_.lock();
+    if (!locked_animator)
     {
-		animator_ = Object::GetComponent<AnimatorComponent>(owner_);
-        if (!animator_)
+		locked_animator = Object::GetComponent<AnimatorComponent>(locked_owner);
+		animator_ = locked_animator;
+        if (!locked_animator)
         {
             OutputDebugString(L"ChestComponent: animator_ is nullptr!");
 			return;
         }
     }   
 
-	animator_->animation_state()->ChangeAnimationTrack(
-		(int)ChestAnimationTrack::kCloseToOpen, owner_, animator_);
+	locked_animator->animation_state()->ChangeAnimationTrack(
+		(int)ChestAnimationTrack::kCloseToOpen, locked_owner, locked_animator);
 
 	FMODSoundManager::Instance().PlaySound("chest", false, 0.3f);
 
-	// 파티클 루프 켜기
-	auto chest_particle = Object::GetComponent<ParticleComponent>(owner_);
+	auto chest_particle = Object::GetComponent<ParticleComponent>(locked_owner);
 	if (chest_particle)
 	{
 		chest_particle->set_loop(true);
 	}
 
-	// 스크롤 1개 생성
-	Object* scroll = scroll_model_->GetInstance();
-	//스크롤 회전값 및 위치 초기화(월드 -> 상자)
-	scroll->set_transform_matrix(owner_->transform_matrix() * scroll->transform_matrix());
+	std::shared_ptr<Object> scroll = scroll_model_->GetInstance();
+	scroll->set_transform_matrix(locked_owner->transform_matrix() * scroll->transform_matrix());
 	scroll->set_is_movable(true);
 	auto scroll_comp = Object::GetComponent<ScrollComponent>(scroll);
 	scroll_comp->set_is_active(true);
-	scroll_comp->set_direction(XMFLOAT3(0.0f, 0.0007f, 0.0f)); // 위로 이동
+	scroll_comp->set_direction(XMFLOAT3(0.0f, 0.0007f, 0.0f));
 
 	scroll_object_ = scroll;
 	scene_->AddObject(scroll);
-	//auto scroll_comp = Object::GetComponent<ScrollComponent>(scroll);
-	//scroll_comp->set_direction(XMFLOAT3(0.000f, 0.0007f, 0.f));
-	//scroll_comp->set_type(ScrollType::)
-	//scroll->AddComponent(scroll_comp);
 }
 
 void ChestComponent::OpenChest(uint8_t scroll_type, ModelInfo* scroll_model)
@@ -81,40 +79,41 @@ void ChestComponent::OpenChest(uint8_t scroll_type, ModelInfo* scroll_model)
 
 	is_open_ = true;
 
-	if (!animator_)
+	auto locked_owner = owner_.lock();
+	if (!locked_owner) return;
+
+	auto locked_animator = animator_.lock();
+	if (!locked_animator)
 	{
-		animator_ = Object::GetComponent<AnimatorComponent>(owner_);
-		if (!animator_)
+		locked_animator = Object::GetComponent<AnimatorComponent>(locked_owner);
+		animator_ = locked_animator;
+		if (!locked_animator)
 		{
 			OutputDebugString(L"ChestComponent: animator_ is nullptr!");
 			return;
 		}
 	}
 
-	animator_->animation_state()->ChangeAnimationTrack(
-		(int)ChestAnimationTrack::kCloseToOpen, owner_, animator_);
+	locked_animator->animation_state()->ChangeAnimationTrack(
+		(int)ChestAnimationTrack::kCloseToOpen, locked_owner, locked_animator);
 
 	FMODSoundManager::Instance().PlaySound("chest", false, 0.3f);
 
-	// 파티클 루프 켜기
-	auto chest_particle = Object::GetComponent<ParticleComponent>(owner_);
+	auto chest_particle = Object::GetComponent<ParticleComponent>(locked_owner);
 	if (chest_particle)
 	{
 		chest_particle->set_loop(true);
 	}
 
-	// 스크롤 1개 생성
 	set_scroll_model(scroll_model);
 
-	Object* scroll = scroll_model_->GetInstance();
-	//스크롤 회전값 및 위치 초기화(월드 -> 상자)
-	scroll->set_transform_matrix(owner_->transform_matrix() * scroll->transform_matrix());
+	std::shared_ptr<Object> scroll = scroll_model_->GetInstance();
+	scroll->set_transform_matrix(locked_owner->transform_matrix() * scroll->transform_matrix());
 	scroll->set_is_movable(true);
 	auto scroll_comp = Object::GetComponent<ScrollComponent>(scroll);
 	scroll_comp->set_is_active(true);
-	scroll_comp->set_direction(XMFLOAT3(0.0f, 0.0007f, 0.0f)); // 위로 이동
+	scroll_comp->set_direction(XMFLOAT3(0.0f, 0.0007f, 0.0f));
 	scroll_comp->set_type(static_cast<ScrollType>(scroll_type));
-
 
 	std::cout << "scroll_type: " << static_cast<int>(scroll_comp->type()) << '\n';
 
@@ -122,29 +121,26 @@ void ChestComponent::OpenChest(uint8_t scroll_type, ModelInfo* scroll_model)
 	scene_->AddObject(scroll);
 }
 
-
-
-
 ScrollType ChestComponent::TakeScroll()
 {
-	if (!scroll_object_)
+	auto scroll_obj = scroll_object_.lock();
+	if (!scroll_obj)
 	{
 		return ScrollType::None;
 	}
-	auto scroll_comp = Object::GetComponent<ScrollComponent>(scroll_object_);
+	auto scroll_comp = Object::GetComponent<ScrollComponent>(scroll_obj);
 	auto type = scroll_comp->type();
 
 	std::cout << "scroll_type: " << static_cast<int>(scroll_comp->type()) << std::endl;
 
-	scroll_object_->set_is_dead(true); // 스크롤 오브젝트 제거
-	scroll_object_ = nullptr;
+	GameFramework::Instance()->scene()->DeleteObject(scroll_obj);
+	scroll_object_.reset();
 
 	FMODSoundManager::Instance().PlaySound("scroll_pickup", true, 0.3f);
 
-	//animator_->animation_state()->ChangeAnimationTrack(
-	//	(int)ChestAnimationTrack::kOpenToClose, owner_, animator_);
-
-	auto chest_particle = Object::GetComponent<ParticleComponent>(owner_);
+	auto locked_owner = owner_.lock();
+	if(!locked_owner) return type;
+	auto chest_particle = Object::GetComponent<ParticleComponent>(locked_owner);
 	if (chest_particle)
 	{
 		chest_particle->set_loop(false);

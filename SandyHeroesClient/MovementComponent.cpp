@@ -60,7 +60,10 @@ void MovementComponent::Update(float elapsed_time)
             }
         }
     }
-    owner_->set_position_vector(owner_->position_vector() + (velocity_ * elapsed_time));
+    if (auto locked_owner = owner_.lock())
+    {
+        locked_owner->set_position_vector(locked_owner->position_vector() + (velocity_ * elapsed_time));  
+    }
 }
 
 void MovementComponent::EnableGravity()
@@ -104,7 +107,10 @@ void MovementComponent::MoveXZ(float x, float z, float speed)
 
 void MovementComponent::Jump(float speed, float max_height)
 {
-    jump_before_y_ = owner_->position_vector().y;
+    if (auto locked_owner = owner_.lock())    
+    {        
+        jump_before_y_ = locked_owner->position_vector().y; 
+    }
     velocity_.y = speed;
     jump_max_height_ = max_height;
 }

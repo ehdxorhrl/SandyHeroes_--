@@ -28,9 +28,8 @@ UiMeshComponent::UiMeshComponent(const UiMeshComponent& other)
 
 UiMeshComponent& UiMeshComponent::operator=(const UiMeshComponent& rhs)
 {
-	owner_ = nullptr;
 	mesh_ = rhs.mesh_;
-	mesh_->AddMeshComponent(this);
+	mesh_->AddMeshComponent(std::dynamic_pointer_cast<UiMeshComponent>(shared_from_this()));
 	return *this;
 }
 
@@ -52,13 +51,15 @@ void UiMeshComponent::UpdateConstantBuffer(FrameResource* current_frame_resource
 
 	if (!is_static_)
 	{
-		XMVECTOR world_pos = XMLoadFloat3(&owner_->world_position_vector());
+		auto locked_owner = owner_.lock();
+		if (!locked_owner) return;
+		XMVECTOR world_pos = XMLoadFloat3(&locked_owner->world_position_vector());
 		XMMATRIX view = XMLoadFloat4x4(&camera->view_matrix());
 		XMMATRIX proj = XMLoadFloat4x4(&camera->projection_matrix());
 
 		XMVECTOR clip_pos = XMVector3TransformCoord(world_pos, view * proj);
 
-		// Z < 0 ÀÎ °æ¿ì Ä«¸Þ¶ó µÚ¿¡ ÀÖÀ¸¹Ç·Î ·»´õ ¾È ÇÔ
+		// Z < 0 ï¿½ï¿½ ï¿½ï¿½ï¿½ Ä«ï¿½Þ¶ï¿½ ï¿½Ú¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½
 		if (clip_pos.m128_f32[2] < 0.0f || clip_pos.m128_f32[2] > 1.0f)
 		{
 			is_in_screen_ = false;

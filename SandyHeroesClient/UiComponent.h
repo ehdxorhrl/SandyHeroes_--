@@ -28,11 +28,11 @@ public:
 	virtual void Update(float elapsed_time) {}
 
 	void set_type(UiType type) { type_ = type; }
-	void set_view(Object* view) { view_ = view; }
+	void set_view(std::shared_ptr<Object> view) { view_ = view; }
 
 protected:
 	UiType type_{ UiType::kImage }; // UI 타입
-	Object* view_{ nullptr }; // ui가 특정 오브젝트를 주시하기 위한 포인터
+	std::weak_ptr<Object> view_{}; // ui가 특정 오브젝트를 주시하기 위한 포인터
 
 };
 
