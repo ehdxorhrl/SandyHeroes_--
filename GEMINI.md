@@ -33,3 +33,4 @@
 * \[2026-03-03] SpawnerComponent 클래스 리팩토링 완료 (Client/Server 공통, component_list_ shared_ptr 적용 및 ForceSpawn 내부 weak_ptr 대응)
 * \[2026-03-03] GunComponent 클래스 리팩토링 완료 (Client/Server 공통, fired_bullet_list_ weak_ptr 적용 및 FireBullet 내부 shared_ptr 대응)
 * \[2026-03-03] ChestComponent 클래스 리팩토링 완료 (Server 전용, scroll_object_ weak_ptr 적용 및 파라미터 shared_ptr 대응)
+* \[2026-03-03] CameraComponent 클래스 리팩토링 완료 (Client/Server 공통, owner_ weak_ptr 적용)

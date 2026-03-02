@@ -62,18 +62,24 @@ void CameraComponent::GetPickingRay(int screen_x, int screen_y, XMFLOAT3& ray_or
 	// 월드 공간에서 최종 레이 방향 계산
 	XMFLOAT3 ray_world;
 	XMStoreFloat3(&ray_world, XMVector3TransformCoord(ray_view, inv_view));
-	ray_origin = owner_->world_position_vector();
-	ray_direction = xmath_util_float3::Normalize(ray_world - ray_origin);
+	if (auto locked_owner = owner_.lock())
+	{
+		ray_origin = locked_owner->world_position_vector();
+		ray_direction = xmath_util_float3::Normalize(ray_world - ray_origin);
+	}
 }
 
 using namespace xmath_util_float3;
 void CameraComponent::UpdateCameraInfo()
 {
+	auto locked_owner = owner_.lock();
+	if (!locked_owner) return;
+
 	XMFLOAT3 world_up_vector{ 0,1,0 };
-	XMFLOAT3 look_vector = Normalize(owner_->world_look_vector());
-	XMFLOAT3 right_vector = Normalize(CrossProduct(world_up_vector, owner_->world_look_vector()));
+	XMFLOAT3 look_vector = Normalize(locked_owner->world_look_vector());
+	XMFLOAT3 right_vector = Normalize(CrossProduct(world_up_vector, locked_owner->world_look_vector()));
 	XMFLOAT3 up_vector = CrossProduct(look_vector, right_vector);
-	XMFLOAT3 position = owner_->world_position_vector();
+	XMFLOAT3 position = locked_owner->world_position_vector();
 	world_position_ = position;
 	up_vector_ = up_vector;
 
