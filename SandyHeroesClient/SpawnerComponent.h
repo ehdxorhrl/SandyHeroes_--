@@ -25,13 +25,13 @@ public:
 
 	void ActivateSpawn(); // 스폰 시작
 
-	void AddComponent(std::unique_ptr<Component> component);
+	void AddComponent(std::shared_ptr<Component> component);
 	void AddComponent(Component* component);
 
 	void ForceSpawn(); // 강제로 씬에 오브젝트를 스폰하는 함수 스폰 개수와 쿨타임을 무시하고 무조건 스폰한다.
 
 private:
-	std::list<std::unique_ptr<Component>> component_list_; // 스폰할 오브젝트의 컴포넌트 리스트
+	std::list<std::shared_ptr<Component>> component_list_; // 스폰할 오브젝트의 컴포넌트 리스트
 
 	ModelInfo* model_info_{ nullptr }; // 스폰할 모델 정보
 

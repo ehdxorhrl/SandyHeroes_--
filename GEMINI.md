@@ -30,3 +30,4 @@
 * \[2026-02-28] MonsterComponent 클래스 리팩토링 완료 (target_ 멤버 weak_ptr 적용 및 관련 Getter/Setter 수정)
 * \[2026-03-01] AIComponent 클래스 리팩토링 완료 (Object 파라미터 shared_ptr 적용, GetComponentInChildren 리턴 타입에 맞게 auto 적용 및 owner_ weak_ptr 대응)
 * \[2026-03-01] Animation 관련 클래스(AnimationState 하위 클래스 및 AnimatorComponent) 리팩토링 완료 (Object 파라미터 shared_ptr 적용, bone_frames_ 및 root_bone_frame_ weak_ptr 적용)
+* \[2026-03-03] SpawnerComponent 클래스 리팩토링 완료 (Client/Server 공통, component_list_ shared_ptr 적용 및 ForceSpawn 내부 weak_ptr 대응)

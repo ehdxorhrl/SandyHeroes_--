@@ -16,8 +16,7 @@ scene_(other.scene_), model_info_(other.model_info_)
 {
 	for (auto& component : other.component_list_)
 	{
-		component_list_.emplace_back();
-		component_list_.back().reset(component->GetCopy());
+		component_list_.emplace_back(component->GetCopy());
 	}
 }
 
@@ -27,8 +26,7 @@ scene_(other.scene_), model_info_(other.model_info_)
 {
 	for (auto& component : other.component_list_)
 	{
-		component_list_.emplace_back();
-		component_list_.back().reset(component->GetCopy());
+		component_list_.emplace_back(component->GetCopy());
 	}
 
 }
@@ -70,20 +68,19 @@ void SpawnerComponent::ActivateSpawn()
 	is_spawn_ = true;
 }
 
-void SpawnerComponent::AddComponent(std::unique_ptr<Component> component)
+void SpawnerComponent::AddComponent(std::shared_ptr<Component> component)
 {
-	component_list_.emplace_back(std::move(component));
+	component_list_.emplace_back(component);
 }
 
 void SpawnerComponent::AddComponent(Component* component)
 {
-	component_list_.emplace_back();
-	component_list_.back().reset(component);
+	component_list_.emplace_back(component);
 }
 
 void SpawnerComponent::ForceSpawn()
 {
-	Object* new_object{ nullptr };
+	std::shared_ptr<Object> new_object;
 
 	if (model_info_)
 	{
@@ -91,14 +88,15 @@ void SpawnerComponent::ForceSpawn()
 	}
 	else
 	{
-		new_object = new Object();
+		new_object = std::make_shared<Object>();
 	}
-	for (const std::unique_ptr<Component>& component : component_list_)
+	for (const std::shared_ptr<Component>& component : component_list_)
 	{
-		Component* new_component = component->GetCopy();
+		std::shared_ptr<Component> new_component(component->GetCopy());
 		new_object->AddComponent(new_component);
-		new_component->set_owner(new_object);
+		new_component->set_owner(new_object.get());
 	}
-	new_object->set_position_vector(owner_->world_position_vector());
+	if (auto locked_owner = owner_.lock())
+		new_object->set_position_vector(locked_owner->world_position_vector());
 	scene_->AddObject(new_object);
 }

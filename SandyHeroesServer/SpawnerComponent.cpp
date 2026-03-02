@@ -15,10 +15,9 @@ SpawnerComponent::SpawnerComponent(const SpawnerComponent& other) : Component(ot
 spawn_count_(other.spawn_count_), spawn_time_(other.spawn_time_), spawn_cool_time_(other.spawn_cool_time_),
 scene_(other.scene_), model_info_(other.model_info_), monster_type_(other.monster_type_)
 {
-	for (auto& component : other.component_list_)
+	for (const auto& component : other.component_list_)
 	{
-		component_list_.emplace_back();
-		component_list_.back().reset(component->GetCopy());
+		component_list_.emplace_back(component->GetCopy());
 	}
 }
 
@@ -59,45 +58,48 @@ void SpawnerComponent::ActivateSpawn()
 	is_spawn_ = true;
 }
 
-void SpawnerComponent::AddComponent(std::unique_ptr<Component> component)
+void SpawnerComponent::AddComponent(std::shared_ptr<Component> component)
 {
-	component_list_.emplace_back(std::move(component));
+	component_list_.emplace_back(component);
 }
 
 void SpawnerComponent::AddComponent(Component* component)
 {
-	component_list_.emplace_back();
-	component_list_.back().reset(component);
+	component_list_.emplace_back(component);
 }
 
 void SpawnerComponent::ForceSpawn()
 {
-	Object* new_object{ nullptr };
+	std::shared_ptr<Object> new_object;
 	if (model_info_)
 	{
 		new_object = model_info_->GetInstance();
 	}
 	else
 	{
-		new_object = new Object();
+		new_object = std::make_shared<Object>();
 	}
 
-	for (const std::unique_ptr<Component>& component : component_list_)
+	for (const std::shared_ptr<Component>& component : component_list_)
 	{
-		Component* new_component = component->GetCopy();
+		std::shared_ptr<Component> new_component(component->GetCopy());
 		new_object->AddComponent(new_component);
-		new_component->set_owner(new_object);
-		if (auto* monster = dynamic_cast<MonsterComponent*>(new_component)) {
-			new_object->set_position_vector(owner_->world_position_vector());
+		new_component->set_owner(new_object.get());
+		if (auto monster = dynamic_cast<MonsterComponent*>(new_component.get()))
+		{
+			if (auto locked_owner = owner_.lock()) 
+			{
+				new_object->set_position_vector(locked_owner->world_position_vector());
+			}
 			monster->owner()->set_monster_type(monster_type_);
 			monster->InitAfterOwnerSet();
 
 			//monster->set_scene(scene_);
-			std::cout << "ÇöÀç ¸ó½ºÅÍ Å¸ÀÔ: " << new_object->tag() << std::endl;
+			std::cout << "í˜„ìž¬ ëª¬ìŠ¤í„° íƒ€ìž…: " << new_object->tag() << std::endl;
 		}
 	}
-	
-	
+
+
 	scene_->AddObject(new_object);
 
 	new_object->UpdateWorldMatrix(nullptr);
