@@ -23,23 +23,21 @@ void ChestComponent::Update(float elapsed_time)
 {
 }
 
-//»óÀÚ´Â ÇÃ·¹ÀÌ¾î¿Í Ãæµ¹ÇÒ ¶§ ¿­¸®°í ½ºÅ©·ÑÀ» »ý¼ºÇÑ´Ù.
-void ChestComponent::HendleCollision(Object* other_object, int chest_num)
+void ChestComponent::HendleCollision(std::shared_ptr<Object> other_object, int chest_num)
 {
 	if (is_open_) return;
 	is_open_ = true;
 
-	// ½ºÅ©·Ñ 1°³ »ý¼º
-	Object* scroll = scroll_model_->GetInstance();
+	std::shared_ptr<Object> scroll = scroll_model_->GetInstance();
 
-	//½ºÅ©·Ñ È¸Àü°ª ¹× À§Ä¡ ÃÊ±âÈ­(¿ùµå -> »óÀÚ)
-	scroll->set_transform_matrix(owner_->transform_matrix() * scroll->transform_matrix());
+	auto locked_owner = owner_.lock();
+	if(locked_owner) scroll->set_transform_matrix(locked_owner->transform_matrix() * scroll->transform_matrix());
 	scroll->set_is_movable(true);
 
-	if (auto* scroll_comp = Object::GetComponent<ScrollComponent>(scroll)) {
-		if (auto* proto_comp =
-			Object::GetComponent<ScrollComponent>(scroll_model_->hierarchy_root())) {
-			scroll_comp->set_type(proto_comp->type()); // ¡ç ¿©±â Ãß°¡
+	if (auto scroll_comp = Object::GetComponent<ScrollComponent>(scroll)) {
+		if (auto proto_comp = Object::GetComponent<ScrollComponent>(scroll_model_->hierarchy_root())) 
+		{
+			scroll_comp->set_type(proto_comp->type());
 		}
 		scroll_comp->set_is_active(true);
 		scroll_comp->set_direction(XMFLOAT3(0.0f, 0.0007f, 0.0f));
@@ -48,7 +46,6 @@ void ChestComponent::HendleCollision(Object* other_object, int chest_num)
 	scroll_object_ = scroll;
 	scene_->AddObject(scroll);
 
-	// ÇÃ·¹ÀÌ¾î¿¡°Ô ½ºÅ©·Ñ Àü¼Û
 	sc_packet_scroll_info si;
 	si.type = S2C_P_SCROLL_INFO;
 	si.size = sizeof(sc_packet_scroll_info);
@@ -67,20 +64,16 @@ void ChestComponent::HendleCollision(Object* other_object, int chest_num)
 
 ScrollType ChestComponent::TakeScroll(int chest_num)
 {
-	if (!scroll_object_)
+	auto scroll_obj = scroll_object_.lock();
+	if (!scroll_obj)
 	{
 		return ScrollType::None;
 	}
-	auto scroll_comp = Object::GetComponent<ScrollComponent>(scroll_object_);
+	auto scroll_comp = Object::GetComponent<ScrollComponent>(scroll_obj);
 	auto type = scroll_comp->type();
-	std::cout << "½ºÅ©·ÑÅ¸ÀÔ: " << static_cast<int>(type) << std::endl;
-	scroll_object_->set_is_dead(true); // ½ºÅ©·Ñ ¿ÀºêÁ§Æ® Á¦°Å
-	scroll_object_ = nullptr;
-
-	//FMODSoundManager::Instance().PlaySound("scroll_pickup", true, 0.3f);
-
-	//animator_->animation_state()->ChangeAnimationTrack(
-	//	(int)ChestAnimationTrack::kOpenToClose, owner_, animator_);
+	std::cout << "ìŠ¤í¬ë¡¤íƒ€ìž…: " << static_cast<int>(type) << std::endl;
+	scene_->DeleteObject(scroll_obj); 
+	scroll_object_.reset();
 
 	sc_packet_take_scroll tc;
 	tc.type = S2C_P_TAKE_SCROLL;
