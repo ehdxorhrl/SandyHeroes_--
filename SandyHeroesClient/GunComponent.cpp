@@ -10,6 +10,7 @@
 #include "ParticleComponent.h"
 #include "FMODSoundManager.h"
 #include "SoundComponent.h"
+#include "GameFramework.h"
 
 std::unordered_map<std::string, GunInfo> GunComponent::kGunInfos{};
 const std::array<XMFLOAT4, kElementCount> GunComponent::kElementColors{
@@ -22,7 +23,7 @@ GunComponent::GunComponent(Object* owner) : Component(owner)
 {
 }
 
-GunComponent::GunComponent(const GunComponent& other) : Component(other.owner_), 
+GunComponent::GunComponent(const GunComponent& other) : Component(other), 
     gun_name_(other.gun_name_), 
     damage_(other.damage_), 
     critical_damage_rate_(other.critical_damage_rate_),
@@ -57,12 +58,26 @@ void GunComponent::Update(float elapsed_time)
         is_reload_ = false;
     }
 
-    for (const auto& bullet : fired_bullet_list_)
+    for (auto it = fired_bullet_list_.begin(); it != fired_bullet_list_.end(); )
     {
-        auto bullet_position = bullet->world_position_vector();
-        if (xmath_util_float3::Length(bullet_position - owner_->world_position_vector()) > 100.f)
+        if (auto bullet = it->lock())
         {
-            bullet->set_is_dead(true);
+            auto locked_owner = owner_.lock();
+            if (locked_owner)
+            {
+                auto bullet_position = bullet->world_position_vector();
+                if (xmath_util_float3::Length(bullet_position - locked_owner->world_position_vector()) > 100.f)
+                {
+                    GameFramework::Instance()->scene()->DeleteObject(bullet);
+                    it = fired_bullet_list_.erase(it);
+                    continue;
+                }
+            }
+            ++it;
+        }
+        else
+        {
+            it = fired_bullet_list_.erase(it);
         }
     }
 }
@@ -78,14 +93,16 @@ void GunComponent::ReloadBullets()
     }
 }
 
-bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* scene)
+bool GunComponent::FireBullet(XMFLOAT3 direction, std::shared_ptr<Object> bullet_model, Scene* scene)
 {
     const float rps = rpm_ / 60.f;
     if (rps * cooling_time_ >= 1.f)
     {
         cooling_time_ = 0.f;
 
-        auto root = owner_->GetHierarchyRoot();
+        auto locked_root_owner = owner_.lock();
+        if(!locked_root_owner) return false;
+        auto root = locked_root_owner->GetHierarchyRoot();
         auto particle = Object::GetComponentInChildren<ParticleComponent>(root);
         if (particle)
         {
@@ -102,7 +119,10 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* s
             FMODSoundManager::Instance().PlaySound("gun_fire", false, 0.3f);
         }
 
-        Object* bullet = bullet_model;
+        auto locked_owner = owner_.lock();
+        if (!locked_owner) return false;
+
+        std::shared_ptr<Object> bullet = bullet_model;
         bullet->set_is_movable(true);
         XMFLOAT3 bullet_look = xmath_util_float3::Normalize(bullet->look_vector());
         XMFLOAT3 rotate_axis = xmath_util_float3::CrossProduct(bullet_look, direction);
@@ -113,17 +133,19 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* s
         XMStoreFloat4x4(&transform_matrix, rotation_matrix * XMLoadFloat4x4(&transform_matrix));
         bullet->set_transform_matrix(transform_matrix);
 
-        MovementComponent* movement = new MovementComponent(bullet);
+        auto movement = std::make_shared<MovementComponent>(bullet.get());
         bullet->AddComponent(movement);
-        bullet->set_position_vector(owner_->world_position_vector());
+        bullet->set_position_vector(locked_owner->world_position_vector());
         movement->DisableFriction();
         movement->set_gravity_acceleration(1.f);
         movement->set_max_speed_xz(bullet_speed_);
         movement->Move(direction, bullet_speed_);
         bullet->Scale(3.f);
         scene->AddObject(bullet);
-        std::function<void(Object*)> on_destroy_func = [this](Object* bullet) {
-            fired_bullet_list_.remove(bullet);
+        std::function<void(Object*)> on_destroy_func = [this](Object* bullet_ptr) {
+            fired_bullet_list_.remove_if([bullet_ptr](const std::weak_ptr<Object>& wp) {
+                return wp.lock().get() == bullet_ptr;
+            });
         };
         bullet->OnDestroy(on_destroy_func);
         fired_bullet_list_.push_back(bullet);
@@ -181,7 +203,7 @@ BulletType GunComponent::bullet_type() const
     return bullet_type_;
 }
 
-std::list<Object*> GunComponent::fired_bullet_list() const
+std::list<std::weak_ptr<Object>> GunComponent::fired_bullet_list() const
 {
     return fired_bullet_list_;
 }

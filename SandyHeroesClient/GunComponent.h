@@ -38,7 +38,7 @@ public:
 
     void ReloadBullets();
 
-    bool FireBullet(XMFLOAT3 direction, Object* bullet_mesh, Scene* scene);
+    bool FireBullet(XMFLOAT3 direction, std::shared_ptr<Object> bullet_mesh, Scene* scene);
 
     void LoadGunInfo(const std::string& gun_name);
 
@@ -51,7 +51,7 @@ public:
     //getter
     GunFireType fire_type() const;
     BulletType bullet_type() const;
-    std::list<Object*> fired_bullet_list() const;
+    std::list<std::weak_ptr<Object>> fired_bullet_list() const;
 	int damage() const;
 	float critical_damage_rate() const;
 	int loaded_bullets() const;
@@ -67,7 +67,7 @@ private:
     static std::unordered_map<std::string, GunInfo> kGunInfos;
     static const std::array<XMFLOAT4, kElementCount> kElementColors;
 
-    std::list<Object*> fired_bullet_list_;
+    std::list<std::weak_ptr<Object>> fired_bullet_list_;
     int loaded_bullets_{};      //남은 총알 수
     float loading_time_{ 0.f }; //장전 중 시간
     bool is_reload_ = false;    //장전 중?
