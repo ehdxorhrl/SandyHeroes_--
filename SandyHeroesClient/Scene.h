@@ -84,7 +84,7 @@ public:
 	std::shared_ptr<CameraComponent> main_camera() const;
 	XMFLOAT2 screen_size() const;
 	bool is_play_cutscene() const;
-	Object* player() const;
+	std::shared_ptr<Object> player() const;
 	std::list<std::weak_ptr<WallColliderComponent>> stage_wall_collider_list(int index) const { return stage_wall_collider_list_[index]; }
 
 	//setter

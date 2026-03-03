@@ -194,9 +194,9 @@ bool Scene::is_play_cutscene() const
 	return is_play_cutscene_;
 }
 
-Object* Scene::player() const
+std::shared_ptr<Object> Scene::player() const
 {
-	return player_.lock().get();
+	return player_.lock();
 }
 
 void Scene::set_main_camera(std::shared_ptr<CameraComponent> value)

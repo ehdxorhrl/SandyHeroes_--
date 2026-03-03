@@ -897,16 +897,17 @@ void GameFramework::send_mouse_click_packet()
     BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
     if (!base_scene) return;
 
-    Object* player = base_scene->player(); // BaseScene에 player_ 멤버가 존재함
+    auto player = base_scene->player();
     if (!player) return;
+    auto player_ptr = player->shared_from_this();
 
-    FPSControllerComponent* controller = Object::GetComponent<FPSControllerComponent>(player);
+    auto controller = Object::GetComponent<FPSControllerComponent>(player_ptr);
     if (!controller) return;
 
-    Object* camera = controller->camera_object();
+    auto camera = controller->camera_object();
     if (!camera) return;
 
-    GunComponent* gun = Object::GetComponentInChildren<GunComponent>(scene_->player());
+    auto gun = Object::GetComponentInChildren<GunComponent>(player_ptr);
     if (!gun) return;
 
     // 1. 스크린 중앙 픽셀 좌표
@@ -945,16 +946,17 @@ void GameFramework::send_mouse_unclick_packet()
     BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
     if (!base_scene) return;
 
-    Object* player = base_scene->player(); // BaseScene에 player_ 멤버가 존재함
+    auto player = base_scene->player();
     if (!player) return;
+    auto player_ptr = player->shared_from_this();
 
-    FPSControllerComponent* controller = Object::GetComponent<FPSControllerComponent>(player);
+    auto controller = Object::GetComponent<FPSControllerComponent>(player_ptr);
     if (!controller) return;
 
-    Object* camera = controller->camera_object();
+    auto camera = controller->camera_object();
     if (!camera) return;
 
-    GunComponent* gun = Object::GetComponentInChildren<GunComponent>(scene_->player());
+    auto gun = Object::GetComponentInChildren<GunComponent>(player_ptr);
     if (gun && gun->gun_name() == "flamethrower")
     {
         FMODSoundManager::Instance().StopSound("flamethrower");
@@ -974,16 +976,17 @@ void GameFramework::send_mouse_move_packet(int x1, int x2)
     BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
     if (!base_scene) return;
 
-    Object* player = base_scene->player(); // BaseScene에 player_ 멤버가 존재함
+    auto player = base_scene->player();
     if (!player) return;
+    auto player_ptr = player->shared_from_this();
 
-    FPSControllerComponent* controller = Object::GetComponent<FPSControllerComponent>(player);
+    auto controller = Object::GetComponent<FPSControllerComponent>(player_ptr);
     if (!controller) return;
 
-    Object* camera = controller->camera_object();
+    auto camera = controller->camera_object();
     if (!camera) return;
 
-    GunComponent* gun = Object::GetComponentInChildren<GunComponent>(scene_->player());
+    auto gun = Object::GetComponentInChildren<GunComponent>(player_ptr);
     if (!gun) return;
 
 
@@ -1034,7 +1037,7 @@ void GameFramework::ProcessPacket(char* p)
     {
         sc_packet_user_info* packet = reinterpret_cast<sc_packet_user_info*>(p);
 
-        Object* player = base_scene->player(); // BaseScene에 player_ 멤버가 존재함
+        auto player = base_scene->player(); // BaseScene에 player_ 멤버가 존재함
         if (player)
         {
             player->set_position_vector(packet->position[0], packet->position[1], packet->position[2]);
@@ -1046,13 +1049,13 @@ void GameFramework::ProcessPacket(char* p)
     case S2C_P_MOVE:
     {
         sc_packet_move* packet = reinterpret_cast<sc_packet_move*>(p);
-        Object* player = base_scene->FindObject(packet->id);
+        auto player = base_scene->FindObject(packet->id);
         if (player && player->id() == packet->id)
         {
             XMFLOAT4X4 xf;
             memcpy(&xf, packet->matrix, sizeof(float) * 16);
             player->set_transform_matrix(xf);
-            PlayerComponent* player_component = Object::GetComponentInChildren<PlayerComponent>(player);
+            auto player_component = Object::GetComponentInChildren<PlayerComponent>(player);
             if (player_component)
             {
                 player_component->set_main_skill_gage(packet->main_skill_gage);
@@ -1080,10 +1083,10 @@ void GameFramework::ProcessPacket(char* p)
     {
         sc_packet_create_bullet* packet = reinterpret_cast<sc_packet_create_bullet*>(p);
 
-        Object* player = base_scene->FindObject(packet->id);
+        auto player = base_scene->FindObject(packet->id);
         if (!player) break;
 
-        GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player);
+        auto gun = Object::GetComponentInChildren<GunComponent>(player);
         if (!gun) break;
 
         XMFLOAT3 bullet_dir{};
@@ -1106,10 +1109,10 @@ void GameFramework::ProcessPacket(char* p)
     {
         sc_packet_loaded_bullet* packet = reinterpret_cast<sc_packet_loaded_bullet*>(p);
 
-        Object* player = base_scene->FindObject(packet->id);
+        auto player = base_scene->FindObject(packet->id);
         if (!player) break;
 
-        GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player);
+        auto gun = Object::GetComponentInChildren<GunComponent>(player);
         if (!gun) break;
 
         gun->set_loaded_bullets(packet->loaded_bullets);
@@ -1118,10 +1121,10 @@ void GameFramework::ProcessPacket(char* p)
     case S2C_P_PLAY_RELOAD_SOUND:
     {
         sc_packet_play_reload_sound* packet = reinterpret_cast<sc_packet_play_reload_sound*>(p);
-        Object* player = base_scene->player();
+        auto player = base_scene->player();
         if (!player) break;
 
-        GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player);
+        auto gun = Object::GetComponentInChildren<GunComponent>(player);
         if (!gun) break;
 
         if (!(gun->bullet_type() == BulletType::kSpecial))
@@ -1150,9 +1153,9 @@ void GameFramework::ProcessPacket(char* p)
     {
         sc_packet_monster_damaged* packet = reinterpret_cast<sc_packet_monster_damaged*>(p);
         BaseScene* base_scene = dynamic_cast<BaseScene*>(scene_.get());
-        Object* monster = base_scene->FindObject(packet->id);
+        auto monster = base_scene->FindObject(packet->id);
         if (!monster) break;
-        MonsterComponent* monster_component = Object::GetComponentInChildren<MonsterComponent>(monster);
+        auto monster_component = Object::GetComponentInChildren<MonsterComponent>(monster);
         if (!monster_component)break;
 
         monster_component->set_hp(packet->hp);
@@ -1178,9 +1181,9 @@ void GameFramework::ProcessPacket(char* p)
     case S2C_P_MONSTER_MOVE:
     {
         sc_packet_monster_move* packet = reinterpret_cast<sc_packet_monster_move*>(p);
-        Object* monster = base_scene->FindObject(packet->id);
+        auto monster = base_scene->FindObject(packet->id);
         if (!monster) break;
-        MonsterComponent* monster_component = Object::GetComponentInChildren<MonsterComponent>(monster);
+        auto monster_component = Object::GetComponentInChildren<MonsterComponent>(monster);
         if (!monster_component) break;
         XMFLOAT4X4 xf;
         memcpy(&xf, packet->matrix, sizeof(float) * 16);
@@ -1226,10 +1229,10 @@ void GameFramework::ProcessPacket(char* p)
     case S2C_P_PLAY_MAINSKILL:
     {
         auto packet = reinterpret_cast<sc_packet_play_mainskill*>(p);
-        Object* player = base_scene->FindObject(packet->id);
+        auto player = base_scene->FindObject(packet->id);
         if (player && player->id() == packet->id)
         {
-            PlayerComponent* player_component = Object::GetComponentInChildren<PlayerComponent>(player);
+            auto player_component = Object::GetComponentInChildren<PlayerComponent>(player);
             if (player_component)
                 player_component->ActivateMainSkill();
         }
@@ -1238,7 +1241,7 @@ void GameFramework::ProcessPacket(char* p)
     case S2C_P_PLAYER_CHANGE_ANIMATION:
     {
         auto packet = reinterpret_cast<sc_packet_player_change_animation*>(p);
-        Object* player = base_scene->FindObject(packet->id);
+        auto player = base_scene->FindObject(packet->id);
         if (!player) break;
         auto animator = Object::GetComponent<AnimatorComponent>(player);
         auto animation_state = animator->animation_state();
@@ -1255,7 +1258,7 @@ void GameFramework::ProcessPacket(char* p)
     case S2C_P_MONSTER_CHANGE_ANIMATION:
     {
         auto packet = reinterpret_cast<sc_packet_monster_change_animation*>(p);
-        Object* monster = base_scene->FindObject(packet->id);
+        auto monster = base_scene->FindObject(packet->id);
         if (!monster) break;
         auto animator = Object::GetComponent<AnimatorComponent>(monster);
         auto animation_state = animator->animation_state();
@@ -1267,10 +1270,10 @@ void GameFramework::ProcessPacket(char* p)
     case S2C_P_PLAYER_DAMAGED:
     {
         auto packet = reinterpret_cast<sc_packet_player_damaged*>(p);
-        Object* player = base_scene->FindObject(packet->id);
+        auto player = base_scene->FindObject(packet->id);
         if (player)
         {
-            PlayerComponent* player_component = Object::GetComponentInChildren<PlayerComponent>(player);
+            auto player_component = Object::GetComponentInChildren<PlayerComponent>(player);
             if (player_component) {
                 player_component->set_hp(packet->hp);
                 player_component->set_shield(packet->shield);
@@ -1281,7 +1284,7 @@ void GameFramework::ProcessPacket(char* p)
     case S2C_P_SHOTDRAGON_ATTACK:
     {
         auto packet = reinterpret_cast<sc_packet_shotdragon_attack*>(p);
-        Object* monster = base_scene->FindObject(packet->id);
+        auto monster = base_scene->FindObject(packet->id);
         if(monster)
         {
             XMFLOAT3 direction = XMFLOAT3(packet->dx, packet->dy, packet->dz);
@@ -1299,7 +1302,7 @@ void GameFramework::ProcessPacket(char* p)
             thorn_projectile->set_transform_matrix(transform_matrix);
             thorn_projectile->set_position_vector(packet->position);
 
-            MovementComponent* movement = new MovementComponent(thorn_projectile);
+            auto movement = std::make_shared<MovementComponent>(thorn_projectile.get());
             thorn_projectile->AddComponent(movement);
             movement->DisableFriction();
             movement->set_gravity_acceleration(0.f);

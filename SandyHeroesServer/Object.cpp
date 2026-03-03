@@ -291,7 +291,6 @@ void Object::AddSibling(std::shared_ptr<Object> object)
 void Object::AddComponent(std::shared_ptr<Component> component)
 {
 	component_list_.push_back(component);
-	component->InitAfterOwnerSet();
 }
 
 std::shared_ptr<Object> Object::GetHierarchyRoot()

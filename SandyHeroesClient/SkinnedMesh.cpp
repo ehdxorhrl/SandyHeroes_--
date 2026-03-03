@@ -63,15 +63,21 @@ void SkinnedMesh::ReleaseUploadBuffer()
 void SkinnedMesh::UpdateConstantBuffer(FrameResource* curr_frame_resource, int& cb_index)
 {
 	//메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
-	for (MeshComponent* mesh_component : mesh_component_list_)
+	for (auto it = mesh_component_list_.begin(); it != mesh_component_list_.end();)
 	{
+		auto mesh_component = it->lock();
+		if (!mesh_component)
+		{
+			it = mesh_component_list_.erase(it);
+			continue;
+		}
 		// 그릴 필요 없는 대상에 대해서는 업데이트를 할 필요 없음
 		if (!mesh_component->IsVisible())
 			continue;
 
 		//스킨메쉬의 컴포넌트가 bone frame과 연결되었는지 체크 및 연결
-		SkinnedMeshComponent* skinned_mesh_component =
-			static_cast<SkinnedMeshComponent*>(mesh_component);
+		const auto& skinned_mesh_component =
+			std::static_pointer_cast<SkinnedMeshComponent>(mesh_component);
 		skinned_mesh_component->AttachBoneFrames(bone_names_);
 
 		mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
@@ -83,12 +89,18 @@ void SkinnedMesh::UpdateConstantBuffer(FrameResource* curr_frame_resource, int& 
 void SkinnedMesh::UpdateConstantBufferForShadow(FrameResource* curr_frame_resource, int& cb_index)
 {
 	//메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
-	for (MeshComponent* mesh_component : mesh_component_list_)
+	for (auto it = mesh_component_list_.begin(); it != mesh_component_list_.end();)
 	{
+		auto mesh_component = it->lock();
+		if (!mesh_component)
+		{
+			it = mesh_component_list_.erase(it);
+			continue;
+		}
 
 		//스킨메쉬의 컴포넌트가 bone frame과 연결되었는지 체크 및 연결
-		SkinnedMeshComponent* skinned_mesh_component =
-			static_cast<SkinnedMeshComponent*>(mesh_component);
+		const auto& skinned_mesh_component =
+			std::static_pointer_cast<SkinnedMeshComponent>(mesh_component);
 		skinned_mesh_component->AttachBoneFrames(bone_names_);
 
 		mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);

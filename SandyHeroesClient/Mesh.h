@@ -39,7 +39,7 @@ public:
 	//getter
 	std::string name() const;
 
-	const std::list<MeshComponent*>& mesh_component_list() const;
+	const std::list<std::weak_ptr<MeshComponent>>& mesh_component_list() const;
 	BoundingBox bounds() const;
 	const std::vector<XMFLOAT3>& positions() const;
 	const std::vector<std::vector<UINT>>& indices_array() const;

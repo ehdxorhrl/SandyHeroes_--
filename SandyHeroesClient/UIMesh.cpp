@@ -87,9 +87,16 @@ XMFLOAT2 UIMesh::ui_size() const
 void UIMesh::UpdateConstantBuffer(FrameResource* curr_frame_resource, int& cb_index)
 {
     //메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
-    for (MeshComponent* mesh_component : mesh_component_list_)
+    for (auto it = mesh_component_list_.begin(); it != mesh_component_list_.end();)
     {
-    	// 그릴 필요 없는 대상에 대해서는 업데이트를 할 필요 없음
+        auto mesh_component = it->lock();
+        if (!mesh_component)
+        {
+            it = mesh_component_list_.erase(it);
+            continue;
+        }
+
+        // 그릴 필요 없는 대상에 대해서는 업데이트를 할 필요 없음
     	if (!mesh_component->IsVisible())
     		continue;
     
@@ -102,8 +109,15 @@ void UIMesh::UpdateConstantBuffer(FrameResource* curr_frame_resource, int& cb_in
 void UIMesh::UpdateConstantBufferForShadow(FrameResource* curr_frame_resource, int& cb_index)
 {    
     //메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
-    for (MeshComponent* mesh_component : mesh_component_list_)
+    for (auto it = mesh_component_list_.begin(); it != mesh_component_list_.end();)
     {
+        auto mesh_component = it->lock();
+        if (!mesh_component)
+        {
+            it = mesh_component_list_.erase(it);
+            continue;
+        }
+
         mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
 
         ++cb_index;

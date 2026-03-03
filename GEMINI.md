@@ -41,3 +41,4 @@
 * \[2026-03-03] CharacterComponent 클래스 리팩토링 완료 (Client 전용, animator_, movement_ weak_ptr 적용 및 파생 클래스 lock() 적용)
 * \[2026-03-03] MeshComponent 클래스 리팩토링 완료 (Client 전용, InitAfterOwnerSet 도입으로 shared_from_this() 안전 호출 보장 및 Mesh/Material weak_ptr 대응)
 * \[2026-03-03] CameraComponent 클래스 리팩토링 완료 (Client/Server 공통, owner_ weak_ptr 적용)
+* \[2026-03-04] GameFramework 클래스 리팩토링 완료 (Client/Server 공통, FindObject 및 player_ 반환 타입 변경에 따른 shared_ptr 대응)

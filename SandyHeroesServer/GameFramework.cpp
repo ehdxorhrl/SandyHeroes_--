@@ -163,7 +163,7 @@ void GameFramework::worker()
 
             auto obj = GameFramework::Instance()->GetScene()->CreatePlayerObject(new_id);
             session->set_player_object(obj);
-            obj->AddComponent(new MovementComponent(obj));
+            obj->AddComponent(std::make_shared<MovementComponent>(obj.get()));
 
             session->do_recv();
 

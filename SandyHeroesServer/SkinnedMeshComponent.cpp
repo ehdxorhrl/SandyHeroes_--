@@ -14,7 +14,6 @@ SkinnedMeshComponent::SkinnedMeshComponent(const SkinnedMeshComponent& other) : 
 
 SkinnedMeshComponent& SkinnedMeshComponent::operator=(const SkinnedMeshComponent& rhs)
 {
-	owner_ = nullptr;
 	mesh_ = rhs.mesh_;
 	mesh_->AddMeshComponent(this);
 	return *this;

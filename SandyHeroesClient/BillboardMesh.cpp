@@ -18,11 +18,14 @@ void BillboardMesh::UpdateConstantBuffer(FrameResource* curr_frame_resource, int
 		OutputDebugString(L"BillboardMeshComponent::UpdateConstantBuffer: Camera object is null.\n");
 	}
 
-	for (MeshComponent* comp : mesh_component_list_)
+	for (const auto& comp : mesh_component_list_)
 	{
-		if (!comp->IsVisible())
+		auto lock_comp = comp.lock();
+		if(!lock_comp)
 			continue;
-		const auto& object = comp->owner();
+		if (!lock_comp->IsVisible())
+			continue;
+		const auto& object = lock_comp->owner();
 
 		XMVECTOR pos = XMLoadFloat3(&object->world_position_vector());
 		XMVECTOR camPos = XMLoadFloat3(&camera_object->world_position_vector());
@@ -80,9 +83,12 @@ void BillboardMesh::UpdateConstantBufferForShadow(FrameResource* curr_frame_reso
 		OutputDebugString(L"BillboardMeshComponent::UpdateConstantBuffer: Camera object is null.\n");
 	}
 
-	for (MeshComponent* comp : mesh_component_list_)
+	for (const auto& comp : mesh_component_list_)
 	{
-		const auto& object = comp->owner();
+		auto lock_comp = comp.lock();
+		if(!lock_comp)
+			continue;
+		const auto& object = lock_comp->owner();
 
 		XMVECTOR pos = XMLoadFloat3(&object->world_position_vector());
 		XMVECTOR camPos = XMLoadFloat3(&camera_object->world_position_vector());

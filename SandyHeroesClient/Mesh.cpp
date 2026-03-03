@@ -9,10 +9,6 @@
 
 Mesh::~Mesh()
 {
-	for (auto& mesh_component : mesh_component_list_)
-	{
-		mesh_component->set_mesh(nullptr);
-	}
 }
 
 void Mesh::AddMeshComponent(std::weak_ptr<MeshComponent> mesh_component)
@@ -182,8 +178,16 @@ void Mesh::UpdateConstantBuffer(FrameResource* curr_frame_resource, int& cb_inde
 	instance_count_ = 0;
 	instance_buffer_offset_ = curr_frame_resource->current_instance_offset;
 
-	for (MeshComponent* comp : mesh_component_list_)
+	for (auto it = mesh_component_list_.begin(); it != mesh_component_list_.end();)
 	{
+		auto comp = it->lock();
+		if (!comp)
+		{
+			it = mesh_component_list_.erase(it);
+			continue;
+		}
+		++it;
+
 		if (!comp->IsVisible())
 			continue;
 		const auto& object = comp->owner();
@@ -216,8 +220,15 @@ void Mesh::UpdateConstantBufferForShadow(FrameResource* curr_frame_resource, int
 	instance_count_ = 0;
 	instance_buffer_offset_ = curr_frame_resource->current_instance_offset;
 
-	for (MeshComponent* comp : mesh_component_list_)
+	for (auto it = mesh_component_list_.begin(); it != mesh_component_list_.end();)
 	{
+		auto comp = it->lock();
+		if (!comp)
+		{
+			it = mesh_component_list_.erase(it);
+			continue;
+		}
+		++it;
 		const auto& object = comp->owner();
 
 		InstanceData data{};
@@ -361,7 +372,7 @@ std::string Mesh::name() const
 	return name_;
 }
 
-const std::list<MeshComponent*>& Mesh::mesh_component_list() const
+const std::list<std::weak_ptr<MeshComponent>>& Mesh::mesh_component_list() const
 {
 	return mesh_component_list_;
 }
