@@ -10,6 +10,7 @@ class Component : public std::enable_shared_from_this<Component>
 public:
 	Component() {};
 	Component(Object* owner);
+	Component(const std::shared_ptr<Object>& owner);
 	Component(Component&& other) = default; //이동 생성자
 
 	//복사 생성된 컴포넌트는 owner를 재지정해야함(의도 하지않은 오브젝트에 연결방지)
@@ -29,7 +30,7 @@ public:
 	}
 	*/
 	virtual Component* GetCopy() = 0;
-	virtual void Update(float elapsed_time) {};
+	virtual void Update(float elapsed_time) {}
 
 	Object* hierarchy_root();
 

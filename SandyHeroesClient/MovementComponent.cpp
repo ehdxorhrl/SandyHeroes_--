@@ -6,6 +6,10 @@ MovementComponent::MovementComponent(Object* owner) : Component(owner)
 {
 }
 
+MovementComponent::MovementComponent(const std::shared_ptr<Object>& owner) : Component(owner)
+{
+}
+
 MovementComponent::MovementComponent(const MovementComponent& other) : Component(other)
 {
 }

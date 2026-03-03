@@ -453,7 +453,7 @@ void BaseScene::BuildMaterial(ID3D12Device* device, ID3D12GraphicsCommandList* c
 		// 머티리얼 생성
 		auto material = new Material{ material_name, (int)ShaderType::kUI };
 		material->AddTexture(textures_.back().get());
-		materials_.emplace_back(std::unique_ptr<Material>(material));
+		materials_.emplace_back(material);
 	}
 	
 	//// Razer Material

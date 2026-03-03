@@ -16,6 +16,8 @@
 * 단계적으로 코드를 수정하며 대규모 재작성 피하기
 * ModelInfo 클래스의 파일 로드 로직을 절대 수정하지 말 것
 * 렌더링 및 Directx12 관련 로직을 절대 수정하지 말 것
+* 절대 git에 커밋하지 말 것
+* "수정해"라는 명령이 없다면 절대 코드를 직접 수정하지 말 것
 * 리팩토링 작업을 할 때 마다 '## 리팩토링 상황' 아래에 기록한다.
 
 ## 리팩토링 상황
@@ -25,21 +27,21 @@
 * \[2026-02-27] Sector 클래스 리팩토링 완료 (object\_list\_ weak\_ptr 적용 및 지연 삭제 로직 제거)
 * \[2026-02-27] Component 클래스 리팩토링 완료 (owner\_ weak\_ptr 적용 및 shared\_ptr 기반 관리)
 * \[2026-02-27] BaseScene 클래스 리팩토링 완료 (모든 참조 리스트 weak\_ptr 적용, 지연 삭제 로직 제거 및 shared\_ptr 기반 객체 생성 적용)
-* \[2026-02-28] ModelInfo 클래스 리팩토링 완료 (hierarchy_root_ shared_ptr 적용 및 프레임/컴포넌트 객체 생성 시 shared_ptr 사용)
-* \[2026-02-28] FPSControllerComponent 클래스 리팩토링 완료 (참조 객체 멤버 weak_ptr 적용)
-* \[2026-02-28] MonsterComponent 클래스 리팩토링 완료 (target_ 멤버 weak_ptr 적용 및 관련 Getter/Setter 수정)
-* \[2026-03-01] AIComponent 클래스 리팩토링 완료 (Object 파라미터 shared_ptr 적용, GetComponentInChildren 리턴 타입에 맞게 auto 적용 및 owner_ weak_ptr 대응)
-* \[2026-03-01] Animation 관련 클래스(AnimationState 하위 클래스 및 AnimatorComponent) 리팩토링 완료 (Object 파라미터 shared_ptr 적용, bone_frames_ 및 root_bone_frame_ weak_ptr 적용)
-* \[2026-03-03] SpawnerComponent 클래스 리팩토링 완료 (Client/Server 공통, component_list_ shared_ptr 적용 및 ForceSpawn 내부 weak_ptr 대응)
-* \[2026-03-03] GunComponent 클래스 리팩토링 완료 (Client/Server 공통, fired_bullet_list_ weak_ptr 적용 및 FireBullet 내부 shared_ptr 대응)
-* \[2026-03-03] ChestComponent 클래스 리팩토링 완료 (Server 전용, scroll_object_ weak_ptr 적용 및 파라미터 shared_ptr 대응)
-* \[2026-03-03] ParticleSystem 클래스 리팩토링 완료 (Client 전용, particle_object weak_ptr 적용 및 scene->DeleteObject 적용)
-* \[2026-03-03] MovementComponent 클래스 리팩토링 완료 (Client/Server 공통, owner_ weak_ptr 적용)
-* \[2026-03-03] ChestComponent 클래스 리팩토링 완료 (Client 전용, scroll_object_ weak_ptr 적용 및 파라미터 shared_ptr 대응)
-* \[2026-03-03] 나머지 모든 Component 클래스 리팩토링 완료 (Client/Server 공통, owner_ 접근 시 lock() 사용 및 지연삭제 제거)
-* \[2026-03-03] UiComponent 클래스 리팩토링 완료 (Client 전용, view_ weak_ptr 적용 및 하위 클래스들 lock() 적용)
-* \[2026-03-03] CharacterComponent 클래스 리팩토링 완료 (Client 전용, animator_, movement_ weak_ptr 적용 및 파생 클래스 lock() 적용)
-* \[2026-03-03] MeshComponent 클래스 리팩토링 완료 (Client 전용, InitAfterOwnerSet 도입으로 shared_from_this() 안전 호출 보장 및 Mesh/Material weak_ptr 대응)
-* \[2026-03-03] CameraComponent 클래스 리팩토링 완료 (Client/Server 공통, owner_ weak_ptr 적용)
-* \[2026-03-04] GameFramework 클래스 리팩토링 완료 (Client/Server 공통, FindObject 및 player_ 반환 타입 변경에 따른 shared_ptr 대응)
-* \[2026-03-04] RecorderScene 클래스 리팩토링 완료 (Client 전용, Object 및 Component 객체 생성 시 shared_ptr 기반 적용)
+* \[2026-02-28] ModelInfo 클래스 리팩토링 완료 (hierarchy\_root\_ shared\_ptr 적용 및 프레임/컴포넌트 객체 생성 시 shared\_ptr 사용)
+* \[2026-02-28] FPSControllerComponent 클래스 리팩토링 완료 (참조 객체 멤버 weak\_ptr 적용)
+* \[2026-02-28] MonsterComponent 클래스 리팩토링 완료 (target\_ 멤버 weak\_ptr 적용 및 관련 Getter/Setter 수정)
+* \[2026-03-01] AIComponent 클래스 리팩토링 완료 (Object 파라미터 shared\_ptr 적용, GetComponentInChildren 리턴 타입에 맞게 auto 적용 및 owner\_ weak\_ptr 대응)
+* \[2026-03-01] Animation 관련 클래스(AnimationState 하위 클래스 및 AnimatorComponent) 리팩토링 완료 (Object 파라미터 shared\_ptr 적용, bone\_frames\_ 및 root\_bone\_frame\_ weak\_ptr 적용)
+* \[2026-03-03] SpawnerComponent 클래스 리팩토링 완료 (Client/Server 공통, component\_list\_ shared\_ptr 적용 및 ForceSpawn 내부 weak\_ptr 대응)
+* \[2026-03-03] GunComponent 클래스 리팩토링 완료 (Client/Server 공통, fired\_bullet\_list\_ weak\_ptr 적용 및 FireBullet 내부 shared\_ptr 대응)
+* \[2026-03-03] ChestComponent 클래스 리팩토링 완료 (Server 전용, scroll\_object\_ weak\_ptr 적용 및 파라미터 shared\_ptr 대응)
+* \[2026-03-03] ParticleSystem 클래스 리팩토링 완료 (Client 전용, particle\_object weak\_ptr 적용 및 scene->DeleteObject 적용)
+* \[2026-03-03] MovementComponent 클래스 리팩토링 완료 (Client/Server 공통, owner\_ weak\_ptr 적용)
+* \[2026-03-03] ChestComponent 클래스 리팩토링 완료 (Client 전용, scroll\_object\_ weak\_ptr 적용 및 파라미터 shared\_ptr 대응)
+* \[2026-03-03] 나머지 모든 Component 클래스 리팩토링 완료 (Client/Server 공통, owner\_ 접근 시 lock() 사용 및 지연삭제 제거)
+* \[2026-03-03] UiComponent 클래스 리팩토링 완료 (Client 전용, view\_ weak\_ptr 적용 및 하위 클래스들 lock() 적용)
+* \[2026-03-03] CharacterComponent 클래스 리팩토링 완료 (Client 전용, animator\_, movement\_ weak\_ptr 적용 및 파생 클래스 lock() 적용)
+* \[2026-03-03] MeshComponent 클래스 리팩토링 완료 (Client 전용, InitAfterOwnerSet 도입으로 shared\_from\_this() 안전 호출 보장 및 Mesh/Material weak\_ptr 대응)
+* \[2026-03-03] CameraComponent 클래스 리팩토링 완료 (Client/Server 공통, owner\_ weak\_ptr 적용)
+* \[2026-03-04] GameFramework 클래스 리팩토링 완료 (Client/Server 공통, FindObject 및 player\_ 반환 타입 변경에 따른 shared\_ptr 대응)
+* \[2026-03-04] RecorderScene 클래스 리팩토링 완료 (Client 전용, Object 및 Component 객체 생성 시 shared\_ptr 기반 적용)

@@ -8,7 +8,9 @@ class MovementComponent :
     public Component
 {
 public:
+    MovementComponent() {}
     MovementComponent(Object* owner);
+    MovementComponent(const std::shared_ptr<Object>& owner);
     MovementComponent(const MovementComponent& other);
 
     virtual Component* GetCopy() override;

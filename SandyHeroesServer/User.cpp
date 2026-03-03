@@ -119,8 +119,17 @@ void Session::update(float elapsed_time)
 	
 		float distance{ std::numeric_limits<float>::max() };
 		BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
-		for (auto& mesh_collider : base_scene->checking_maps_mesh_collider_list(base_scene->stage_clear_num()))
+		auto mesh_collider_list = base_scene->checking_maps_mesh_collider_list(base_scene->stage_clear_num());
+		for (auto it = mesh_collider_list.begin(); it != mesh_collider_list.end();)
 		{
+			const auto& mesh_collider = it->lock();
+			if(!mesh_collider)
+			{
+				it = mesh_collider_list.erase(it);
+				continue;
+			}
+			++it;
+
 			float t{};
 			if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
 			{
@@ -146,7 +155,7 @@ void Session::update(float elapsed_time)
 	// 연사
 	if (is_firekey_down_)
 	{
-		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_object_);
+		auto gun = Object::GetComponentInChildren<GunComponent>(player_object_);
 		if (gun && gun->fire_type() == GunFireType::kAuto) {
 			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
 
@@ -154,8 +163,14 @@ void Session::update(float elapsed_time)
 			gun->FireBullet(fire_direction_, bullet_mesh, base_scene, id_);
 			if (gun->gun_name() == "flamethrower")
 			{
-				for (const auto& monster : base_scene->monster_list())
+				for (auto it = base_scene->monster_list().begin(); it != base_scene->monster_list().end();)
 				{
+					const auto& monster = it->lock();
+					++it;
+					if (!monster)
+					{
+						continue;
+					}
 					base_scene->CheckObjectHitFlamethrow(monster->owner(), id_, elapsed_time);
 				}
 			}
@@ -392,7 +407,7 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 
 		if (is_key_down_['R'])
 		{
-			GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_object_);
+			auto gun = Object::GetComponentInChildren<GunComponent>(player_object_);
 			gun->ReloadBullets();
 			sc_packet_play_reload_sound prs;
 			prs.size = sizeof(sc_packet_play_reload_sound);
@@ -459,7 +474,7 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 		fire_direction_ = packet->pick_dir;
 
 		// 피킹 방향으로 총알 생성
-		GunComponent* gun = Object::GetComponentInChildren<GunComponent>(player_object_);
+		auto gun = Object::GetComponentInChildren<GunComponent>(player_object_);
 		if (gun) {
 			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
 

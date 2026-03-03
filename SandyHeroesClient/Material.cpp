@@ -369,9 +369,10 @@ void Material::AddMeshComponent(std::weak_ptr<MeshComponent> component)
 
 bool Material::DeleteMeshComponent(std::weak_ptr<MeshComponent> component)
 {
-	auto remove_count = mesh_component_list_.remove(component);
+	//함수 삭제전 임시 조치
+	//auto remove_count = mesh_component_list_.remove(component);
 
-	return remove_count;
+	return false;
 }
 
 void Material::CopyMaterialData(Material* material)

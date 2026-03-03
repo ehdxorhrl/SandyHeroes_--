@@ -21,7 +21,7 @@ TextComponent::TextComponent(
 	Object* owner, 
 	TextFormat* text_format, 
 	D2D1_RECT_F text_rect, 
-	std::function<std::wstring(Object*)> get_text_func)
+	std::function<std::wstring(std::shared_ptr<Object>)> get_text_func)
 	: UiComponent(owner), text_format_(text_format), text_rect_(text_rect)
 {
 	get_text_func_ = get_text_func;
@@ -75,13 +75,13 @@ void TextComponent::Update(float elapsed_time)
 	auto locked_view = view_.lock();
 	if(locked_view)
 	{
-		text_ = get_text_func_(locked_view.get()); //  Ʈ ؽƮ  Լ ȣ
+		text_ = get_text_func_(locked_view); 
 
 	}
 	else
 	{
 		if(!locked_owner) return;
-		text_ = get_text_func_(locked_owner.get()); //  Ʈ ؽƮ  Լ ȣ
+		text_ = get_text_func_(locked_owner);
 	}
 
 }
@@ -92,7 +92,7 @@ void TextComponent::set_text(const std::wstring& text)
 
 }
 
-void TextComponent::set_get_text_func(const std::function<std::wstring(Object*)>& func)
+void TextComponent::set_get_text_func(const std::function<std::wstring(std::shared_ptr<Object>)>& func)
 {
 	get_text_func_ = func;
 }

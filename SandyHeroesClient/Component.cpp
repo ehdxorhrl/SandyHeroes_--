@@ -6,6 +6,10 @@ Component::Component(Object* owner) : owner_(owner->shared_from_this())
 {
 }
 
+Component::Component(const std::shared_ptr<Object>& owner) : owner_(owner)
+{
+}
+
 Component::Component(const Component& other) 
 {
 }

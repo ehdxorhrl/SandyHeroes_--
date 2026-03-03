@@ -115,7 +115,7 @@ void RecorderScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList*
 	auto controller = std::make_shared<TestControllerComponent>(camera.get());
 	camera->AddComponent(controller);
 	controller->set_client_wnd(game_framework_->main_wnd());
-	main_input_controller_ = controller.get();
+	main_input_controller_ = controller;
 
 	auto movement = std::make_shared<MovementComponent>(camera.get());
 	movement->DisableGarvity();

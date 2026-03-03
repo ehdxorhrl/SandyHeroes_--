@@ -6,11 +6,12 @@
 FadeInUIComponent::FadeInUIComponent(Object* owner, float duration)
 	: Component(owner), duration_(duration)
 {
-	ui_mesh_ = Object::GetComponent<UiMeshComponent>(owner_);
-	if (ui_mesh_)
+	ui_mesh_ = Object::GetComponent<UiMeshComponent>(owner_.lock());
+	auto locked_ui_mesh = ui_mesh_.lock();
+	if (locked_ui_mesh)
 	{
-		ui_mesh_->set_alpha(0.0f); // 처음은 투명
-		ui_mesh_->set_is_visible(true); // 혹시라도 비활성화돼 있으면 켜기
+		locked_ui_mesh->set_alpha(0.0f); // 처음은 투명
+		locked_ui_mesh->set_is_visible(true); // 혹시라도 비활성화돼 있으면 켜기
 	}
 }
 

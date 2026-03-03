@@ -1116,8 +1116,11 @@ void BaseScene::UpdateStageClear()
 
 	// 현재 스테이지에서 "Cube" 메쉬 제거
 	auto& mesh_list = stage_wall_collider_list_[stage_clear_num_];
-	mesh_list.remove_if([](MeshColliderComponent* collider) {
-		return collider->mesh() && collider->mesh()->name() == "Cube";
+	mesh_list.remove_if([](const std::weak_ptr<MeshColliderComponent>& collider) {
+		auto collider_ptr = collider.lock();
+		if (!collider_ptr) 
+			return true; // 소멸된 콜라이더는 리스트에서 제거
+		return collider_ptr->mesh() && collider_ptr->mesh()->name() == "Cube";
 		});
 
 	//몬스터 삭제

@@ -34,8 +34,15 @@ void PlayerComponent::Update(float elapsed_time)
 			auto base_scene = dynamic_cast<BaseScene*>(scene_);
 			if (!base_scene) return;
 			auto monster_list = base_scene->monster_list();
-			for (auto& monster : monster_list)
+			for (auto it = monster_list.begin(); it != monster_list.end();)
 			{
+				auto& monster = it->lock();
+				if(!monster)
+				{
+					it = monster_list.erase(it);
+					continue;
+				}
+				++it;
 				float length = xmath_util_float3::Length(
 					monster->owner()->world_position_vector() - owner_.lock()->world_position_vector());
 				if (length <= main_skill_range_)
