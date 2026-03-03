@@ -98,39 +98,39 @@ void RecorderScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList*
 	cb_skinned_mesh_object_capacity_ = 5000;
 
 	//Create Skybox
-	Object* skybox = new Object();
-	skybox->AddComponent(new MeshComponent(skybox, Scene::FindMesh("Skybox", meshes_)));
+	auto skybox = std::make_shared<Object>();
+	skybox->AddComponent(std::make_shared<MeshComponent>(skybox.get(), Scene::FindMesh("Skybox", meshes_)));
 	AddObject(skybox);
 
 	//카메라 배치
-	Object* camera = new Object{};
+	auto camera = std::make_shared<Object>();
 	camera->set_name("Camera");
 	camera->set_position_vector(XMFLOAT3{ 0.f, 5.5f, -10.f });
 
-	CameraComponent* camera_component = new CameraComponent{ camera, 0.1, 1000, 
-		(float)kDefaultFrameBufferWidth / (float)kDefaultFrameBufferHeight, 58.f };
+	auto camera_component = std::make_shared<CameraComponent>(camera.get(), 0.1f, 1000.f, 
+		(float)kDefaultFrameBufferWidth / (float)kDefaultFrameBufferHeight, 58.f);
 	camera->AddComponent(camera_component);
 	main_camera_ = camera_component;
 
-	TestControllerComponent* controller = new TestControllerComponent(camera);
+	auto controller = std::make_shared<TestControllerComponent>(camera.get());
 	camera->AddComponent(controller);
 	controller->set_client_wnd(game_framework_->main_wnd());
-	main_input_controller_ = controller;
+	main_input_controller_ = controller.get();
 
-	MovementComponent* movement = new MovementComponent(camera);
+	auto movement = std::make_shared<MovementComponent>(camera.get());
 	movement->DisableGarvity();
 	camera->AddComponent(movement);
 
 	AddObject(camera);
 
-	cut_scene_recorder_->set_camera_object(camera);
+	cut_scene_recorder_->set_camera_object(camera.get());
 	
 	//컷씬 적용 카메라
-	camera = new Object{};
+	camera = std::make_shared<Object>();
 	camera->set_name("CutSceneCamera");
 
-	camera_component = new CameraComponent{ camera, 0.1, 1000,
-	(float)kDefaultFrameBufferWidth / (float)kDefaultFrameBufferHeight, 58.f };
+	camera_component = std::make_shared<CameraComponent>(camera.get(), 0.1f, 1000.f,
+	(float)kDefaultFrameBufferWidth / (float)kDefaultFrameBufferHeight, 58.f);
 	camera->AddComponent(camera_component);
 
 	cut_scene_tracks_.back().set_camera(camera);
