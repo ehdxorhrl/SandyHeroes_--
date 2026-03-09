@@ -1,12 +1,13 @@
 #pragma once
 #include "InputControllerComponent.h"
 
-//ÀÎÇ²À» ¹Ş¾Æ¼­ ÀüÈÄÁÂ¿ì»óÇÏ ÀÌµ¿ ¹× »óÇÏ ÁÂ¿ì È¸ÀüÀ» ¼öÇàÇÏ´Â ´Ü¼øÇÑ ÄÄÆ÷³ÍÆ®
+//ì¸í’‹ì„ ë°›ì•„ì„œ ì „í›„ì¢Œìš°ìƒí•˜ ì´ë™ ë° ìƒí•˜ ì¢Œìš° íšŒì „ì„ ìˆ˜í–‰í•˜ëŠ” ë‹¨ìˆœí•œ ì»´í¬ë„ŒíŠ¸
 class TestControllerComponent :
     public InputControllerComponent
 {
 public:
     TestControllerComponent(Object* owner);
+    TestControllerComponent(const std::shared_ptr<Object>& owner);
     virtual ~TestControllerComponent() {}
 
     virtual Component* GetCopy();
@@ -23,12 +24,12 @@ public:
 private:
 	HWND client_wnd_{ nullptr };
 
-	//ÀÌµ¿¼Óµµ
+	//ì´ë™ì†ë„
 	float move_speed_{ 25.f };
 	float move_max_speed_{ 70.f };
 	float move_min_speed_{ 5.f };
 
-	//È¸Àü¼Óµµ
+	//íšŒì „ì†ë„
 	float rotate_speed_{ 0.1f };
 };
 

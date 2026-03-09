@@ -10,8 +10,19 @@ UiMeshComponent::UiMeshComponent(Object* owner, Mesh* mesh)
 {
 	name_ = mesh->name();
 }
+UiMeshComponent::UiMeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh) 
+    : MeshComponent(owner, mesh)
+{
+	name_ = mesh->name();
+}
 
 UiMeshComponent::UiMeshComponent(Object* owner, Mesh* mesh, Material* material, Scene* scene)
+    : MeshComponent(owner, mesh, material), scene_(scene)
+{
+	name_ = mesh->name();
+
+}
+UiMeshComponent::UiMeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh, Material* material, Scene* scene)
     : MeshComponent(owner, mesh, material), scene_(scene)
 {
 	name_ = mesh->name();

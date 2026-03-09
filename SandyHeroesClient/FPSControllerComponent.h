@@ -9,6 +9,7 @@ class FPSControllerComponent :
 {
 public:
     FPSControllerComponent(Object* owner);
+    FPSControllerComponent(const std::shared_ptr<Object>& owner);
     virtual ~FPSControllerComponent() {}
 
     virtual Component* GetCopy();

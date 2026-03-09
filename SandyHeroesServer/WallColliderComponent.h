@@ -8,6 +8,7 @@ class WallColliderComponent :
 {
 public:
     WallColliderComponent(Object* owner) : MeshColliderComponent(owner) {}
+    WallColliderComponent(const std::shared_ptr<Object>& owner) : MeshColliderComponent(owner) {}
     WallColliderComponent(const WallColliderComponent& other) : MeshColliderComponent(other) {}
 
     virtual Component* GetCopy() override
@@ -23,7 +24,7 @@ public:
     }
 
 private:
-    BoxColliderComponent* box_collider_ = nullptr; // º® Äİ¶óÀÌ´õ¸¦ À§ÇÑ ¹Ú½º Äİ¶óÀÌ´õ
+    BoxColliderComponent* box_collider_ = nullptr; // ë²½ ì½œë¼ì´ë”ë¥¼ ìœ„í•œ ë°•ìŠ¤ ì½œë¼ì´ë”
 
 };
 

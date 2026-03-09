@@ -6,6 +6,10 @@ ColliderComponent::ColliderComponent(Object* owner, BoundingOrientedBox* boundin
 {
 	bounding_box_ = bounding_box;
 }
+ColliderComponent::ColliderComponent(const std::shared_ptr<Object>& owner, BoundingOrientedBox* bounding_box) : Component(owner)
+{
+	bounding_box_ = bounding_box;
+}
 
 ColliderComponent::ColliderComponent(const ColliderComponent& other) : Component(nullptr)
 {
@@ -25,7 +29,7 @@ void ColliderComponent::Update(float elapsed_time)
 
 bool ColliderComponent::CheckOBBMeshCollision(const MeshComponent* other_mesh, const XMFLOAT4X4& player_world_matrix, const XMFLOAT4X4& other_world_matrix)
 {
-	if (nullptr == other_mesh) return false; // ∏ﬁΩ¨ µ•¿Ã≈Õ∞° æ¯¥¬ ∞ÊøÏ
+	if (nullptr == other_mesh) return false; // Î©îÏâ¨ Îç∞Ïù¥ÌÑ∞Í∞Ä ÏóÜÎäî Í≤ΩÏö∞
 
 	auto indices = other_mesh->GetMesh()->indices_array();
 	auto positions = other_mesh->GetMesh()->positions();
@@ -45,7 +49,7 @@ bool ColliderComponent::CheckOBBMeshCollision(const MeshComponent* other_mesh, c
 		}
 	}
 
-	return false; // √Êµπ æ¯¿Ω
+	return false; // Ï∂©Îèå ÏóÜÏùå
 }
 
 bool ColliderComponent::CheckRayGroundCollision(const MeshComponent* other_mesh, const XMFLOAT3& rayOrigin, const XMFLOAT3& rayDir, float maxDistance, const XMFLOAT4X4& worldMatrix)
@@ -80,7 +84,7 @@ bool ColliderComponent::RayIntersectsTriangle(XMVECTOR rayOrigin, XMVECTOR rayDi
 	float a = XMVectorGetX(XMVector3Dot(edge1, h));
 
 	if (fabs(a) < EPSILON)
-		return false; // ∆Ú«‡
+		return false; // ÌèâÌñâ
 
 	float f = 1.0f / a;
 	XMVECTOR s = XMVectorSubtract(rayOrigin, v0);

@@ -12,24 +12,25 @@ enum class ElementType { kFire, kElectric, kPoison };
 struct GunInfo
 {
     int damage{ 0 };
-    float critical_damage_rate{ 2.0 };                 // Ä¡¸íÅ¸ ¹èÀ²
-    int rpm{ 300 };                                    // ÃÑ±â RPM (rounds per minute)
-    int magazine_cacity{ 12 };                         // ÀåÅº ¼ö
-    float reload_time{ 1.75 };                          // ÀçÀåÀü ½Ã°£
-    GunFireType fire_type{ GunFireType::kSemiAuto };   // ¹ß»ç ¹æ½Ä
-    int burst_num{ 0 };                                // Á¡»ç ÃÑ¾Ë °¹¼ö(Á¡»ç ¹æ½ÄÀÇ ÃÑ¸¸ »ç¿ë)
-    BulletType bullet_type{ BulletType::kNormal };     // »ç¿ëÇÏ´Â ÃÑ¾Ë Å¸ÀÔ
-    float bullet_speed{ 350.f };                       // Åº¼Ó
+    float critical_damage_rate{ 2.0 };                 // ì¹˜ëª…íƒ€ ë°°ìœ¨
+    int rpm{ 300 };                                    // ì´ê¸° RPM (rounds per minute)
+    int magazine_cacity{ 12 };                         // ì¥íƒ„ ìˆ˜
+    float reload_time{ 1.75 };                          // ì¬ì¥ì „ ì‹œê°„
+    GunFireType fire_type{ GunFireType::kSemiAuto };   // ë°œì‚¬ ë°©ì‹
+    int burst_num{ 0 };                                // ì ì‚¬ ì´ì•Œ ê°¯ìˆ˜(ì ì‚¬ ë°©ì‹ì˜ ì´ë§Œ ì‚¬ìš©)
+    BulletType bullet_type{ BulletType::kNormal };     // ì‚¬ìš©í•˜ëŠ” ì´ì•Œ íƒ€ì…
+    float bullet_speed{ 350.f };                       // íƒ„ì†
 
 };
 
-//¿ÀºêÁ§Æ®¿¡ ÃÑ±â±â´ÉÀ» Ãß°¡ÇÏ´Â ÄÄÆ÷³ÍÆ®
-//ÃÑ¾Ë ¹ß»ç ¹× ÀåÀü, µ¥¹ÌÁöÁ¤º¸ µî ÃÑ±â¿¡ ´ëÇÑ ±â´ÉÀ» °¡Áø´Ù.
+//ì˜¤ë¸Œì íŠ¸ì— ì´ê¸°ê¸°ëŠ¥ì„ ì¶”ê°€í•˜ëŠ” ì»´í¬ë„ŒíŠ¸
+//ì´ì•Œ ë°œì‚¬ ë° ì¥ì „, ë°ë¯¸ì§€ì •ë³´ ë“± ì´ê¸°ì— ëŒ€í•œ ê¸°ëŠ¥ì„ ê°€ì§„ë‹¤.
 class GunComponent :
     public Component
 {
 public:
     GunComponent(Object* owner);
+    GunComponent(const std::shared_ptr<Object>& owner);
     GunComponent(const GunComponent& other);
 
     virtual Component* GetCopy() override;
@@ -58,7 +59,7 @@ public:
     int upgrade() const;
     ElementType element() const;
 
-    //ÃÑ±â Á¤º¸¸¦ ·ÎµåÇÏ´Â ÇÔ¼ö
+    //ì´ê¸° ì •ë³´ë¥¼ ë¡œë“œí•˜ëŠ” í•¨ìˆ˜
     static void LoadGunInfosFromFile(const std::string& file_name);
     static XMFLOAT4 GetGunElementColor(GunComponent* gun);
 
@@ -67,10 +68,10 @@ private:
     static const std::array<XMFLOAT4, kElementCount> kElementColors;
 
     std::list<std::weak_ptr<Object>> fired_bullet_list_;
-    int loaded_bullets_{};      //³²Àº ÃÑ¾Ë ¼ö
-    float loading_time_{ 0.f }; //ÀåÀü Áß ½Ã°£
-    bool is_reload_ = false;    //ÀåÀü Áß?
-    float cooling_time_{ 0.f }; //¸¶Áö¸· ¹ß»ç·Î ºÎÅÍ °æ°úÇÑ ½Ã°£
+    int loaded_bullets_{};      //ë‚¨ì€ ì´ì•Œ ìˆ˜
+    float loading_time_{ 0.f }; //ì¥ì „ ì¤‘ ì‹œê°„
+    bool is_reload_ = false;    //ì¥ì „ ì¤‘?
+    float cooling_time_{ 0.f }; //ë§ˆì§€ë§‰ ë°œì‚¬ë¡œ ë¶€í„° ê²½ê³¼í•œ ì‹œê°„
 
     BoundingBox flamethrow_box_{
     { 0.0f, 0.0f, 0.0f },    // Center
@@ -81,15 +82,15 @@ private:
     int upgrade_{};
     ElementType element_{ ElementType::kFire };
 
-    // ÃÑ±â Á¤º¸
+    // ì´ê¸° ì •ë³´
     int damage_{ 0 };
-    float critical_damage_rate_{ 2.0 };                 // Ä¡¸íÅ¸ ¹èÀ²
-    int rpm_{ 300 };                                    // ÃÑ±â RPM (rounds per minute)
-    int magazine_cacity_{ 12 };                         // ÀåÅº ¼ö
-    float reload_time_{ 1.75 };                          // ÀçÀåÀü ½Ã°£
-    GunFireType fire_type_{ GunFireType::kSemiAuto };   // ¹ß»ç ¹æ½Ä
-    int burst_num_{ 0 };                                // Á¡»ç ÃÑ¾Ë °¹¼ö(Á¡»ç ¹æ½ÄÀÇ ÃÑ¸¸ »ç¿ë)
-    BulletType bullet_type_{ BulletType::kNormal };     // »ç¿ëÇÏ´Â ÃÑ¾Ë Å¸ÀÔ
-    float bullet_speed_{ 200.f };                       // Åº¼Ó (±âº» : 350)
+    float critical_damage_rate_{ 2.0 };                 // ì¹˜ëª…íƒ€ ë°°ìœ¨
+    int rpm_{ 300 };                                    // ì´ê¸° RPM (rounds per minute)
+    int magazine_cacity_{ 12 };                         // ì¥íƒ„ ìˆ˜
+    float reload_time_{ 1.75 };                          // ì¬ì¥ì „ ì‹œê°„
+    GunFireType fire_type_{ GunFireType::kSemiAuto };   // ë°œì‚¬ ë°©ì‹
+    int burst_num_{ 0 };                                // ì ì‚¬ ì´ì•Œ ê°¯ìˆ˜(ì ì‚¬ ë°©ì‹ì˜ ì´ë§Œ ì‚¬ìš©)
+    BulletType bullet_type_{ BulletType::kNormal };     // ì‚¬ìš©í•˜ëŠ” ì´ì•Œ íƒ€ì…
+    float bullet_speed_{ 200.f };                       // íƒ„ì† (ê¸°ë³¸ : 350)
 };
 

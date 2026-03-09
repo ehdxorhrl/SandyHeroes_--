@@ -22,6 +22,7 @@ class ScrollComponent :
 public:
     ScrollComponent() = default;
     ScrollComponent(Object* owner) : Component(owner) {}
+    ScrollComponent(const std::shared_ptr<Object>& owner) : Component(owner) {}
     virtual ~ScrollComponent() = default;
 
     virtual Component* GetCopy() override;
@@ -52,7 +53,7 @@ public:
 	}
 
 private:
-	XMFLOAT3 direction_{};  // Á¤±ÔÈ­µÈ ÀÌµ¿ ¹æÇâ
+	XMFLOAT3 direction_{};  // ì •ê·œí™”ëœ ì´ë™ ë°©í–¥
 	float moved_distance_ = 0.f;
 	bool is_active_ = false;
 	ScrollType type_ = ScrollType::None;

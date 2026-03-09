@@ -11,7 +11,9 @@ class MeshComponent
 {
 public:
     MeshComponent(Object* owner, Mesh* mesh);
+    MeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh);
     MeshComponent(Object* owner, Mesh* mesh, Material* material);
+    MeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh, Material* material);
     MeshComponent(const MeshComponent& other);
     MeshComponent& operator=(const MeshComponent& rhs);
 

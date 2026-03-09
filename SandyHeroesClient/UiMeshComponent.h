@@ -8,7 +8,9 @@ class UiMeshComponent :
 {
 public:
     UiMeshComponent(Object* owner, Mesh* mesh);
+    UiMeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh);
     UiMeshComponent(Object* owner, Mesh* mesh, Material* material, Scene* scene);
+    UiMeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh, Material* material, Scene* scene);
     UiMeshComponent(const UiMeshComponent& other);
     UiMeshComponent& operator=(const UiMeshComponent& rhs);
     ~UiMeshComponent() {}

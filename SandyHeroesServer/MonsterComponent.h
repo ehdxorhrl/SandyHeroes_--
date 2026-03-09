@@ -26,6 +26,7 @@ class MonsterComponent :
 {
 public:
 	MonsterComponent(Object* owner);
+	MonsterComponent(const std::shared_ptr<Object>& owner);
 	MonsterComponent(const MonsterComponent& other);
 	virtual ~MonsterComponent();
 

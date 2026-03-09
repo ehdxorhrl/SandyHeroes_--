@@ -1,13 +1,14 @@
 #pragma once
 #include "Component.h"
 
-// ÀÎÇ²À» Ã³¸®ÇÏ´Â ÄÁÆ®·Ñ·¯ÀÇ »óÀ§ Å¬·¡½º
-// ÀÌ Å¬·¡½º¸¦ »ó¼Ó¹Ş¾Æ ProcessInput ÇÔ¼ö¿¡¼­ ÀÎÇ²À» Ã³¸®ÇÒ ¼ö ÀÖ´Ù.
+// ì¸í’‹ì„ ì²˜ë¦¬í•˜ëŠ” ì»¨íŠ¸ë¡¤ëŸ¬ì˜ ìƒìœ„ í´ë˜ìŠ¤
+// ì´ í´ë˜ìŠ¤ë¥¼ ìƒì†ë°›ì•„ ProcessInput í•¨ìˆ˜ì—ì„œ ì¸í’‹ì„ ì²˜ë¦¬í•  ìˆ˜ ìˆë‹¤.
 class InputControllerComponent :
     public Component
 {
 public:
     InputControllerComponent(Object* owner);
+    InputControllerComponent(const std::shared_ptr<Object>& owner);
     virtual ~InputControllerComponent() {}
 
     virtual Component* GetCopy() = 0;

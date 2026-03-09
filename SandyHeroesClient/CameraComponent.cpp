@@ -9,6 +9,12 @@ CameraComponent::CameraComponent(Object* owner,
 	CreateProjectionMatrix(near_plane_distance, far_plane_distance, aspect_ratio, fov_angle);
 	BoundingFrustum::CreateFromMatrix(view_frustum_, XMLoadFloat4x4(&projection_matrix_));
 }
+CameraComponent::CameraComponent(const std::shared_ptr<Object>& owner, 
+	float near_plane_distance, float far_plane_distance, float aspect_ratio, float fov_angle) : Component(owner)
+{
+	CreateProjectionMatrix(near_plane_distance, far_plane_distance, aspect_ratio, fov_angle);
+	BoundingFrustum::CreateFromMatrix(view_frustum_, XMLoadFloat4x4(&projection_matrix_));
+}
 
 CameraComponent::CameraComponent(const CameraComponent& other) : 
 	Component(nullptr), 
@@ -59,7 +65,7 @@ void CameraComponent::GetPickingRay(int screen_x, int screen_y, XMFLOAT3& ray_or
 
 	XMVECTOR ray_view = XMVectorSet(x, y, 1.0f, 1.0f);
 
-	// ¿ùµå °ø°£¿¡¼­ ÃÖÁ¾ ·¹ÀÌ ¹æÇâ °è»ê
+	// ì›”ë“œ ê³µê°„ì—ì„œ ìµœì¢… ë ˆì´ ë°©í–¥ ê³„ì‚°
 	XMFLOAT3 ray_world;
 	XMStoreFloat3(&ray_world, XMVector3TransformCoord(ray_view, inv_view));
 	if (auto locked_owner = owner_.lock())

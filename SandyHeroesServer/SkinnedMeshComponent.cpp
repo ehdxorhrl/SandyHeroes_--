@@ -7,6 +7,10 @@ SkinnedMeshComponent::SkinnedMeshComponent(Object* owner, Mesh* mesh)
 	: MeshComponent(owner, mesh)
 {
 }
+SkinnedMeshComponent::SkinnedMeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh)
+	: MeshComponent(owner, mesh)
+{
+}
 
 SkinnedMeshComponent::SkinnedMeshComponent(const SkinnedMeshComponent& other) : MeshComponent(other)
 {

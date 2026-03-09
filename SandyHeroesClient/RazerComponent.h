@@ -5,7 +5,9 @@ class RazerComponent :
 {
 public:
 	RazerComponent(Object* owner);
+	RazerComponent(const std::shared_ptr<Object>& owner);
 	RazerComponent(Object* owner, XMFLOAT3 start, XMFLOAT3 end);
+	RazerComponent(const std::shared_ptr<Object>& owner, XMFLOAT3 start, XMFLOAT3 end);
 	RazerComponent(const RazerComponent& other);
 	virtual ~RazerComponent() {}
 	virtual Component* GetCopy() override;
@@ -13,25 +15,25 @@ public:
 
 	void InitRazer(XMFLOAT3 start, XMFLOAT3 end);
 
-	float life_time() const { return life_time_; } // ·¹ÀÌÀúÀÇ »ı¸í ½Ã°£ ¹İÈ¯
+	float life_time() const { return life_time_; } // ë ˆì´ì €ì˜ ìƒëª… ì‹œê°„ ë°˜í™˜
 
 	//getter
-	XMFLOAT3 start_position() const { return start_position_; } // ·¹ÀÌÀú ½ÃÀÛ À§Ä¡ ¹İÈ¯
-	XMFLOAT3 end_position() const { return end_position_; } // ·¹ÀÌÀú ³¡ À§Ä¡ ¹İÈ¯
-	float damage() const { return damage_; } // ·¹ÀÌÀú°¡ ÀÔÈ÷´Â ÇÇÇØ·® ¹İÈ¯
-	float is_collision_active() const { return is_collision_active_; } // ·¹ÀÌÀú Ãæµ¹ È°¼ºÈ­ »óÅÂ ¹İÈ¯
-	bool is_collided() const { return is_collided_; } // ·¹ÀÌÀú°¡ Ãæµ¹Çß´ÂÁö ¿©ºÎ ¹İÈ¯
+	XMFLOAT3 start_position() const { return start_position_; } // ë ˆì´ì € ì‹œì‘ ìœ„ì¹˜ ë°˜í™˜
+	XMFLOAT3 end_position() const { return end_position_; } // ë ˆì´ì € ë ìœ„ì¹˜ ë°˜í™˜
+	float damage() const { return damage_; } // ë ˆì´ì €ê°€ ì…íˆëŠ” í”¼í•´ëŸ‰ ë°˜í™˜
+	float is_collision_active() const { return is_collision_active_; } // ë ˆì´ì € ì¶©ëŒ í™œì„±í™” ìƒíƒœ ë°˜í™˜
+	bool is_collided() const { return is_collided_; } // ë ˆì´ì €ê°€ ì¶©ëŒí–ˆëŠ”ì§€ ì—¬ë¶€ ë°˜í™˜
 
 	//setter
 	void set_is_collided(bool value) { is_collided_ = value; }
 
 private:
-	float life_time_ = 0.0f; // ·¹ÀÌÀúÀÇ »ı¸í ½Ã°£
-	float max_life_time_ = 0.8f; // ·¹ÀÌÀúÀÇ ÃÖ´ë »ı¸í ½Ã°£
-	XMFLOAT3 start_position_{ 0,0,0 }; // ·¹ÀÌÀú ½ÃÀÛ À§Ä¡
-	XMFLOAT3 end_position_{ 0,0,0 }; // ·¹ÀÌÀú ³¡ À§Ä¡
-	float damage_ = 10.f; // ·¹ÀÌÀú°¡ ÀÔÈ÷´Â ÇÇÇØ·®
-	bool is_collision_active_ = false; // ·¹ÀÌÀú°¡ Ãæµ¹ È°¼ºÈ­ »óÅÂÀÎÁö ¿©ºÎ
-	bool is_collided_ = false; // ·¹ÀÌÀú°¡ Ãæµ¹Çß´ÂÁö ¿©ºÎ
+	float life_time_ = 0.0f; // ë ˆì´ì €ì˜ ìƒëª… ì‹œê°„
+	float max_life_time_ = 0.8f; // ë ˆì´ì €ì˜ ìµœëŒ€ ìƒëª… ì‹œê°„
+	XMFLOAT3 start_position_{ 0,0,0 }; // ë ˆì´ì € ì‹œì‘ ìœ„ì¹˜
+	XMFLOAT3 end_position_{ 0,0,0 }; // ë ˆì´ì € ë ìœ„ì¹˜
+	float damage_ = 10.f; // ë ˆì´ì €ê°€ ì…íˆëŠ” í”¼í•´ëŸ‰
+	bool is_collision_active_ = false; // ë ˆì´ì €ê°€ ì¶©ëŒ í™œì„±í™” ìƒíƒœì¸ì§€ ì—¬ë¶€
+	bool is_collided_ = false; // ë ˆì´ì €ê°€ ì¶©ëŒí–ˆëŠ”ì§€ ì—¬ë¶€
 };
 

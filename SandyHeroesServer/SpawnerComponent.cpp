@@ -6,8 +6,14 @@
 SpawnerComponent::SpawnerComponent(Object* owner, Scene* scene) : Component(owner), scene_(scene)
 {
 }
+SpawnerComponent::SpawnerComponent(const std::shared_ptr<Object>& owner, Scene* scene) : Component(owner), scene_(scene)
+{
+}
 
 SpawnerComponent::SpawnerComponent(Object* owner, Scene* scene, ModelInfo* model_info) : Component(owner), model_info_(model_info), scene_(scene)
+{
+}
+SpawnerComponent::SpawnerComponent(const std::shared_ptr<Object>& owner, Scene* scene, ModelInfo* model_info) : Component(owner), model_info_(model_info), scene_(scene)
 {
 }
 

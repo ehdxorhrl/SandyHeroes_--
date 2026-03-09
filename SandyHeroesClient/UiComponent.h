@@ -5,12 +5,12 @@ enum class UiType
 {
 	kButton,
 	kImage,
-	kSliderX,		// °¡·Î ½½¶óÀÌ´õ
-	kSliderY,		// ¼¼·Î ½½¶óÀÌ´õ
-	kProgressBarX,	// °¡·Î ÁøÇà·ü Ç¥½ÃÁÙ
-	kProgressBarY,	// ¼¼·Î ÁøÇà·ü Ç¥½ÃÁÙ
+	kSliderX,		// ê°€ë¡œ ìŠ¬ë¼ì´ë”
+	kSliderY,		// ì„¸ë¡œ ìŠ¬ë¼ì´ë”
+	kProgressBarX,	// ê°€ë¡œ ì§„í–‰ë¥  í‘œì‹œì¤„
+	kProgressBarY,	// ì„¸ë¡œ ì§„í–‰ë¥  í‘œì‹œì¤„
 	kPanel,
-	kText,			// ÅØ½ºÆ®
+	kText,			// í…ìŠ¤íŠ¸
 	kCustom
 };
 
@@ -20,7 +20,9 @@ class UiComponent :
 public:
 	UiComponent() {};
 	UiComponent(Object* owner);
+	UiComponent(const std::shared_ptr<Object>& owner);
 	UiComponent(Object* owner, UiType type);
+	UiComponent(const std::shared_ptr<Object>& owner, UiType type);
 	UiComponent(const UiComponent& other);
 	virtual ~UiComponent() {}
 
@@ -31,8 +33,8 @@ public:
 	void set_view(std::shared_ptr<Object> view) { view_ = view; }
 
 protected:
-	UiType type_{ UiType::kImage }; // UI Å¸ÀÔ
-	std::weak_ptr<Object> view_{}; // ui°¡ Æ¯Á¤ ¿ÀºêÁ§Æ®¸¦ ÁÖ½ÃÇÏ±â À§ÇÑ Æ÷ÀÎÅÍ
+	UiType type_{ UiType::kImage }; // UI íƒ€ì…
+	std::weak_ptr<Object> view_{}; // uiê°€ íŠ¹ì • ì˜¤ë¸Œì íŠ¸ë¥¼ ì£¼ì‹œí•˜ê¸° ìœ„í•œ í¬ì¸í„°
 
 };
 

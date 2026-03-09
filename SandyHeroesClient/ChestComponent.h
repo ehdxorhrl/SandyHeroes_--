@@ -11,6 +11,7 @@ class ChestComponent :
 public:
     ChestComponent() = default;
     ChestComponent(Object* owner, Scene* scene = nullptr);
+    ChestComponent(const std::shared_ptr<Object>& owner, Scene* scene = nullptr);
     virtual ~ChestComponent() = default;
 
     virtual Component* GetCopy() override;

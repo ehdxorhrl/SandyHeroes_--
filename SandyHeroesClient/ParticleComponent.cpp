@@ -11,8 +11,15 @@ ParticleRenderer* ParticleComponent::kParticleRenderer = nullptr;
 ParticleComponent::ParticleComponent(Object* owner) : Component(owner)
 {
 }
+ParticleComponent::ParticleComponent(const std::shared_ptr<Object>& owner) : Component(owner)
+{
+}
 
 ParticleComponent::ParticleComponent(Object* owner, ID3D12Device* device, UINT particle_count, eShape shape, Material* material) : Component(owner)
+{
+	Initialize(owner, device, particle_count, shape, material);
+}
+ParticleComponent::ParticleComponent(const std::shared_ptr<Object>& owner, ID3D12Device* device, UINT particle_count, eShape shape, Material* material) : Component(owner)
 {
 	Initialize(owner, device, particle_count, shape, material);
 }
@@ -54,15 +61,15 @@ void ParticleComponent::Initialize(Object* owner, ID3D12Device* device, UINT par
 			direction = RANDOM::InsideUnitSphere();
 
 
-			particles_.emplace_back(Particle(color, position, XMFLOAT2(0.15f, 0.15f))); // sphere ≈ÿΩ∫√ƒ ªÁ¿Ã¡Ó
+			particles_.emplace_back(Particle(color, position, XMFLOAT2(0.15f, 0.15f))); // sphere ÌÖçÏä§Ï≥ê ÏÇ¨Ïù¥Ï¶à
 			particle_data_.emplace_back(ParticleData(direction, 2.0f, 0.1f, 0.1f));
 		}
 		else if (shape_ == Cone)
 		{
 			position = owner->world_position_vector();
 			XMFLOAT3 owner_forward = owner->world_look_vector();
-			XMVECTOR forward = XMLoadFloat3(&owner_forward); // ±‚¡ÿ πÊ«‚
-			constexpr float coneAngle = XMConvertToRadians(45.0f); // ƒ‹¿« π›∞¢µµ
+			XMVECTOR forward = XMLoadFloat3(&owner_forward); // Í∏∞Ï§Ä Î∞©Ìñ•
+			constexpr float coneAngle = XMConvertToRadians(45.0f); // ÏΩòÏùò Î∞òÍ∞ÅÎèÑ
 
 			//constexpr float radius = 5.0f;
 			constexpr float radius = 0.0f;
@@ -71,25 +78,131 @@ void ParticleComponent::Initialize(Object* owner, ID3D12Device* device, UINT par
 			randomPos += XMVectorSet(position.x, position.y, position.z, 0);
 			XMStoreFloat3(&position, randomPos);
 
-			particles_.emplace_back(Particle(color_, position, XMFLOAT2(0.1f, 0.1f))); // cone ≈ÿΩ∫√ƒ ªÁ¿Ã¡Ó
+			particles_.emplace_back(Particle(color_, position, XMFLOAT2(0.1f, 0.1f))); // cone ÌÖçÏä§Ï≥ê ÏÇ¨Ïù¥Ï¶à
 			particle_data_.emplace_back(ParticleData(direction, 2.0f, 0.1f, 0.1f));	//cone
 		}
 		else if (shape_ == Circle)
 		{
 			position = owner->world_position_vector();
-			XMVECTOR axis = XMVectorSet(0, 1, 0, 0); // ±‚¡ÿ πÊ«‚
+			XMVECTOR axis = XMVectorSet(0, 1, 0, 0); // Í∏∞Ï§Ä Î∞©Ìñ•
 			XMStoreFloat3(&position, RANDOM::CircleEdgePoint(axis, 0.5f, &direction));
 
-			particles_.emplace_back(Particle(color_, position, XMFLOAT2(0.25f, 0.25f))); // ≈ÿΩ∫√ƒ ªÁ¿Ã¡Ó
+			particles_.emplace_back(Particle(color_, position, XMFLOAT2(0.25f, 0.25f))); // ÌÖçÏä§Ï≥ê ÏÇ¨Ïù¥Ï¶à
 			particle_data_.emplace_back(ParticleData(direction, 2.0f, 0.1f, 0.1f));
 		}
 		else if (shape_ == BigCone)
 		{
 			position = owner->world_position_vector();
 			XMFLOAT3 owner_forward = owner->world_up_vector();
-			XMVECTOR forward = XMLoadFloat3(&owner_forward); // ±‚¡ÿ πÊ«‚
-			//constexpr float coneAngle = XMConvertToRadians(45.0f); // ƒ‹¿« π›∞¢µµ
-			constexpr float coneAngle = XMConvertToRadians(0.0f); // ƒ‹¿« π›∞¢µµ
+			XMVECTOR forward = XMLoadFloat3(&owner_forward); // Í∏∞Ï§Ä Î∞©Ìñ•
+			//constexpr float coneAngle = XMConvertToRadians(45.0f); // ÏΩòÏùò Î∞òÍ∞ÅÎèÑ
+			constexpr float coneAngle = XMConvertToRadians(0.0f); // ÏΩòÏùò Î∞òÍ∞ÅÎèÑ
+
+			constexpr float radius = 0.0f;
+			direction = RANDOM::DirectionInCone(forward, coneAngle);
+			XMVECTOR randomPos = direction * radius;
+			randomPos += XMVectorSet(position.x, position.y, position.z, 0);
+			XMStoreFloat3(&position, randomPos);
+
+			particles_.emplace_back(Particle(color_, position, XMFLOAT2(0.5f, 0.5f)));
+			particle_data_.emplace_back(ParticleData(direction, 10.0f, 1.0f, 1.0f));
+		}
+		else if (shape_ == Rect)
+		{
+			position = owner->world_position_vector();
+
+			particles_.emplace_back(Particle(color, position, XMFLOAT2(10.0f, 20.0f))); 
+			particle_data_.emplace_back(ParticleData(direction, 0.0f, 0.1f, 10000.1f));
+		}
+		else if (shape_ == UpCone)
+		{
+			position = owner->world_position_vector();
+			XMFLOAT3 owner_forward = owner->world_look_vector();
+			XMVECTOR forward = XMLoadFloat3(&owner_forward); 
+			constexpr float coneAngle = XMConvertToRadians(45.0f); 
+
+			//constexpr float radius = 5.0f;
+			constexpr float radius = 0.0f;
+			direction = RANDOM::DirectionInCone(forward, coneAngle);
+			XMVECTOR randomPos = direction * radius;
+			randomPos += XMVectorSet(position.x, position.y, position.z, 0);
+			XMStoreFloat3(&position, randomPos);
+
+			particles_.emplace_back(Particle(color_, position, XMFLOAT2(0.1f, 0.1f)));
+			particle_data_.emplace_back(ParticleData(direction, 2.0f, 0.1f, 0.8f));	
+		}
+		else
+		{
+			assert(false);
+		}
+
+	}
+
+	vertex_buffer_view_.BufferLocation = particle_buffer_->Resource()->GetGPUVirtualAddress();
+	vertex_buffer_view_.SizeInBytes = capacity_ * sizeof(Particle);
+	vertex_buffer_view_.StrideInBytes = sizeof(Particle);
+}
+void ParticleComponent::Initialize(const std::shared_ptr<Object>& owner, ID3D12Device* device, UINT particle_count, eShape shape, Material* material)
+{
+	capacity_ = particle_count;
+	shape_ = shape;
+	material_ = material;
+	particles_.reserve(capacity_);
+	particle_data_.reserve(capacity_);
+
+	device_ = device;
+
+	particle_buffer_ = std::make_unique<UploadBuffer<Particle>>(device, particle_count, false);
+
+	for (int i = 0; i < capacity_; ++i)
+	{
+		XMFLOAT4 color = { 1,1,1,1 };
+		XMFLOAT3 position = {};
+		XMVECTOR direction = {};
+
+		if (shape_ == Sphere)
+		{
+			//position = XMFLOAT3(0.0f, 5.0f, 0.0f);
+			position = hit_position_;
+			direction = RANDOM::InsideUnitSphere();
+
+
+			particles_.emplace_back(Particle(color, position, XMFLOAT2(0.15f, 0.15f))); // sphere ÌÖçÏä§Ï≥ê ÏÇ¨Ïù¥Ï¶à
+			particle_data_.emplace_back(ParticleData(direction, 2.0f, 0.1f, 0.1f));
+		}
+		else if (shape_ == Cone)
+		{
+			position = owner->world_position_vector();
+			XMFLOAT3 owner_forward = owner->world_look_vector();
+			XMVECTOR forward = XMLoadFloat3(&owner_forward); // Í∏∞Ï§Ä Î∞©Ìñ•
+			constexpr float coneAngle = XMConvertToRadians(45.0f); // ÏΩòÏùò Î∞òÍ∞ÅÎèÑ
+
+			//constexpr float radius = 5.0f;
+			constexpr float radius = 0.0f;
+			direction = RANDOM::DirectionInCone(forward, coneAngle);
+			XMVECTOR randomPos = direction * radius;
+			randomPos += XMVectorSet(position.x, position.y, position.z, 0);
+			XMStoreFloat3(&position, randomPos);
+
+			particles_.emplace_back(Particle(color_, position, XMFLOAT2(0.1f, 0.1f))); // cone ÌÖçÏä§Ï≥ê ÏÇ¨Ïù¥Ï¶à
+			particle_data_.emplace_back(ParticleData(direction, 2.0f, 0.1f, 0.1f));	//cone
+		}
+		else if (shape_ == Circle)
+		{
+			position = owner->world_position_vector();
+			XMVECTOR axis = XMVectorSet(0, 1, 0, 0); // Í∏∞Ï§Ä Î∞©Ìñ•
+			XMStoreFloat3(&position, RANDOM::CircleEdgePoint(axis, 0.5f, &direction));
+
+			particles_.emplace_back(Particle(color_, position, XMFLOAT2(0.25f, 0.25f))); // ÌÖçÏä§Ï≥ê ÏÇ¨Ïù¥Ï¶à
+			particle_data_.emplace_back(ParticleData(direction, 2.0f, 0.1f, 0.1f));
+		}
+		else if (shape_ == BigCone)
+		{
+			position = owner->world_position_vector();
+			XMFLOAT3 owner_forward = owner->world_up_vector();
+			XMVECTOR forward = XMLoadFloat3(&owner_forward); // Í∏∞Ï§Ä Î∞©Ìñ•
+			//constexpr float coneAngle = XMConvertToRadians(45.0f); // ÏΩòÏùò Î∞òÍ∞ÅÎèÑ
+			constexpr float coneAngle = XMConvertToRadians(0.0f); // ÏΩòÏùò Î∞òÍ∞ÅÎèÑ
 
 			constexpr float radius = 0.0f;
 			direction = RANDOM::DirectionInCone(forward, coneAngle);
@@ -146,7 +259,7 @@ void ParticleComponent::Update(float elapsed_time)
 	auto base_scene = dynamic_cast<BaseScene*>(scene_);
 	if (!base_scene) return;
 
-	//Object* player = base_scene->player();  // BaseScene¿« player_
+	//Object* player = base_scene->player();  // BaseSceneÏùò player_
 	//auto controller = Object::GetComponentInChildren<FPSControllerComponent>(player);
 
 	for (int i = 0; i < capacity_; ++i)
@@ -157,10 +270,10 @@ void ParticleComponent::Update(float elapsed_time)
 		XMStoreFloat3(&particles_[i].position_, vPosition);
 
 		particle_data_[i].life_time_ -= elapsed_time;
-		// TODO : life_factor º≥¡§ √ﬂ∞°«œ±‚
+		// TODO : life_factor ÏÑ§Ï†ï Ï∂îÍ∞ÄÌïòÍ∏∞
 		//particles_[i].life_factor_ = 0.7f + particle_data_[i].life_time_ / particle_data_[i].max_life_time_ * (1.0f - 0.7f);
 
-		//Alive¿Œ Particle∏∏ ¥„æ∆æﬂ«‘.
+		//AliveÏù∏ ParticleÎßå Îã¥ÏïÑÏïºÌï®.
 		if (particle_data_[i].IsActive())
 		{
 			/*if (!(shape_ == Cone && controller->is_firekey_down()))
@@ -174,7 +287,7 @@ void ParticleComponent::Update(float elapsed_time)
 			XMFLOAT3 position = {};
 			XMVECTOR direction = {};
 
-			if (shape_ == Sphere)	//∏ÛΩ∫≈Õ HIT ∆ƒ∆º≈¨
+			if (shape_ == Sphere)	//Î™¨Ïä§ÌÑ∞ HIT ÌååÌã∞ÌÅ¥
 			{
 				//position = XMFLOAT3(0.0f, 15.0f, 0.0f);
 				position = hit_position_;
@@ -187,13 +300,13 @@ void ParticleComponent::Update(float elapsed_time)
 				XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 				XMStoreFloat3(&particles_[i].position_, rPosition);
 			}
-			else if (shape_ == Cone)	// √— πﬂªÁ ∆ƒ∆º≈¨
+			else if (shape_ == Cone)	// Ï¥ù Î∞úÏÇ¨ ÌååÌã∞ÌÅ¥
 			{
 				//if (!controller->is_firekey_down()) break;
 
 				position = locked_owner->world_position_vector();
 				XMFLOAT3 owner_forward = locked_owner->world_look_vector();
-				XMVECTOR forward = XMLoadFloat3(&owner_forward); // ±‚¡ÿ πÊ«‚
+				XMVECTOR forward = XMLoadFloat3(&owner_forward); // Í∏∞Ï§Ä Î∞©Ìñ•
 				if (scene_)
 				{
 					auto camera = scene_->main_camera();
@@ -204,8 +317,8 @@ void ParticleComponent::Update(float elapsed_time)
 				if (direction_pivot_object_) {
 					forward = XMLoadFloat3(&direction_pivot_object_->world_look_vector());
 				}
-				constexpr float coneAngle = XMConvertToRadians(18.0f); // ƒ‹¿« π›∞¢µµ (23 ±‚∫ª)
-				constexpr float radius = 0.2f; // (±‚∫ª 5)
+				constexpr float coneAngle = XMConvertToRadians(18.0f); // ÏΩòÏùò Î∞òÍ∞ÅÎèÑ (23 Í∏∞Î≥∏)
+				constexpr float radius = 0.2f; // (Í∏∞Î≥∏ 5)
 				direction = RANDOM::DirectionInCone(forward, coneAngle);
 				XMVECTOR randomPos = direction * radius;
 				//randomPos += XMVectorSet(position.x, position.y, position.z, 0);
@@ -221,23 +334,23 @@ void ParticleComponent::Update(float elapsed_time)
 			else if (shape_ == Circle)
 			{
 				position = locked_owner->world_position_vector();
-				XMVECTOR axis = XMVectorSet(0, 1, 0, 0); // ±‚¡ÿ πÊ«‚
+				XMVECTOR axis = XMVectorSet(0, 1, 0, 0); // Í∏∞Ï§Ä Î∞©Ìñ•
 				XMStoreFloat3(&position, RANDOM::CircleEdgePoint(axis, 0.5f, &direction));
 
-				particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.1f, 0.5f); // ±‚∫ª
+				particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.1f, 0.5f); // Í∏∞Î≥∏
 				particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 				particle_data_[i].velocity_ = direction;
 				XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 				XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 				XMStoreFloat3(&particles_[i].position_, rPosition);
 			}
-			else if (shape_ == BigCone)	// √— πﬂªÁ ∆ƒ∆º≈¨
+			else if (shape_ == BigCone)	// Ï¥ù Î∞úÏÇ¨ ÌååÌã∞ÌÅ¥
 			{
 				//if (!controller->is_firekey_down()) break;
 
 				position = locked_owner->world_position_vector();
 				XMFLOAT3 owner_forward = locked_owner->world_look_vector();
-				XMVECTOR forward = XMLoadFloat3(&owner_forward); // ±‚¡ÿ πÊ«‚
+				XMVECTOR forward = XMLoadFloat3(&owner_forward); // Í∏∞Ï§Ä Î∞©Ìñ•
 				if (scene_)
 				{
 					auto camera = scene_->main_camera();
@@ -249,8 +362,8 @@ void ParticleComponent::Update(float elapsed_time)
 				if (direction_pivot_object_) {
 					forward = XMLoadFloat3(&direction_pivot_object_->world_look_vector());
 				}
-				constexpr float coneAngle = XMConvertToRadians(18.0f); // ƒ‹¿« π›∞¢µµ (23 ±‚∫ª)
-				constexpr float radius = 0.2f; // (±‚∫ª 5)
+				constexpr float coneAngle = XMConvertToRadians(18.0f); // ÏΩòÏùò Î∞òÍ∞ÅÎèÑ (23 Í∏∞Î≥∏)
+				constexpr float radius = 0.2f; // (Í∏∞Î≥∏ 5)
 				direction = RANDOM::DirectionInCone(forward, coneAngle);
 				XMVECTOR randomPos = direction * radius;
 				XMStoreFloat3(&position, randomPos);
@@ -314,7 +427,7 @@ void ParticleComponent::Render(ID3D12GraphicsCommandList* command_list,
 	command_list->IASetVertexBuffers(0, 1, &vertex_buffer_view_);
 	command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-	command_list->DrawInstanced(alive_count_, 1, 0, 0); // aliveCount¥¬ ªÏæ∆¿÷¥¬ ∆ƒ∆º≈¨ ºˆ
+	command_list->DrawInstanced(alive_count_, 1, 0, 0); // aliveCountÎäî ÏÇ¥ÏïÑÏûàÎäî ÌååÌã∞ÌÅ¥ Ïàò
 }
 
 bool ParticleComponent::IsAlive(const int index) const
@@ -400,7 +513,7 @@ void ParticleComponent::Play(int particle_count)
 		{
 			position = locked_owner->world_position_vector();
 			XMFLOAT3 owner_forward = locked_owner->world_look_vector();
-			XMVECTOR forward = XMLoadFloat3(&owner_forward); // ±‚¡ÿ πÊ«‚
+			XMVECTOR forward = XMLoadFloat3(&owner_forward); // Í∏∞Ï§Ä Î∞©Ìñ•
 			if (scene_)
 			{
 				auto camera = scene_->main_camera();
@@ -411,8 +524,8 @@ void ParticleComponent::Play(int particle_count)
 			if (direction_pivot_object_) {
 				forward = XMLoadFloat3(&direction_pivot_object_->world_look_vector());
 			}
-			constexpr float coneAngle = XMConvertToRadians(18.0f); // ƒ‹¿« π›∞¢µµ (23 ±‚∫ª)
-			constexpr float radius = 0.2f; // (±‚∫ª 5)
+			constexpr float coneAngle = XMConvertToRadians(18.0f); // ÏΩòÏùò Î∞òÍ∞ÅÎèÑ (23 Í∏∞Î≥∏)
+			constexpr float radius = 0.2f; // (Í∏∞Î≥∏ 5)
 			direction = RANDOM::DirectionInCone(forward, coneAngle);
 			XMVECTOR randomPos = direction * radius;
 			//randomPos += XMVectorSet(position.x, position.y, position.z, 0);
@@ -428,21 +541,21 @@ void ParticleComponent::Play(int particle_count)
 		else if (shape_ == Circle)
 		{
 			position = locked_owner->world_position_vector();
-			XMVECTOR axis = XMVectorSet(0, 1, 0, 0); // ±‚¡ÿ πÊ«‚
+			XMVECTOR axis = XMVectorSet(0, 1, 0, 0); // Í∏∞Ï§Ä Î∞©Ìñ•
 			XMStoreFloat3(&position, RANDOM::CircleEdgePoint(axis, 0.5f, &direction));
 
-			particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.1f, 0.5f); // ±‚∫ª
+			particle_data_[i].max_life_time_ = RANDOM::GetRandomValue(0.1f, 0.5f); // Í∏∞Î≥∏
 			particle_data_[i].life_time_ = particle_data_[i].max_life_time_;
 			particle_data_[i].velocity_ = direction;
 			XMFLOAT3 pivot_position = locked_owner->world_position_vector();
 			XMVECTOR rPosition = XMLoadFloat3(&pivot_position) + XMLoadFloat3(&position);
 			XMStoreFloat3(&particles_[i].position_, rPosition);
 		}
-		else if (shape_ == BigCone)	// √— πﬂªÁ ∆ƒ∆º≈¨
+		else if (shape_ == BigCone)	// Ï¥ù Î∞úÏÇ¨ ÌååÌã∞ÌÅ¥
 		{
 			position = locked_owner->world_position_vector();
 			XMFLOAT3 owner_forward = locked_owner->world_look_vector();
-			XMVECTOR forward = XMLoadFloat3(&owner_forward); // ±‚¡ÿ πÊ«‚
+			XMVECTOR forward = XMLoadFloat3(&owner_forward); // Í∏∞Ï§Ä Î∞©Ìñ•
 			if (scene_)
 			{
 				auto camera = scene_->main_camera();
@@ -454,8 +567,8 @@ void ParticleComponent::Play(int particle_count)
 			if (direction_pivot_object_) {
 				forward = XMLoadFloat3(&direction_pivot_object_->world_look_vector());
 			}
-			constexpr float coneAngle = XMConvertToRadians(18.0f); // ƒ‹¿« π›∞¢µµ (23 ±‚∫ª)
-			constexpr float radius = 0.2f; // (±‚∫ª 5)
+			constexpr float coneAngle = XMConvertToRadians(18.0f); // ÏΩòÏùò Î∞òÍ∞ÅÎèÑ (23 Í∏∞Î≥∏)
+			constexpr float radius = 0.2f; // (Í∏∞Î≥∏ 5)
 			direction = RANDOM::DirectionInCone(forward, coneAngle);
 			XMVECTOR randomPos = direction * radius;
 			//randomPos += XMVectorSet(position.x, position.y, position.z, 0);

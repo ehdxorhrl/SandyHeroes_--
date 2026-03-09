@@ -10,8 +10,14 @@ class TextComponent :
 public:	
 	TextComponent();
 	TextComponent(Object* owner);
+	TextComponent(const std::shared_ptr<Object>& owner);
 	TextComponent(
 		Object* owner,
+		TextFormat* text_format = nullptr,
+		D2D1_RECT_F text_rect = D2D1::RectF(0.f, 0.f, 1920.f, 1080.f),
+		std::function<std::wstring(std::shared_ptr<Object>)> get_text_func = nullptr);
+	TextComponent(
+		const std::shared_ptr<Object>& owner,
 		TextFormat* text_format = nullptr,
 		D2D1_RECT_F text_rect = D2D1::RectF(0.f, 0.f, 1920.f, 1080.f),
 		std::function<std::wstring(std::shared_ptr<Object>)> get_text_func = nullptr);
@@ -20,8 +26,13 @@ public:
 		TextFormat* text_format = nullptr,
 		D2D1_RECT_F text_rect = D2D1::RectF(0.f, 0.f, 1920.f, 1080.f),
 		const std::wstring& text = L"None");
+	TextComponent(
+		const std::shared_ptr<Object>& owner,
+		TextFormat* text_format = nullptr,
+		D2D1_RECT_F text_rect = D2D1::RectF(0.f, 0.f, 1920.f, 1080.f),
+		const std::wstring& text = L"None");
 
-	TextComponent(const TextComponent& other) = default; //º¹»ç »ı¼ºÀÚ
+	TextComponent(const TextComponent& other) = default; //ë³µì‚¬ ìƒì„±ì
 	
 	virtual Component* GetCopy() override;
 	virtual void Update(float elapsed_time);
@@ -34,13 +45,13 @@ public:
 	void set_color(const D2D1_COLOR_F& color) { color_ = color; }
 
 private:
-	std::wstring text_ = L"None"; //ÅØ½ºÆ® ³»¿ë
-	D2D1_COLOR_F color_ = D2D1::ColorF(D2D1::ColorF::White); //ÆùÆ® »ö»ó
-	D2D1::Matrix3x2F transform_ = D2D1::Matrix3x2F::Identity(); //ÅØ½ºÆ® º¯È¯ Çà·Ä
-	TextFormat* text_format_ = nullptr; //ÅØ½ºÆ® Æ÷¸Ë
-	bool is_static_{ true }; //ÅØ½ºÆ®°¡ Á¤Àû(static)ÀÎÁö ¿©ºÎ
-	std::function<std::wstring(std::shared_ptr<Object>)> get_text_func_{ nullptr }; //ÅØ½ºÆ®¸¦ °¡Á®¿À´Â ÇÔ¼ö
+	std::wstring text_ = L"None"; //í…ìŠ¤íŠ¸ ë‚´ìš©
+	D2D1_COLOR_F color_ = D2D1::ColorF(D2D1::ColorF::White); //í°íŠ¸ ìƒ‰ìƒ
+	D2D1::Matrix3x2F transform_ = D2D1::Matrix3x2F::Identity(); //í…ìŠ¤íŠ¸ ë³€í™˜ í–‰ë ¬
+	TextFormat* text_format_ = nullptr; //í…ìŠ¤íŠ¸ í¬ë§·
+	bool is_static_{ true }; //í…ìŠ¤íŠ¸ê°€ ì •ì (static)ì¸ì§€ ì—¬ë¶€
+	std::function<std::wstring(std::shared_ptr<Object>)> get_text_func_{ nullptr }; //í…ìŠ¤íŠ¸ë¥¼ ê°€ì ¸ì˜¤ëŠ” í•¨ìˆ˜
 
-	D2D1_RECT_F text_rect_{ 0.f, 0.f, 1920.f, 1080.f }; //ÅØ½ºÆ® ·»´õ¸µ ¿µ¿ª
+	D2D1_RECT_F text_rect_{ 0.f, 0.f, 1920.f, 1080.f }; //í…ìŠ¤íŠ¸ ë Œë”ë§ ì˜ì—­
 };
 

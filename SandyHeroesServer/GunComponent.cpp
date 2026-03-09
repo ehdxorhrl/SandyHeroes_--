@@ -22,6 +22,9 @@ const std::array<XMFLOAT4, kElementCount> GunComponent::kElementColors{
 GunComponent::GunComponent(Object* owner) : Component(owner)
 {
 }
+GunComponent::GunComponent(const std::shared_ptr<Object>& owner) : Component(owner)
+{
+}
 
 GunComponent::GunComponent(const GunComponent& other) : Component(other),
     gun_name_(other.gun_name_),
@@ -40,8 +43,8 @@ GunComponent::GunComponent(const GunComponent& other) : Component(other),
     is_reload_(other.is_reload_),
     flamethrow_box_(other.flamethrow_box_)
 {
-    std::cout << "ÃÑ±â ÀÌ¸§: " << gun_name_ << std::endl;
-    std::cout << "ÃÑ±â µ¥¹ÌÁö: " << damage_ << std::endl;
+    std::cout << "ì´ê¸° ì´ë¦„: " << gun_name_ << std::endl;
+    std::cout << "ì´ê¸° ë°ë¯¸ì§€: " << damage_ << std::endl;
 }
 
 Component* GunComponent::GetCopy()
@@ -134,7 +137,7 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, std::shared_ptr<Object> bullet
 
             --loaded_bullets_;
 
-            // ÃÑ¾Ë »ı¼º ÆĞÅ¶ ºê·ÎµåÄ³½ºÆ®
+            // ì´ì•Œ ìƒì„± íŒ¨í‚· ë¸Œë¡œë“œìºìŠ¤íŠ¸
             sc_packet_create_bullet bp;
             bp.size = sizeof(bp);
             bp.type = S2C_P_CREATE_BULLET;
@@ -211,13 +214,13 @@ void GunComponent::LoadGunInfo(const std::string& gun_name)
 
     loaded_bullets_ = magazine_cacity_;
 
-    std::cout << "ÃÑ±â ÀÌ¸§: " << gun_name << std::endl;
-    std::cout << "ÃÑ±â µ¥¹ÌÁö: " << gun_info.damage << std::endl;
-    std::cout << "ÃÑ±â Å©µ©: " << gun_info.critical_damage_rate << std::endl;
-    std::cout << "ÃÑ±â rpm: " << gun_info.rpm << std::endl;
-    std::cout << "ÃÑ±â reload_time_: " << gun_info.reload_time << std::endl;
-    std::cout << "ÃÑ±â burst_num_: " << gun_info.burst_num << std::endl;
-    std::cout << "ÃÑ±â bullet_speed_: " << gun_info.bullet_speed << std::endl;
+    std::cout << "ì´ê¸° ì´ë¦„: " << gun_name << std::endl;
+    std::cout << "ì´ê¸° ë°ë¯¸ì§€: " << gun_info.damage << std::endl;
+    std::cout << "ì´ê¸° í¬ë€: " << gun_info.critical_damage_rate << std::endl;
+    std::cout << "ì´ê¸° rpm: " << gun_info.rpm << std::endl;
+    std::cout << "ì´ê¸° reload_time_: " << gun_info.reload_time << std::endl;
+    std::cout << "ì´ê¸° burst_num_: " << gun_info.burst_num << std::endl;
+    std::cout << "ì´ê¸° bullet_speed_: " << gun_info.bullet_speed << std::endl;
 }
 
 GunFireType GunComponent::fire_type() const

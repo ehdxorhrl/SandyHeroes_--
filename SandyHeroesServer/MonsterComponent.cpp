@@ -14,6 +14,10 @@ MonsterComponent::MonsterComponent(Object* owner) : Component(owner)
 {
     
 }
+MonsterComponent::MonsterComponent(const std::shared_ptr<Object>& owner) : Component(owner)
+{
+    
+}
 
 MonsterComponent::MonsterComponent(const MonsterComponent& other) : Component(other),
 shield_(other.shield_), hp_(other.hp_), attack_force_(other.attack_force_), 

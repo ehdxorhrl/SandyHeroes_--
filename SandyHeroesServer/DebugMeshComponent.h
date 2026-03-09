@@ -1,15 +1,18 @@
 #pragma once
 #include "MeshComponent.h"
 
-// OBB È®ÀÎ¿ë µğ¹ö±× ¸Ş½¬¸¦ ·»´õÇÏ´Â Å¬·¡½º
-// ±âÁ¸ÀÇ CubeMesh¸¦ »ı¼ºÀÚ 2¹øÂ° ÀÎÀÚ·Î ¹Ş°í ±×¸± AABB³ª ¸Ş½¬¸¦ 3¹øÂ° ÀÎÀÚ·Î ¹Ş´Â´Ù.
+// OBB í™•ì¸ìš© ë””ë²„ê·¸ ë©”ì‰¬ë¥¼ ë Œë”í•˜ëŠ” í´ë˜ìŠ¤
+// ê¸°ì¡´ì˜ CubeMeshë¥¼ ìƒì„±ì 2ë²ˆì§¸ ì¸ìë¡œ ë°›ê³  ê·¸ë¦´ AABBë‚˜ ë©”ì‰¬ë¥¼ 3ë²ˆì§¸ ì¸ìë¡œ ë°›ëŠ”ë‹¤.
 class DebugMeshComponent :
     public MeshComponent
 {
 public:
     DebugMeshComponent(Object* owner, Mesh* cube_mesh, Mesh* source_mesh);
+    DebugMeshComponent(const std::shared_ptr<Object>& owner, Mesh* cube_mesh, Mesh* source_mesh);
     DebugMeshComponent(Object* owner, Mesh* cube_mesh, const BoundingBox& bounds);
+    DebugMeshComponent(const std::shared_ptr<Object>& owner, Mesh* cube_mesh, const BoundingBox& bounds);
     DebugMeshComponent(Object* owner, Mesh* cube_mesh, const BoundingOrientedBox& bounds);
+    DebugMeshComponent(const std::shared_ptr<Object>& owner, Mesh* cube_mesh, const BoundingOrientedBox& bounds);
     DebugMeshComponent(const DebugMeshComponent& other);
 
     virtual Component* GetCopy() override;

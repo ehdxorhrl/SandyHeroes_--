@@ -8,6 +8,11 @@ CameraComponent::CameraComponent(Object* owner,
 {
 	CreateProjectionMatrix(near_plane_distance, far_plane_distance, aspect_ratio, fov_angle);
 }
+CameraComponent::CameraComponent(const std::shared_ptr<Object>& owner,
+	float near_plane_distance, float far_plane_distance, float aspect_ratio, float fov_angle) : Component(owner)
+{
+	CreateProjectionMatrix(near_plane_distance, far_plane_distance, aspect_ratio, fov_angle);
+}
 
 CameraComponent::CameraComponent(const CameraComponent& other) :
 	Component(nullptr),

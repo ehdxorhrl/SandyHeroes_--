@@ -122,6 +122,7 @@ class AIComponent :
 {
 public:
     AIComponent(Object* owner);
+    AIComponent(const std::shared_ptr<Object>& owner);
     AIComponent(const AIComponent& other);
     ~AIComponent();
 

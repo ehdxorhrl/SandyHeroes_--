@@ -39,13 +39,16 @@ public:
 	};
 
 	ParticleComponent(Object* owner);
+	ParticleComponent(const std::shared_ptr<Object>& owner);
 	ParticleComponent(Object* owner, ID3D12Device* device, UINT particle_count, eShape shape, Material* material);
+	ParticleComponent(const std::shared_ptr<Object>& owner, ID3D12Device* device, UINT particle_count, eShape shape, Material* material);
 
 	ParticleComponent(const ParticleComponent& other);
 
 	virtual Component* GetCopy() override;
 
 	void Initialize(Object* owner, ID3D12Device* device, UINT particle_count, eShape shape, Material* material);
+	void Initialize(const std::shared_ptr<Object>& owner, ID3D12Device* device, UINT particle_count, eShape shape, Material* material);
 
 	virtual void Update(float elapsed_time) override;
 	virtual void Render(ID3D12GraphicsCommandList* command_list, FrameResource* curr_frame_resource);

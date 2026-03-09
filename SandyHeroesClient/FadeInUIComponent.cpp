@@ -10,15 +10,26 @@ FadeInUIComponent::FadeInUIComponent(Object* owner, float duration)
 	auto locked_ui_mesh = ui_mesh_.lock();
 	if (locked_ui_mesh)
 	{
-		locked_ui_mesh->set_alpha(0.0f); // Ã³À½Àº Åõ¸í
-		locked_ui_mesh->set_is_visible(true); // È¤½Ã¶óµµ ºñÈ°¼ºÈ­µÅ ÀÖÀ¸¸é ÄÑ±â
+		locked_ui_mesh->set_alpha(0.0f); // ì²˜ìŒì€ íˆ¬ëª…
+		locked_ui_mesh->set_is_visible(true); // í˜¹ì‹œë¼ë„ ë¹„í™œì„±í™”ë¼ ìˆìœ¼ë©´ ì¼œê¸°
+	}
+}
+FadeInUIComponent::FadeInUIComponent(const std::shared_ptr<Object>& owner, float duration)
+	: Component(owner), duration_(duration)
+{
+	ui_mesh_ = Object::GetComponent<UiMeshComponent>(owner_.lock());
+	auto locked_ui_mesh = ui_mesh_.lock();
+	if (locked_ui_mesh)
+	{
+		locked_ui_mesh->set_alpha(0.0f); // ì²˜ìŒì€ íˆ¬ëª…
+		locked_ui_mesh->set_is_visible(true); // í˜¹ì‹œë¼ë„ ë¹„í™œì„±í™”ë¼ ìˆìœ¼ë©´ ì¼œê¸°
 	}
 }
 
 FadeInUIComponent::FadeInUIComponent(const FadeInUIComponent& other)
 	: Component(other), duration_(other.duration_), elapsed_(other.elapsed_)
 {
-	// º¹»ç »ı¼ºÀÚ¿¡¼­´Â owner_°¡ ¾ÆÁ÷ ¾ø±â ¶§¹®¿¡ InitÀº µû·Î ÇØÁà¾ß ÇÔ
+	// ë³µì‚¬ ìƒì„±ìì—ì„œëŠ” owner_ê°€ ì•„ì§ ì—†ê¸° ë•Œë¬¸ì— Initì€ ë”°ë¡œ í•´ì¤˜ì•¼ í•¨
 }
 
 Component* FadeInUIComponent::GetCopy()

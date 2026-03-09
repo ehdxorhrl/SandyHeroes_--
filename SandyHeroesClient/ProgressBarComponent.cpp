@@ -8,6 +8,11 @@ ProgressBarComponent::ProgressBarComponent(Object* owner)
 {
 	type_ = UiType::kProgressBarX; // �⺻������ ���� ����� ǥ���ٷ� ����
 }
+ProgressBarComponent::ProgressBarComponent(const std::shared_ptr<Object>& owner)
+	: UiComponent(owner)
+{
+	type_ = UiType::kProgressBarX; // �⺻������ ���� ����� ǥ���ٷ� ����
+}
 
 ProgressBarComponent::ProgressBarComponent(const ProgressBarComponent& other)
 	: UiComponent(other), max_value_(other.max_value_), current_value_(other.current_value_),

@@ -14,6 +14,10 @@ ChestComponent::ChestComponent(Object* owner, Scene* scene)
 	: CharacterComponent(owner), is_open_(false), scene_(scene)
 {
 }
+ChestComponent::ChestComponent(const std::shared_ptr<Object>& owner, Scene* scene)
+	: CharacterComponent(owner), is_open_(false), scene_(scene)
+{
+}
 
 Component* ChestComponent::GetCopy()
 {

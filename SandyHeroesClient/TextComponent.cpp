@@ -15,6 +15,11 @@ TextComponent::TextComponent(Object* owner)
 {
     type_ = UiType::kText;
 }
+TextComponent::TextComponent(const std::shared_ptr<Object>& owner)
+	: UiComponent(owner)
+{
+    type_ = UiType::kText;
+}
 
 
 TextComponent::TextComponent(
@@ -30,9 +35,30 @@ TextComponent::TextComponent(
 		is_static_ = false; // get_text_func_ Ǹ  ؽƮ 
 	}
 }
+TextComponent::TextComponent(
+	const std::shared_ptr<Object>& owner, 
+	TextFormat* text_format, 
+	D2D1_RECT_F text_rect, 
+	std::function<std::wstring(std::shared_ptr<Object>)> get_text_func)
+	: UiComponent(owner), text_format_(text_format), text_rect_(text_rect)
+{
+	get_text_func_ = get_text_func;
+	if (get_text_func_)
+	{
+		is_static_ = false; // get_text_func_ Ǹ  ؽƮ 
+	}
+}
 
 TextComponent::TextComponent(
 	Object* owner, 
+	TextFormat* text_format, 
+	D2D1_RECT_F text_rect, 
+	const std::wstring& text)
+	: UiComponent(owner), text_format_(text_format), text_rect_(text_rect), text_(text)
+{
+}
+TextComponent::TextComponent(
+	const std::shared_ptr<Object>& owner, 
 	TextFormat* text_format, 
 	D2D1_RECT_F text_rect, 
 	const std::wstring& text)

@@ -11,30 +11,32 @@ class PlayerComponent :
 public:
 	PlayerComponent() {};
 	PlayerComponent(Object* owner);
+	PlayerComponent(const std::shared_ptr<Object>& owner);
 	PlayerComponent(Object* owner, float max_hp, float hp, float max_shield, float shield);
-	PlayerComponent(const PlayerComponent& other) = default; //º¹»ç »ı¼ºÀÚ
+	PlayerComponent(const std::shared_ptr<Object>& owner, float max_hp, float hp, float max_shield, float shield);
+	PlayerComponent(const PlayerComponent& other) = default; //ë³µì‚¬ ìƒì„±ì
 	virtual ~PlayerComponent() {}
 
 	virtual Component* GetCopy() override;
 
 	virtual void Update(float elapsed_time) override;
 
-	void Heal(float amount);	//ÇÃ·¹ÀÌ¾î¸¦ È¸º¹ÇÏ´Â ÇÔ¼ö
-	void HealHp(float heal_amount);	//ÇÃ·¹ÀÌ¾îÀÇ Ã¼·ÂÀ» È¸º¹ÇÏ´Â ÇÔ¼ö
-	void HealShield(float heal_amount);	//ÇÃ·¹ÀÌ¾îÀÇ ¹æÆĞ¸¦ È¸º¹ÇÏ´Â ÇÔ¼ö
+	void Heal(float amount);	//í”Œë ˆì´ì–´ë¥¼ íšŒë³µí•˜ëŠ” í•¨ìˆ˜
+	void HealHp(float heal_amount);	//í”Œë ˆì´ì–´ì˜ ì²´ë ¥ì„ íšŒë³µí•˜ëŠ” í•¨ìˆ˜
+	void HealShield(float heal_amount);	//í”Œë ˆì´ì–´ì˜ ë°©íŒ¨ë¥¼ íšŒë³µí•˜ëŠ” í•¨ìˆ˜
 
-	void HitDamage(float damage);	//ÇÃ·¹ÀÌ¾î¿¡ µ¥¹ÌÁö¸¦ ÀÔÈ÷´Â ÇÔ¼ö
+	void HitDamage(float damage);	//í”Œë ˆì´ì–´ì— ë°ë¯¸ì§€ë¥¼ ì…íˆëŠ” í•¨ìˆ˜
 
 	void AddScroll(ScrollType type);
 	bool HasScroll(ScrollType type) const;
 
-	bool ActivateMainSkill();	//ÇÃ·¹ÀÌ¾î ¸ŞÀÎ ½ºÅ³ È°¼ºÈ­ ÇÔ¼ö
+	bool ActivateMainSkill();	//í”Œë ˆì´ì–´ ë©”ì¸ ìŠ¤í‚¬ í™œì„±í™” í•¨ìˆ˜
 
 	//getter
-	float max_hp() const { return max_hp_; }	//ÇÃ·¹ÀÌ¾î ÃÖ´ë Ã¼·Â
-	float hp() const { return hp_; }		//ÇÃ·¹ÀÌ¾î ÇöÀç Ã¼·Â
-	float max_shield() const { return max_shield_; }	//ÇÃ·¹ÀÌ¾î ÃÖ´ë ¹æÆĞ
-	float shield() const { return shield_; }	//ÇÃ·¹ÀÌ¾î ÇöÀç ¹æÆĞ
+	float max_hp() const { return max_hp_; }	//í”Œë ˆì´ì–´ ìµœëŒ€ ì²´ë ¥
+	float hp() const { return hp_; }		//í”Œë ˆì´ì–´ í˜„ì¬ ì²´ë ¥
+	float max_shield() const { return max_shield_; }	//í”Œë ˆì´ì–´ ìµœëŒ€ ë°©íŒ¨
+	float shield() const { return shield_; }	//í”Œë ˆì´ì–´ í˜„ì¬ ë°©íŒ¨
 	const std::unordered_set<ScrollType>& acquired_scrolls() const;
 	float main_skill_gage() const { return main_skill_gage_; }
 	float main_skill_max_gage() const { return main_skill_max_gage_; }
@@ -42,33 +44,33 @@ public:
 	float dash_max_gage() const { return dash_max_gage_; }
 
 	//setter
-	void set_scene(Scene* scene) { scene_ = scene; }	//ÇÃ·¹ÀÌ¾î°¡ ¼ÓÇÑ ¾À ¼³Á¤
+	void set_scene(Scene* scene) { scene_ = scene; }	//í”Œë ˆì´ì–´ê°€ ì†í•œ ì”¬ ì„¤ì •
 	void set_dash_gage(float gage) { dash_gage_ = gage; }
 
 private:
-	Scene* scene_ = nullptr;	//ÇÃ·¹ÀÌ¾î°¡ ¼ÓÇÑ ¾À
+	Scene* scene_ = nullptr;	//í”Œë ˆì´ì–´ê°€ ì†í•œ ì”¬
 
-	float max_hp_ = 100.f;	//ÇÃ·¹ÀÌ¾î ÃÖ´ë Ã¼·Â
-	float hp_ = 100.f;		//ÇÃ·¹ÀÌ¾î ÇöÀç Ã¼·Â
-	float max_shield_ = 100.f;	//ÇÃ·¹ÀÌ¾î ÃÖ´ë ¹æÆĞ
-	float shield_ = 100.f;	//ÇÃ·¹ÀÌ¾î ÇöÀç ¹æÆĞ
+	float max_hp_ = 100.f;	//í”Œë ˆì´ì–´ ìµœëŒ€ ì²´ë ¥
+	float hp_ = 100.f;		//í”Œë ˆì´ì–´ í˜„ì¬ ì²´ë ¥
+	float max_shield_ = 100.f;	//í”Œë ˆì´ì–´ ìµœëŒ€ ë°©íŒ¨
+	float shield_ = 100.f;	//í”Œë ˆì´ì–´ í˜„ì¬ ë°©íŒ¨
 
 	std::unordered_set<ScrollType> acquired_scrolls_;
 
-	ModelInfo* razer_model_info_ = nullptr;	//ÇÃ·¹ÀÌ¾î ·¹ÀÌÀú ¸ğµ¨ Á¤º¸
-	float main_skill_gage_ = 0.f;	//ÇÃ·¹ÀÌ¾î ¸ŞÀÎ ½ºÅ³ °ÔÀÌÁö
-	float main_skill_max_gage_ = 5.f;	//ÇÃ·¹ÀÌ¾î ÃÖ´ë ¸ŞÀÎ ½ºÅ³ °ÔÀÌÁö
-	float main_skill_activation_time_ = 5.f;	//ÇÃ·¹ÀÌ¾î ¸ŞÀÎ ½ºÅ³ È°¼ºÈ­ ½Ã°£
-	float main_skill_max_activation_time_ = 5.f;	//ÇÃ·¹ÀÌ¾î ÃÖ´ë ¸ŞÀÎ ½ºÅ³ È°¼ºÈ­ ½Ã°£
-	float main_skill_razer_shot_time_ = 0.f;	//ÇÃ·¹ÀÌ¾î ¸ŞÀÎ ½ºÅ³ ·¹ÀÌÀú ¹ß»ç ÈÄ Áö³­ ½Ã°£
-	float main_skill_razer_cool_time_ = 0.3f;	//ÇÃ·¹ÀÌ¾î ¸ŞÀÎ ½ºÅ³ ·¹ÀÌÀú ¹ß»ç °£°İ
-	float main_skill_range_ = 20.f;	//ÇÃ·¹ÀÌ¾î ¸ŞÀÎ ½ºÅ³ ·¹ÀÌÀú »ç°Å¸®
+	ModelInfo* razer_model_info_ = nullptr;	//í”Œë ˆì´ì–´ ë ˆì´ì € ëª¨ë¸ ì •ë³´
+	float main_skill_gage_ = 0.f;	//í”Œë ˆì´ì–´ ë©”ì¸ ìŠ¤í‚¬ ê²Œì´ì§€
+	float main_skill_max_gage_ = 5.f;	//í”Œë ˆì´ì–´ ìµœëŒ€ ë©”ì¸ ìŠ¤í‚¬ ê²Œì´ì§€
+	float main_skill_activation_time_ = 5.f;	//í”Œë ˆì´ì–´ ë©”ì¸ ìŠ¤í‚¬ í™œì„±í™” ì‹œê°„
+	float main_skill_max_activation_time_ = 5.f;	//í”Œë ˆì´ì–´ ìµœëŒ€ ë©”ì¸ ìŠ¤í‚¬ í™œì„±í™” ì‹œê°„
+	float main_skill_razer_shot_time_ = 0.f;	//í”Œë ˆì´ì–´ ë©”ì¸ ìŠ¤í‚¬ ë ˆì´ì € ë°œì‚¬ í›„ ì§€ë‚œ ì‹œê°„
+	float main_skill_razer_cool_time_ = 0.3f;	//í”Œë ˆì´ì–´ ë©”ì¸ ìŠ¤í‚¬ ë ˆì´ì € ë°œì‚¬ ê°„ê²©
+	float main_skill_range_ = 20.f;	//í”Œë ˆì´ì–´ ë©”ì¸ ìŠ¤í‚¬ ë ˆì´ì € ì‚¬ê±°ë¦¬
 
-	float dash_gage_ = 0.0f;	// ´ë½¬ °ÔÀÌÁö
-	float dash_max_gage_ = 5.0f;	// ´ë½¬ ÄğÅ¸ÀÓ ÃÖ´ë ½Ã°£
+	float dash_gage_ = 0.0f;	// ëŒ€ì‰¬ ê²Œì´ì§€
+	float dash_max_gage_ = 5.0f;	// ëŒ€ì‰¬ ì¿¨íƒ€ì„ ìµœëŒ€ ì‹œê°„
 
-	float damage_cool_time_ = 1.f; // ¹«Àû½Ã°£
-	float last_damage_time_ = 0.f; // ¸¶Áö¸·À¸·Î µ¥¹ÌÁöÀÔ°í °æ°úÇÑ ½Ã°£
-	bool is_damaged = false;  // µ¥¹ÌÁö¸¦ ÀÔ¾ú´ÂÁö
+	float damage_cool_time_ = 1.f; // ë¬´ì ì‹œê°„
+	float last_damage_time_ = 0.f; // ë§ˆì§€ë§‰ìœ¼ë¡œ ë°ë¯¸ì§€ì…ê³  ê²½ê³¼í•œ ì‹œê°„
+	bool is_damaged = false;  // ë°ë¯¸ì§€ë¥¼ ì…ì—ˆëŠ”ì§€
 };
 

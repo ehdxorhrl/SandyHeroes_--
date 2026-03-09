@@ -13,6 +13,9 @@ std::unordered_map<int, int> AIComponent::s_desire_next_;
 AIComponent::AIComponent(Object* owner) : Component(owner)
 {
 }
+AIComponent::AIComponent(const std::shared_ptr<Object>& owner) : Component(owner)
+{
+}
 
 AIComponent::AIComponent(const AIComponent& other) : Component(other)
 {

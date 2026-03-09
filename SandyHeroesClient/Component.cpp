@@ -2,8 +2,11 @@
 #include "Component.h"
 #include "Object.h"
 
-Component::Component(Object* owner) : owner_(owner->shared_from_this())
+Component::Component(Object* owner) 
 {
+	if (owner)
+		owner_ = owner->shared_from_this();
+
 }
 
 Component::Component(const std::shared_ptr<Object>& owner) : owner_(owner)

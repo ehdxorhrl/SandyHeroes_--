@@ -6,6 +6,9 @@
 MeshColliderComponent::MeshColliderComponent(Object* owner) : Component(owner)
 {
 }
+MeshColliderComponent::MeshColliderComponent(const std::shared_ptr<Object>& owner) : Component(owner)
+{
+}
 
 MeshColliderComponent::MeshColliderComponent(const MeshColliderComponent& other) : Component(other)
 {

@@ -6,6 +6,9 @@
 MovementComponent::MovementComponent(Object* owner) : Component(owner)
 {
 }
+MovementComponent::MovementComponent(const std::shared_ptr<Object>& owner) : Component(owner)
+{
+}
 
 MovementComponent::MovementComponent(const MovementComponent& other) : Component(other)
 {
@@ -27,19 +30,19 @@ void MovementComponent::Update(float elapsed_time)
         velocity_.y -= gravity_acceleration_ * elapsed_time;
     }
 
-    //Áö¸é¿¡ ¼­ÀÖÀ¸¸é ´õ ÀÌ»ó ¶³¾îÁöÁö ¾ÊÀ½.
+    //ì§€ë©´ì— ì„œìžˆìœ¼ë©´ ë” ì´ìƒ ë–¨ì–´ì§€ì§€ ì•ŠìŒ.
     if (locked_owner->is_ground() && velocity_.y < 0.f)
     {
         velocity_.y = 0.f;
     }
 
-    //Á¡ÇÁ ³ôÀÌ Á¦ÇÑ
+    //ì í”„ ë†’ì´ ì œí•œ
     if (velocity_.y > 0 && (jump_before_y_ + jump_max_height_) <= locked_owner->position_vector().y)
     {
         velocity_.y = 0.f;
     }
 
-    //ÃÖ´ë ¼Ó·Â Á¦ÇÑ
+    //ìµœëŒ€ ì†ë ¥ ì œí•œ
     float speed = xmath_util_float3::Length(velocity_);
     XMFLOAT3 direction = xmath_util_float3::Normalize(velocity_);
     if (speed > max_speed_)
@@ -47,20 +50,20 @@ void MovementComponent::Update(float elapsed_time)
         velocity_ = xmath_util_float3::ScalarProduct(direction, max_speed_);
     }
 
-    //xz Æò¸é ÀÌµ¿¿¡ ÇÊ¿äÇÑ º¯¼öµé
+    //xz í‰ë©´ ì´ë™ì— í•„ìš”í•œ ë³€ìˆ˜ë“¤
     XMFLOAT3 velocity_xz{ velocity_.x, 0.f, velocity_.z };
     XMFLOAT3 direction_xz = xmath_util_float3::Normalize(velocity_xz);
     float speed_xz = xmath_util_float3::Length(velocity_xz);
     constexpr float kFrictionAcceleration{ 70.f };
 
-    //xz Æò¸é ÃÖ´ë ¼Óµµ Á¦ÇÑ
+    //xz í‰ë©´ ìµœëŒ€ ì†ë„ ì œí•œ
     if (speed_xz > max_speed_xz_)
     {
         velocity_.x *= (max_speed_xz_ / speed_xz);
         velocity_.z *= (max_speed_xz_ / speed_xz);
     }
 
-    //¸¶Âû ±¸Çö
+    //ë§ˆì°° êµ¬í˜„
     if (is_friction_)
     {
         if (is_gravity_)
@@ -94,8 +97,8 @@ void MovementComponent::Update(float elapsed_time)
     //if (locked_owner->is_player() && velocity_.y > 0)
     //{
     //    std::cout << "[Session ID: " << "] "
-    //        << locked_owner->name() << "Á¡ÇÁ ÈÄ y°ª" << owner_->position_vector().y << std::endl;
-    //    std::cout << "Á¡ÇÁ ÈÄ velocity_.y°ª" << velocity_.y << std::endl;
+    //        << locked_owner->name() << "ì í”„ í›„ yê°’" << owner_->position_vector().y << std::endl;
+    //    std::cout << "ì í”„ í›„ velocity_.yê°’" << velocity_.y << std::endl;
     //}
 }
 

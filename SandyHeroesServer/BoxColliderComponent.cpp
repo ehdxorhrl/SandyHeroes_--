@@ -9,7 +9,18 @@ BoxColliderComponent::BoxColliderComponent(Object* owner, const BoundingBox& box
 {
 	BoundingOrientedBox::CreateFromBoundingBox(box_, box);
 }
+BoxColliderComponent::BoxColliderComponent(const std::shared_ptr<Object>& owner, const BoundingBox& box)
+	: Component(owner)
+{
+	BoundingOrientedBox::CreateFromBoundingBox(box_, box);
+}
 BoxColliderComponent::BoxColliderComponent(Object* owner, const BoundingOrientedBox& box)
+	: Component(owner)
+{
+	box_ = box;
+	animated_box_ = box;
+}
+BoxColliderComponent::BoxColliderComponent(const std::shared_ptr<Object>& owner, const BoundingOrientedBox& box)
 	: Component(owner)
 {
 	box_ = box;

@@ -3,22 +3,23 @@
 
 class UiMeshComponent;
 
-// UI Åõ¸íµµ Á¡Á¡ Áõ°¡½ÃÅ°´Â ÄÄÆ÷³ÍÆ®
+// UI íˆ¬ëª…ë„ ì ì  ì¦ê°€ì‹œí‚¤ëŠ” ì»´í¬ë„ŒíŠ¸
 class FadeInUIComponent : public Component
 {
 public:
 	FadeInUIComponent(Object* owner, float duration = 5.0f);
+	FadeInUIComponent(const std::shared_ptr<Object>& owner, float duration = 5.0f);
 	FadeInUIComponent(const FadeInUIComponent& other);
 
 	virtual Component* GetCopy() override;
 	virtual void Update(float elapsed_time) override;
 
-	// ¼öµ¿À¸·Î ¸®¼ÂÇÒ ¼ö ÀÖÀ½
+	// ìˆ˜ë™ìœ¼ë¡œ ë¦¬ì…‹í•  ìˆ˜ ìˆìŒ
 	void Reset() { elapsed_ = 0.0f; }
 
 private:
-	float duration_{ 5.0f };	// ¼­¼­È÷ º¸ÀÌ´Â µ¥ °É¸®´Â ÃÑ ½Ã°£
-	float elapsed_{ 0.0f };		// ´©Àû ½Ã°£
+	float duration_{ 5.0f };	// ì„œì„œíˆ ë³´ì´ëŠ” ë° ê±¸ë¦¬ëŠ” ì´ ì‹œê°„
+	float elapsed_{ 0.0f };		// ëˆ„ì  ì‹œê°„
 
-	std::weak_ptr<UiMeshComponent> ui_mesh_; // ¾ËÆÄ¸¦ Á¶ÀıÇÒ UI ÄÄÆ÷³ÍÆ®
+	std::weak_ptr<UiMeshComponent> ui_mesh_; // ì•ŒíŒŒë¥¼ ì¡°ì ˆí•  UI ì»´í¬ë„ŒíŠ¸
 };

@@ -6,8 +6,17 @@ UiComponent::UiComponent(Object* owner)
 	: Component(owner)
 {
 }
+UiComponent::UiComponent(const std::shared_ptr<Object>& owner)
+	: Component(owner)
+{
+}
 
 UiComponent::UiComponent(Object* owner, UiType type)
+	: Component(owner), type_(type)
+{
+
+}
+UiComponent::UiComponent(const std::shared_ptr<Object>& owner, UiType type)
 	: Component(owner), type_(type)
 {
 

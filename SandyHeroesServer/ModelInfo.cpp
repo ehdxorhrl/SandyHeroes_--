@@ -75,8 +75,7 @@ void ModelInfo::LoadModelInfoFromFile(const std::string& file_name, std::vector<
 
 	if (animation_sets_.size())
 	{
-		//TODO: �� ������ ���� �˸��� AS Ŭ���� �й谡 �ʿ�
-		auto animator = std::make_shared<AnimatorComponent>(hierarchy_root_.get(), animation_sets_, frame_names_, root_bone_name_, std::make_shared<PlayerAnimationState>());
+		auto animator = std::make_shared<AnimatorComponent>(hierarchy_root_.get(), animation_sets_, frame_names_, root_bone_name_, new PlayerAnimationState);
 		hierarchy_root_->AddComponent(animator);
 	}
 

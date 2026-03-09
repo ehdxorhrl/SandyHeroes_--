@@ -27,6 +27,16 @@ void Scene::DeleteObject(std::shared_ptr<Object> object)
 	object_list_.remove(object);
 }
 
+void Scene::Update(float elapsed_time)
+{
+	for (const std::shared_ptr<Object>& object : object_list_)
+	{
+		object->Update(elapsed_time);
+	}
+
+	total_time_ += elapsed_time;
+}
+
 void Scene::UpdateObjectWorldMatrix()
 {
 	for (const std::shared_ptr<Object>& object : object_list_)

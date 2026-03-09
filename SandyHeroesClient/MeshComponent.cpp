@@ -13,8 +13,17 @@ MeshComponent::MeshComponent(Object* owner, Mesh* mesh) : Component(owner), mesh
 {
 	mesh->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 }
+MeshComponent::MeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh) : Component(owner), mesh_(mesh)
+{
+	mesh->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
+}
 
 MeshComponent::MeshComponent(Object* owner, Mesh* mesh, Material* material) : Component(owner), mesh_(mesh)
+{
+	mesh->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
+	AddMaterial(material);
+}
+MeshComponent::MeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh, Material* material) : Component(owner), mesh_(mesh)
 {
 	mesh->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 	AddMaterial(material);
@@ -32,7 +41,7 @@ MeshComponent::MeshComponent(const MeshComponent& other) : Component(other), mes
 
 MeshComponent& MeshComponent::operator=(const MeshComponent& rhs)
 {
-	//ÄÄÆ÷³ÍÆ® º¹Á¦½Ã owner_´Â ¸®¼ÂµÇ¾î¾ßÇÔ
+	//ì»´í¬ë„ŒíŠ¸ ë³µì œì‹œ owner_ëŠ” ë¦¬ì…‹ë˜ì–´ì•¼í•¨
 	mesh_ = rhs.mesh_;
 	mesh_->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 	return *this;
@@ -53,7 +62,7 @@ Component* MeshComponent::GetCopy()
 
 void MeshComponent::UpdateConstantBuffer(FrameResource* current_frame_resource, int cb_index)
 {
-	// ÀÌ ±â´ÉÀ» ÀÎ½ºÅÏ½ÌÀ» À§ÇØ Mesh ÂÊÀ¸·Î ¿Å±è ´Ù¸¸ ¿©ÀüÈ÷ skinned mesh´Â ÀÌ ÇÔ¼ö°¡ ÇÊ¿äÇÏ±â ¶§¹®¿¡ ³²°ÜµÒ
+	// ì´ ê¸°ëŠ¥ì„ ì¸ìŠ¤í„´ì‹±ì„ ìœ„í•´ Mesh ìª½ìœ¼ë¡œ ì˜®ê¹€ ë‹¤ë§Œ ì—¬ì „íˆ skinned meshëŠ” ì´ í•¨ìˆ˜ê°€ í•„ìš”í•˜ê¸° ë•Œë¬¸ì— ë‚¨ê²¨ë‘ 
 	//if (!is_visible_)
 	//	return;
 
@@ -108,7 +117,7 @@ void MeshComponent::Render(Material* material, ID3D12GraphicsCommandList* comman
 {
 	if (!is_visible_)
 		return;
-	// material°ú ¼­ºê¸Ş½¬ ÀÎµ¦½º ¸ÅÄª
+	// materialê³¼ ì„œë¸Œë©”ì‰¬ ì¸ë±ìŠ¤ ë§¤ì¹­
 	int material_index{};
 	for (int i = 0; i < materials_.size(); ++i)
 	{

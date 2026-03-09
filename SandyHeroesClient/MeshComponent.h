@@ -5,14 +5,16 @@
 class Scene;
 struct FrameResource;
 
-// ¿ÀºêÁ§Æ®¿¡ ¸Ş½¬ ±â´ÉÀ» Ãß°¡ÇØ ÁÖ´Â Å¬·¡½º
+// ì˜¤ë¸Œì íŠ¸ì— ë©”ì‰¬ ê¸°ëŠ¥ì„ ì¶”ê°€í•´ ì£¼ëŠ” í´ë˜ìŠ¤
 // 
 class MeshComponent :
     public Component
 {
 public:
     MeshComponent(Object* owner, Mesh* mesh);
+    MeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh);
     MeshComponent(Object* owner, Mesh* mesh, Material* material);
+    MeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh, Material* material);
     MeshComponent(const MeshComponent& other);
     MeshComponent& operator=(const MeshComponent& rhs);
 

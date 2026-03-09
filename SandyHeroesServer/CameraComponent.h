@@ -1,13 +1,15 @@
 #pragma once
 #include "Component.h"
 
-//¿ÀºêÁ§Æ®¿¡ Ä«¸Ş¶ó ±â´É Ãß°¡
+//ì˜¤ë¸Œì íŠ¸ì— ì¹´ë©”ë¼ ê¸°ëŠ¥ ì¶”ê°€
 class CameraComponent :
 	public Component
 {
 public:
 	CameraComponent() = delete;
 	CameraComponent(Object* owner,
+		float near_plane_distance, float far_plane_distance, float aspect_ratio, float fov_angle);
+	CameraComponent(const std::shared_ptr<Object>& owner,
 		float near_plane_distance, float far_plane_distance, float aspect_ratio, float fov_angle);
 	CameraComponent(const CameraComponent& other);
 	virtual ~CameraComponent() {}
@@ -18,8 +20,8 @@ public:
 
 	void CreateProjectionMatrix(float near_plane_distance, float far_plane_distance, float aspect_ratio, float fov_angle);
 
-	//ownerÀÇ ¿ùµå Çà·Ä ±â¹İÀ¸·Î view matrix ¾÷µ¥ÀÌÆ® 
-	//(ownerÀÇ ¿ùµåÇà·ÄÀÌ ¾÷µ¥ÀÌÆ®°¡ µÇ°í ÀÌ ÇÔ¼ö°¡ È£ÃâµÇ¾î¾ßÇÔ)
+	//ownerì˜ ì›”ë“œ í–‰ë ¬ ê¸°ë°˜ìœ¼ë¡œ view matrix ì—…ë°ì´íŠ¸ 
+	//(ownerì˜ ì›”ë“œí–‰ë ¬ì´ ì—…ë°ì´íŠ¸ê°€ ë˜ê³  ì´ í•¨ìˆ˜ê°€ í˜¸ì¶œë˜ì–´ì•¼í•¨)
 	void UpdateCameraInfo();
 
 	//getter

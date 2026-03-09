@@ -5,14 +5,16 @@
 class Scene;
 class ModelInfo;
 
-// ¿ÀºêÁ§Æ®¿¡ ½ºÆù ±â´ÉÀ» Ãß°¡ÇÏ´Â ÄÄÆ÷³ÍÆ®
-// owner_ÀÇ À§Ä¡¿¡ »ı¼ºÇÒ ÄÄÆ÷³ÍÆ®µéÀ» °¡Áø ¿ÀºêÁ§Æ®¸¦ »ı¼ºÇÑ´Ù.
+// ì˜¤ë¸Œì íŠ¸ì— ìŠ¤í° ê¸°ëŠ¥ì„ ì¶”ê°€í•˜ëŠ” ì»´í¬ë„ŒíŠ¸
+// owner_ì˜ ìœ„ì¹˜ì— ìƒì„±í•  ì»´í¬ë„ŒíŠ¸ë“¤ì„ ê°€ì§„ ì˜¤ë¸Œì íŠ¸ë¥¼ ìƒì„±í•œë‹¤.
 class SpawnerComponent :
 	public Component
 {
 public:
 	SpawnerComponent(Object* owner, Scene* scene);
+	SpawnerComponent(const std::shared_ptr<Object>& owner, Scene* scene);
 	SpawnerComponent(Object* owner, Scene* scene, ModelInfo* model_info);
+	SpawnerComponent(const std::shared_ptr<Object>& owner, Scene* scene, ModelInfo* model_info);
 
 	SpawnerComponent(const SpawnerComponent& other);
 	SpawnerComponent(const SpawnerComponent&& other);
@@ -21,12 +23,12 @@ public:
 
 	virtual void Update(float elapsed_time) override;
 
-	// ½ºÆùÈ½¼ö, ½ºÆù ´ë±â½Ã°£, ½ºÆù ÄğÅ¸ÀÓÀ» ¼³Á¤ÇÏ´Â ÇÔ¼ö
+	// ìŠ¤í°íšŸìˆ˜, ìŠ¤í° ëŒ€ê¸°ì‹œê°„, ìŠ¤í° ì¿¨íƒ€ì„ì„ ì„¤ì •í•˜ëŠ” í•¨ìˆ˜
 	void SetSpawnerInfo(int spawn_count, float spawn_time, float spawn_cool_time);
 	void SetMonsterType(MonsterType type) { monster_type_ = type; }
 
-	void ActivateSpawn(); // ½ºÆù ½ÃÀÛ
-	void DeactivateSpawn() { is_spawn_ = false; } // ½ºÆù ÁßÁö
+	void ActivateSpawn(); // ìŠ¤í° ì‹œì‘
+	void DeactivateSpawn() { is_spawn_ = false; } // ìŠ¤í° ì¤‘ì§€
 
 
 	void AddComponent(std::shared_ptr<Component> component);
@@ -34,20 +36,20 @@ public:
 
 
 
-	void ForceSpawn(); // °­Á¦·Î ¾À¿¡ ¿ÀºêÁ§Æ®¸¦ ½ºÆùÇÏ´Â ÇÔ¼ö ½ºÆù °³¼ö¿Í ÄğÅ¸ÀÓÀ» ¹«½ÃÇÏ°í ¹«Á¶°Ç ½ºÆùÇÑ´Ù.
+	void ForceSpawn(); // ê°•ì œë¡œ ì”¬ì— ì˜¤ë¸Œì íŠ¸ë¥¼ ìŠ¤í°í•˜ëŠ” í•¨ìˆ˜ ìŠ¤í° ê°œìˆ˜ì™€ ì¿¨íƒ€ì„ì„ ë¬´ì‹œí•˜ê³  ë¬´ì¡°ê±´ ìŠ¤í°í•œë‹¤.
 
 private:
-	std::list<std::shared_ptr<Component>> component_list_; // ½ºÆùÇÒ ¿ÀºêÁ§Æ®ÀÇ ÄÄÆ÷³ÍÆ® ¸®½ºÆ®
+	std::list<std::shared_ptr<Component>> component_list_; // ìŠ¤í°í•  ì˜¤ë¸Œì íŠ¸ì˜ ì»´í¬ë„ŒíŠ¸ ë¦¬ìŠ¤íŠ¸
 
-	ModelInfo* model_info_{ nullptr }; // ½ºÆùÇÒ ¸ğµ¨ Á¤º¸
+	ModelInfo* model_info_{ nullptr }; // ìŠ¤í°í•  ëª¨ë¸ ì •ë³´
 
 	MonsterType monster_type_ = MonsterType::None;
 
-	Scene* scene_{ nullptr }; // ½ºÆùÇÒ ¾À
+	Scene* scene_{ nullptr }; // ìŠ¤í°í•  ì”¬
 
-	int spawn_count_{ 0 }; // ½ºÆù È½¼ö
-	float spawn_time_{ 0.f }; // ½ºÆù ÃÊ±â ´ë±â ½Ã°£
-	float spawn_cool_time_{ 0.f }; // ¸®½ºÆù ÄğÅ¸ÀÓ
-	bool is_spawn_{ false }; // ½ºÆù ½ÃÀÛ ¿©ºÎ
+	int spawn_count_{ 0 }; // ìŠ¤í° íšŸìˆ˜
+	float spawn_time_{ 0.f }; // ìŠ¤í° ì´ˆê¸° ëŒ€ê¸° ì‹œê°„
+	float spawn_cool_time_{ 0.f }; // ë¦¬ìŠ¤í° ì¿¨íƒ€ì„
+	bool is_spawn_{ false }; // ìŠ¤í° ì‹œì‘ ì—¬ë¶€
 };
 

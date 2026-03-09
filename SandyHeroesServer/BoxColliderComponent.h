@@ -6,7 +6,9 @@ class BoxColliderComponent :
 {
 public:
 	BoxColliderComponent(Object* owner, const BoundingBox& box);
+	BoxColliderComponent(const std::shared_ptr<Object>& owner, const BoundingBox& box);
 	BoxColliderComponent(Object* owner, const BoundingOrientedBox& box);
+	BoxColliderComponent(const std::shared_ptr<Object>& owner, const BoundingOrientedBox& box);
 
 	BoxColliderComponent(const BoxColliderComponent& other);
 

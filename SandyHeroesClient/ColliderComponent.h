@@ -7,6 +7,7 @@ class ColliderComponent : public Component
 public:
 	ColliderComponent() = delete;
 	ColliderComponent(Object* owner, BoundingOrientedBox* bounding_box);
+	ColliderComponent(const std::shared_ptr<Object>& owner, BoundingOrientedBox* bounding_box);
 	ColliderComponent(const ColliderComponent& other);
 	virtual ~ColliderComponent() {}
 

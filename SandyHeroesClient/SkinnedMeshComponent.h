@@ -5,6 +5,7 @@ class SkinnedMeshComponent :
 {
 public:
     SkinnedMeshComponent(Object* owner, Mesh* mesh);
+    SkinnedMeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh);
     SkinnedMeshComponent(const SkinnedMeshComponent& other);
     SkinnedMeshComponent& operator=(const SkinnedMeshComponent& rhs);
 
@@ -15,7 +16,7 @@ public:
 
     virtual void Render(Material* material, ID3D12GraphicsCommandList* command_list, FrameResource* curr_frame_resource) override;
 
-    // skinned meshÀÇ bone names Á¤º¸¸¦ »ç¿ëÇÏ¿© bone_frames_ ¹è¿­À» ±¸¼ºÇÑ´Ù.
+    // skinned meshì˜ bone names ì •ë³´ë¥¼ ì‚¬ìš©í•˜ì—¬ bone_frames_ ë°°ì—´ì„ êµ¬ì„±í•œë‹¤.
     void AttachBoneFrames(const std::vector<std::string>& bone_names);
 
 private:

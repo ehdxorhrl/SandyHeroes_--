@@ -29,6 +29,16 @@ FPSControllerComponent::FPSControllerComponent(Object* owner) : InputControllerC
 	mouse_xy_.x = kDefaultFrameBufferWidth / 2;
 	mouse_xy_.y = kDefaultFrameBufferHeight / 2;
 }
+FPSControllerComponent::FPSControllerComponent(const std::shared_ptr<Object>& owner) : InputControllerComponent(owner)
+{
+	is_key_down_['W'] = false;
+	is_key_down_['A'] = false;
+	is_key_down_['S'] = false;
+	is_key_down_['D'] = false;
+
+	mouse_xy_.x = kDefaultFrameBufferWidth / 2;
+	mouse_xy_.y = kDefaultFrameBufferHeight / 2;
+}
 
 Component* FPSControllerComponent::GetCopy()
 {

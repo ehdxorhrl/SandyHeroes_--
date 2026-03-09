@@ -8,13 +8,14 @@ class MeshColliderComponent :
 {
 public:
     MeshColliderComponent(Object* owner);
+    MeshColliderComponent(const std::shared_ptr<Object>& owner);
     MeshColliderComponent(const MeshColliderComponent& other);
 
     virtual Component* GetCopy() override;
 
-    // ¿ùµå ÁÂÇ¥°èÀÇ ±¤¼±°ú mesh_ °£¿¡ Ãæµ¹Ã¼Å©
-    // ¸Å°³º¯¼ö: ±¤¼± ¿øÁ¡, ¹æÇâ, OUT Ãæµ¹µÈ °Å¸®(¿ùµå ÁÂÇ¥°è)
-    // return: Ãæµ¹ ¿©ºÎ
+    // ì›”ë“œ ì¢Œí‘œê³„ì˜ ê´‘ì„ ê³¼ mesh_ ê°„ì— ì¶©ëŒì²´í¬
+    // ë§¤ê°œë³€ìˆ˜: ê´‘ì„  ì›ì , ë°©í–¥, OUT ì¶©ëŒëœ ê±°ë¦¬(ì›”ë“œ ì¢Œí‘œê³„)
+    // return: ì¶©ëŒ ì—¬ë¶€
     virtual bool CollisionCheckByRay(FXMVECTOR ray_origin, FXMVECTOR ray_direction, float& out_distance);
 
     bool CollisionCheckByObb(BoundingOrientedBox obb);

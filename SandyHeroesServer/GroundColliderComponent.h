@@ -5,6 +5,7 @@ class GroundColliderComponent :
 {
 public:
     GroundColliderComponent(Object* owner) : MeshColliderComponent(owner) {}
+    GroundColliderComponent(const std::shared_ptr<Object>& owner) : MeshColliderComponent(owner) {}
     GroundColliderComponent(const GroundColliderComponent& other) : MeshColliderComponent(other) {}
 
     virtual Component* GetCopy() override

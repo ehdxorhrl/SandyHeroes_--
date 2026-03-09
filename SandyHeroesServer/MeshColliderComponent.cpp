@@ -9,6 +9,9 @@
 MeshColliderComponent::MeshColliderComponent(Object* owner) : Component(owner)
 {
 }
+MeshColliderComponent::MeshColliderComponent(const std::shared_ptr<Object>& owner) : Component(owner)
+{
+}
 
 MeshColliderComponent::MeshColliderComponent(const MeshColliderComponent& other) : Component(other)
 {
@@ -38,7 +41,7 @@ bool MeshColliderComponent::CollisionCheckByRay(FXMVECTOR ray_origin, FXMVECTOR 
 	if (bounds.Intersects(ray_origin, ray_direction, t))
 	{
 		std::string name = mesh()->name();
-		//Ã¶ÀåÀº 1Â÷°Ë»ç¸¸ ÁøÇà
+		//ì² ìž¥ì€ 1ì°¨ê²€ì‚¬ë§Œ ì§„í–‰
 		if ("Fence_01" == name ||
 			"Fence_02" == name ||
 			"Fence_03" == name ||
@@ -54,7 +57,7 @@ bool MeshColliderComponent::CollisionCheckByRay(FXMVECTOR ray_origin, FXMVECTOR 
 		auto& positions = mesh_->positions();
 		auto& indices_array = mesh_->indices_array();
 
-		//TODO: Æ®¶óÀÌ¾Þ±Û ½ºÆ®¸³¿¡ ´ëÇÑ Ã³¸® ±¸Çö
+		//TODO: íŠ¸ë¼ì´ì•µê¸€ ìŠ¤íŠ¸ë¦½ì— ëŒ€í•œ ì²˜ë¦¬ êµ¬í˜„
 		if (mesh_->primitive_topology() == D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
 		{
 			for (auto& indices : indices_array)
@@ -72,7 +75,7 @@ bool MeshColliderComponent::CollisionCheckByRay(FXMVECTOR ray_origin, FXMVECTOR 
 					if (TriangleTests::Intersects(ray_origin, ray_direction, v0, v1, v2, t))
 					{
 						is_collide = true;
-						if (t < t_min) // °¡Àå ¹ÝÁ÷¼±¿¡ °¡±î¿î »ï°¢Çü°úÀÇ ±³Á¡ ¸Å°³º¯¼ö
+						if (t < t_min) // ê°€ìž¥ ë°˜ì§ì„ ì— ê°€ê¹Œìš´ ì‚¼ê°í˜•ê³¼ì˜ êµì  ë§¤ê°œë³€ìˆ˜
 						{
 							t_min = t;
 						}
@@ -101,7 +104,7 @@ bool MeshColliderComponent::CollisionCheckByObb(BoundingOrientedBox obb)
 		auto& positions = mesh_->positions();
 		auto& indices_array = mesh_->indices_array();
 
-		//TODO: Æ®¶óÀÌ¾Þ±Û ½ºÆ®¸³¿¡ ´ëÇÑ Ã³¸® ±¸Çö
+		//TODO: íŠ¸ë¼ì´ì•µê¸€ ìŠ¤íŠ¸ë¦½ì— ëŒ€í•œ ì²˜ë¦¬ êµ¬í˜„
 		if (mesh_->primitive_topology() == D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
 		{
 			for (auto& indices : indices_array)
@@ -136,7 +139,7 @@ BoundingOrientedBox MeshColliderComponent::GetWorldOBB() const
 	BoundingOrientedBox::CreateFromBoundingBox(obb, mesh_->bounds());
 
 	auto locked_owner = owner_.lock();
-	// ¿ùµå ÁÂÇ¥°è·Î º¯È¯
+	// ì›”ë“œ ì¢Œí‘œê³„ë¡œ ë³€í™˜
 	XMFLOAT4X4 world_mat = locked_owner->world_matrix();
 	XMMATRIX world = XMLoadFloat4x4(&world_mat);        
 	obb.Transform(obb, world);

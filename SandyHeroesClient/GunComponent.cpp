@@ -22,6 +22,9 @@ const std::array<XMFLOAT4, kElementCount> GunComponent::kElementColors{
 GunComponent::GunComponent(Object* owner) : Component(owner)
 {
 }
+GunComponent::GunComponent(const std::shared_ptr<Object>& owner) : Component(owner)
+{
+}
 
 GunComponent::GunComponent(const GunComponent& other) : Component(other), 
     gun_name_(other.gun_name_), 

@@ -10,6 +10,7 @@ class CharacterComponent :
 public:
     CharacterComponent() = default;
 	CharacterComponent(Object* owner) : Component(owner) {}
+	CharacterComponent(const std::shared_ptr<Object>& owner) : Component(owner) {}
     virtual ~CharacterComponent() = default;
 
     virtual Component* GetCopy() = 0;

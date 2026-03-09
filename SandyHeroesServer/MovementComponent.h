@@ -1,14 +1,15 @@
 #pragma once
 #include "Component.h"
 
-//¿ÀºêÁ§Æ®¿¡ ÀÌµ¿ ±â´ÉÀ» Ãß°¡ÇÏ´Â ÄÄÆ÷³ÍÆ®
-//¼Óµµ¿¡ µû¸¥ ÀÌµ¿, Áß·Â Àû¿ë ÇöÀç 2°¡Áö ±â´É¸¸ ±¸ÇöÇÏ¿´´Ù.
-//´ÜÀ§: m/s
+//ì˜¤ë¸Œì íŠ¸ì— ì´ë™ ê¸°ëŠ¥ì„ ì¶”ê°€í•˜ëŠ” ì»´í¬ë„ŒíŠ¸
+//ì†ë„ì— ë”°ë¥¸ ì´ë™, ì¤‘ë ¥ ì ìš© í˜„ì¬ 2ê°€ì§€ ê¸°ëŠ¥ë§Œ êµ¬í˜„í•˜ì˜€ë‹¤.
+//ë‹¨ìœ„: m/s
 class MovementComponent :
     public Component
 {
 public:
     MovementComponent(Object* owner);
+    MovementComponent(const std::shared_ptr<Object>& owner);
     MovementComponent(const MovementComponent& other);
 
     virtual Component* GetCopy() override;
@@ -24,14 +25,14 @@ public:
     void Move(float x, float y, float z, float speed);
     void Move(XMFLOAT3 direction, float speed);
 
-    //ÀÔ·Â¹ŞÀº xz¹æÇâÀ¸·Î ¼Ó·ÂÀ» speed ¸¸Å­ Ãß°¡ÇÑ´Ù.
+    //ì…ë ¥ë°›ì€ xzë°©í–¥ìœ¼ë¡œ ì†ë ¥ì„ speed ë§Œí¼ ì¶”ê°€í•œë‹¤.
     void MoveXZ(float x, float z, float speed);
 
     void Jump(float speed, float max_height = 999.f);
 
     void Stop();
 
-    // À§Ä¡¸¦ µÇµ¹¸°´Ù
+    // ìœ„ì¹˜ë¥¼ ë˜ëŒë¦°ë‹¤
     void BackupPosition();
 
     //setter
@@ -53,10 +54,10 @@ private:
     float jump_max_height_{ 999.f };
     float jump_before_y_{};
 
-    float max_speed_xz_{ 10.f };    //ÃÖ´ë ¼Ó·Â
+    float max_speed_xz_{ 10.f };    //ìµœëŒ€ ì†ë ¥
     float max_speed_{ 999.f };
 
-    bool is_friction_{ true };      //¸¶ÂûÀ» Àû¿ëÇÏ´ÂÁö ¿©ºÎ
+    bool is_friction_{ true };      //ë§ˆì°°ì„ ì ìš©í•˜ëŠ”ì§€ ì—¬ë¶€
 
 
     XMFLOAT3 velocity_{};

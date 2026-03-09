@@ -5,12 +5,17 @@
 
 class AnimationState;
 
-//¿ÀºêÁ§Æ®¿¡ ¾Ö´Ï¸ŞÀÌ¼ÇÀ» Àû¿ëÇÏ´Â ÄÄÆ÷³ÍÆ®
+//ì˜¤ë¸Œì íŠ¸ì— ì• ë‹ˆë©”ì´ì…˜ì„ ì ìš©í•˜ëŠ” ì»´í¬ë„ŒíŠ¸
 class AnimatorComponent :
     public Component
 {
 public:
     AnimatorComponent(Object* owner,
+        const std::vector<std::unique_ptr<AnimationSet>>& animation_sets,
+        const std::vector<std::string>& frame_names,
+        const std::string& root_bone_name,
+        AnimationState* animation_state);
+    AnimatorComponent(const std::shared_ptr<Object>& owner,
         const std::vector<std::unique_ptr<AnimationSet>>& animation_sets,
         const std::vector<std::string>& frame_names,
         const std::string& root_bone_name,
@@ -37,21 +42,21 @@ private:
 
     float track_index_ = 0;
 
-    //Àû¿ëÇÒ ¾Ö´Ï¸ŞÀÌ¼Ç ¸ñ·Ï
+    //ì ìš©í•  ì• ë‹ˆë©”ì´ì…˜ ëª©ë¡
     std::vector<AnimationTrack> animation_tracks_;
     std::vector<std::string> frame_names_;
     std::string root_bone_name_;
 
-    //¾Ö´Ï¸ŞÀÌ¼ÇÀÌ Àû¿ëµÇ´Â »À´ë
+    //ì• ë‹ˆë©”ì´ì…˜ì´ ì ìš©ë˜ëŠ” ë¼ˆëŒ€
     std::vector<std::weak_ptr<Object>> bone_frames_;
     std::weak_ptr<Object> root_bone_frame_;
     bool is_attached_bone_frames_ = false;
 
-    //È°¼ºÈ­ ½Ã ½ºÅ²¸Ş½¬ÀÇ ·çÆ®º»¿¡ °¡ÇØÁö´Â translation °ªÀÌ root_node¿¡ Àû¿ëµÊ
+    //í™œì„±í™” ì‹œ ìŠ¤í‚¨ë©”ì‰¬ì˜ ë£¨íŠ¸ë³¸ì— ê°€í•´ì§€ëŠ” translation ê°’ì´ root_nodeì— ì ìš©ë¨
     bool is_root_motion_animation_ = false;
-    bool is_ignore_root_bone_traslation_ = false; // true¸é root_bone¿¡ Àû¿ëµÇ´Â ¾Ö´Ï¸ŞÀÌ¼ÇÀÇ translation °ªÀÌ ¹«½ÃµÊ
+    bool is_ignore_root_bone_traslation_ = false; // trueë©´ root_boneì— ì ìš©ë˜ëŠ” ì• ë‹ˆë©”ì´ì…˜ì˜ translation ê°’ì´ ë¬´ì‹œë¨
 
-    //¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı ¼Óµµ
+    //ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ ì†ë„
     float speed_scale_ = 1.f;
 };
 

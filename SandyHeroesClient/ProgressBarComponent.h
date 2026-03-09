@@ -6,6 +6,7 @@ class ProgressBarComponent :
 public:
 	ProgressBarComponent() = default;
 	ProgressBarComponent(Object* owner);
+	ProgressBarComponent(const std::shared_ptr<Object>& owner);
 	ProgressBarComponent(const ProgressBarComponent& other);
 	~ProgressBarComponent() = default;
 
@@ -27,10 +28,10 @@ public:
 		get_max_value_func_ = func;
 	}
 private:
-	float max_value_{ 100.f }; // ÃÖ´ë°ª
-	float current_value_{ 0.f }; // ÇöÀç°ª
+	float max_value_{ 100.f }; // ìµœëŒ€ê°’
+	float current_value_{ 0.f }; // í˜„ì¬ê°’
 	bool is_correct_max_{ false };
-	std::function<float(const std::shared_ptr<Object>&)> get_max_value_func_{ nullptr }; // ÃÖ´ë°ªÀ» °¡Á®¿À´Â ÇÔ¼ö
-	std::function<float(const std::shared_ptr<Object>&)> get_current_value_func_{ nullptr }; // ÇöÀç°ªÀ» °¡Á®¿À´Â ÇÔ¼ö
+	std::function<float(const std::shared_ptr<Object>&)> get_max_value_func_{ nullptr }; // ìµœëŒ€ê°’ì„ ê°€ì ¸ì˜¤ëŠ” í•¨ìˆ˜
+	std::function<float(const std::shared_ptr<Object>&)> get_current_value_func_{ nullptr }; // í˜„ì¬ê°’ì„ ê°€ì ¸ì˜¤ëŠ” í•¨ìˆ˜
 };
 

@@ -8,8 +8,16 @@
 RazerComponent::RazerComponent(Object* owner) : Component(owner)
 {
 }
+RazerComponent::RazerComponent(const std::shared_ptr<Object>& owner) : Component(owner)
+{
+}
 
 RazerComponent::RazerComponent(Object* owner, XMFLOAT3 start, XMFLOAT3 end) 
+{
+    owner_ = owner->shared_from_this();
+    InitRazer(start, end);
+}
+RazerComponent::RazerComponent(const std::shared_ptr<Object>& owner, XMFLOAT3 start, XMFLOAT3 end) 
 {
     owner_ = owner->shared_from_this();
     InitRazer(start, end);

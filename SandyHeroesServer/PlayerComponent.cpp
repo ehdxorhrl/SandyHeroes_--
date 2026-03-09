@@ -13,8 +13,16 @@ PlayerComponent::PlayerComponent(Object* owner)
 	: Component(owner)
 {
 }
+PlayerComponent::PlayerComponent(const std::shared_ptr<Object>& owner)
+	: Component(owner)
+{
+}
 
 PlayerComponent::PlayerComponent(Object* owner, float max_hp, float hp, float max_shield, float shield)
+	: Component(owner), max_hp_(max_hp), hp_(hp), max_shield_(max_shield), shield_(shield)
+{
+}
+PlayerComponent::PlayerComponent(const std::shared_ptr<Object>& owner, float max_hp, float hp, float max_shield, float shield)
 	: Component(owner), max_hp_(max_hp), hp_(hp), max_shield_(max_shield), shield_(shield)
 {
 }
@@ -38,11 +46,11 @@ void PlayerComponent::Update(float elapsed_time)
 	if (main_skill_gage_ < main_skill_max_gage_) 
 	{
 		main_skill_gage_ += elapsed_time;
-		//std::cout << "¸ŞÀÎ ½ºÅ³ °ÔÀÌÁö: " << main_skill_gage_ << std::endl;
+		//std::cout << "ë©”ì¸ ìŠ¤í‚¬ ê²Œì´ì§€: " << main_skill_gage_ << std::endl;
 	}
 	else {
 		main_skill_gage_ = main_skill_max_gage_;
-		//std::cout << "¸ŞÀÎ ½ºÅ³ °ÔÀÌÁö: " << main_skill_gage_ << std::endl;
+		//std::cout << "ë©”ì¸ ìŠ¤í‚¬ ê²Œì´ì§€: " << main_skill_gage_ << std::endl;
 	}
 
 	if (main_skill_activation_time_ < main_skill_max_activation_time_)
@@ -50,7 +58,7 @@ void PlayerComponent::Update(float elapsed_time)
 		main_skill_activation_time_ += elapsed_time;
 		main_skill_razer_shot_time_ += elapsed_time;
 		if(main_skill_razer_cool_time_ < main_skill_razer_shot_time_){
-			main_skill_razer_shot_time_ = 0.f; // ·¹ÀÌÀú ¹ß»ç ÈÄ Áö³­ ½Ã°£À» ÃÊ±âÈ­
+			main_skill_razer_shot_time_ = 0.f; // ë ˆì´ì € ë°œì‚¬ í›„ ì§€ë‚œ ì‹œê°„ì„ ì´ˆê¸°í™”
 			auto base_scene = dynamic_cast<BaseScene*>(scene_);
 			if (!base_scene) return;
 			auto monster_list = base_scene->monster_list();
@@ -93,7 +101,7 @@ void PlayerComponent::Heal(float amount)
 {
 	if (amount <= 0.f)
 	{
-		return; // È¸º¹·®ÀÌ 0 ÀÌÇÏÀÎ °æ¿ì ¾Æ¹« ÀÛ¾÷µµ ÇÏÁö ¾ÊÀ½
+		return; // íšŒë³µëŸ‰ì´ 0 ì´í•˜ì¸ ê²½ìš° ì•„ë¬´ ì‘ì—…ë„ í•˜ì§€ ì•ŠìŒ
 	}
 	float rest{};
 	if (hp_ < max_hp_)
@@ -101,14 +109,14 @@ void PlayerComponent::Heal(float amount)
 		hp_ += amount;
 		if (hp_ > max_hp_)
 		{
-			rest = hp_ - max_hp_; // ÃÖ´ë Ã¼·ÂÀ» ³Ñ´Â ºÎºĞÀ» rest¿¡ ÀúÀå
-			hp_ = max_hp_; // hp°¡ ÃÖ´ë Ã¼·ÂÀ» ³ÑÁö ¾Êµµ·Ï
+			rest = hp_ - max_hp_; // ìµœëŒ€ ì²´ë ¥ì„ ë„˜ëŠ” ë¶€ë¶„ì„ restì— ì €ì¥
+			hp_ = max_hp_; // hpê°€ ìµœëŒ€ ì²´ë ¥ì„ ë„˜ì§€ ì•Šë„ë¡
 		}
 	}
 	else
 	{
-		rest = amount; // hp°¡ ÀÌ¹Ì ÃÖ´ë Ã¼·ÂÀÎ °æ¿ì, rest¿¡ ÀüÃ¼ È¸º¹·® ÀúÀå
-		hp_ = max_hp_; // ÀÌ¹Ì ÃÖ´ë Ã¼·ÂÀÎ °æ¿ì
+		rest = amount; // hpê°€ ì´ë¯¸ ìµœëŒ€ ì²´ë ¥ì¸ ê²½ìš°, restì— ì „ì²´ íšŒë³µëŸ‰ ì €ì¥
+		hp_ = max_hp_; // ì´ë¯¸ ìµœëŒ€ ì²´ë ¥ì¸ ê²½ìš°
 	}
 
 	if (rest < 0.f)
@@ -116,15 +124,15 @@ void PlayerComponent::Heal(float amount)
 
 	if(shield_ < max_shield_)
 	{
-		shield_ += rest; // ³²Àº È¸º¹·®À» ¹æÆĞ¿¡ Ãß°¡
+		shield_ += rest; // ë‚¨ì€ íšŒë³µëŸ‰ì„ ë°©íŒ¨ì— ì¶”ê°€
 		if (shield_ > max_shield_)
 		{
-			shield_ = max_shield_; // shield°¡ ÃÖ´ë ¹æÆĞ¸¦ ³ÑÁö ¾Êµµ·Ï
+			shield_ = max_shield_; // shieldê°€ ìµœëŒ€ ë°©íŒ¨ë¥¼ ë„˜ì§€ ì•Šë„ë¡
 		}
 	}
 	else
 	{
-		shield_ = max_shield_; // ÀÌ¹Ì ÃÖ´ë ¹æÆĞÀÎ °æ¿ì
+		shield_ = max_shield_; // ì´ë¯¸ ìµœëŒ€ ë°©íŒ¨ì¸ ê²½ìš°
 	}
 }
 
@@ -135,12 +143,12 @@ void PlayerComponent::HealHp(float heal_amount)
 		hp_ += heal_amount;
 		if (hp_ > max_hp_)
 		{
-			hp_ = max_hp_; // hp°¡ ÃÖ´ë Ã¼·ÂÀ» ³ÑÁö ¾Êµµ·Ï
+			hp_ = max_hp_; // hpê°€ ìµœëŒ€ ì²´ë ¥ì„ ë„˜ì§€ ì•Šë„ë¡
 		}
 	}
 	else
 	{
-		hp_ = max_hp_; // ÀÌ¹Ì ÃÖ´ë Ã¼·ÂÀÎ °æ¿ì
+		hp_ = max_hp_; // ì´ë¯¸ ìµœëŒ€ ì²´ë ¥ì¸ ê²½ìš°
 	}
 }
 
@@ -151,12 +159,12 @@ void PlayerComponent::HealShield(float heal_amount)
 		shield_ += heal_amount;
 		if (shield_ > max_shield_)
 		{
-			shield_ = max_shield_; // shield°¡ ÃÖ´ë ¹æÆĞ¸¦ ³ÑÁö ¾Êµµ·Ï
+			shield_ = max_shield_; // shieldê°€ ìµœëŒ€ ë°©íŒ¨ë¥¼ ë„˜ì§€ ì•Šë„ë¡
 		}
 	}
 	else
 	{
-		shield_ = max_shield_; // ÀÌ¹Ì ÃÖ´ë ¹æÆĞÀÎ °æ¿ì
+		shield_ = max_shield_; // ì´ë¯¸ ìµœëŒ€ ë°©íŒ¨ì¸ ê²½ìš°
 	}
 }
 
@@ -177,8 +185,8 @@ void PlayerComponent::HitDamage(float damage)
 		shield_ -= damage;
 		if (shield_ < 0.f)
 		{
-			hp_ += shield_; // shield_°¡ À½¼ö¸é hp¿¡ ´õÇØÁü
-			shield_ = 0.f; // shield´Â 0À¸·Î ¼³Á¤
+			hp_ += shield_; // shield_ê°€ ìŒìˆ˜ë©´ hpì— ë”í•´ì§
+			shield_ = 0.f; // shieldëŠ” 0ìœ¼ë¡œ ì„¤ì •
 		}
 	}
 	else
@@ -187,7 +195,7 @@ void PlayerComponent::HitDamage(float damage)
 	}
 	if (hp_ < 0.f)
 	{
-		hp_ = 0.f; // hp°¡ À½¼ö·Î ³»·Á°¡Áö ¾Êµµ·Ï
+		hp_ = 0.f; // hpê°€ ìŒìˆ˜ë¡œ ë‚´ë ¤ê°€ì§€ ì•Šë„ë¡
 	}
 
 	is_damaged = true;

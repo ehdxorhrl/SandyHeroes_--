@@ -38,7 +38,6 @@ Object::Object(const Object& other) :
 	for (const std::shared_ptr<Component>& component : other.component_list_)
 	{
 		component_list_.push_back(std::shared_ptr<Component>(component->GetCopy()));
-		component_list_.back()->set_owner(this);
 	}
 }
 
@@ -370,7 +369,6 @@ void Object::UpdateWorldMatrix(const XMFLOAT4X4* const parent_world)
 
 void Object::Update(float elapsed_time)
 {
-	
 
 	life_time_ += elapsed_time;
 
@@ -458,6 +456,12 @@ std::shared_ptr<Object> Object::DeepCopy(const std::shared_ptr<Object>& value, c
 		return nullptr;
 
 	std::shared_ptr<Object> copy = std::make_shared<Object>(*value);
+
+	for (const std::shared_ptr<Component>& component : copy->component_list_)
+	{
+		component->set_owner(copy.get());
+	}
+
 	copy->parent_ = parent;
 
 	copy->child_ = DeepCopy(value->child_, copy);

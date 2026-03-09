@@ -15,6 +15,18 @@ TestControllerComponent::TestControllerComponent(Object* owner)
 	is_key_down_[VK_LBUTTON] = false;
 	is_key_down_[VK_SHIFT] = false;
 }
+TestControllerComponent::TestControllerComponent(const std::shared_ptr<Object>& owner)
+	: InputControllerComponent(owner)
+{
+	is_key_down_['W'] = false;
+	is_key_down_['A'] = false;
+	is_key_down_['S'] = false;
+	is_key_down_['D'] = false;
+	is_key_down_['Q'] = false;
+	is_key_down_['E'] = false;
+	is_key_down_[VK_LBUTTON] = false;
+	is_key_down_[VK_SHIFT] = false;
+}
 
 Component* TestControllerComponent::GetCopy()
 {
