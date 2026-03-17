@@ -29,10 +29,25 @@ void Scene::DeleteObject(std::shared_ptr<Object> object)
 
 void Scene::Update(float elapsed_time)
 {
+	is_updating_objects_ = true;
+
 	for (const std::shared_ptr<Object>& object : object_list_)
 	{
 		object->Update(elapsed_time);
 	}
+	is_updating_objects_ = false;
+
+	for (const std::shared_ptr<Object>& object : add_object_list_)
+	{
+		object_list_.push_back(object);
+	}
+	add_object_list_.clear();
+
+	for (const std::shared_ptr<Object>& object : delete_object_list_)
+	{
+		object_list_.remove(object);
+	}
+	delete_object_list_.clear();
 
 	total_time_ += elapsed_time;
 }

@@ -33,7 +33,6 @@ int HitDragonAnimationState::Run(float elapsed_time, std::shared_ptr<Object> obj
 
 		if (is_end)
 		{
-			std::cout << "kSlashLeftAttack에서 idle로 변환" << std::endl;
 			ChangeAnimationTrack((int)HitDragonAnimationTrack::kIdle, object, animator);
 		}
 		break;

@@ -97,6 +97,8 @@ void Scene::RunViewFrustumCulling()
 		for (const auto& object : sector.object_list())
 		{
 			auto object_ptr = object.lock();
+			if(!object_ptr)
+				continue;
 			object_ptr->set_is_in_view_sector(is_in_view_sector);
 		}
 	}
