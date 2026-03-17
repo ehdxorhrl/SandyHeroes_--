@@ -4,6 +4,7 @@ class DescriptorManager;
 class Shader;
 class MeshComponent;
 class CameraComponent;
+class Mesh;
 struct FrameResource;
 
 constexpr int kTextureMaskAlbedo(1 << 0);
@@ -52,6 +53,8 @@ public:
     void UpdateShaderVariables(ID3D12GraphicsCommandList* command_list, 
         FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager);
 
+    void UpdateObjectFrameResource(FrameResource* curr_frame_resource);
+
     void Render(ID3D12GraphicsCommandList* command_list,
         FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, std::shared_ptr<CameraComponent> camera, bool bShadow = false);
 
@@ -86,6 +89,6 @@ private:
     std::string name_{ "None" };
 
     std::list<std::weak_ptr<MeshComponent>> mesh_component_list_;
-
+    std::unordered_map<Mesh*, std::vector<std::shared_ptr<MeshComponent>>> batches_;
 };
 

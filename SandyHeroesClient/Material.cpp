@@ -6,6 +6,7 @@
 #include "MeshComponent.h"
 #include "Scene.h"
 #include "CameraComponent.h"
+#include "Mesh.h"
 
 using namespace file_load_util;
 
@@ -109,6 +110,44 @@ void Material::UpdateShaderVariables(ID3D12GraphicsCommandList* command_list,
 
 }
 
+void Material::UpdateObjectFrameResource(FrameResource* curr_frame_resource)
+{
+	batches_.reserve(mesh_component_list_.size());
+	for (auto it = mesh_component_list_.begin(); it != mesh_component_list_.end();)
+	{
+		auto mesh_component = it->lock();
+		if (!mesh_component)
+		{
+			it = mesh_component_list_.erase(it);
+			continue;
+		}
+		const auto& mesh = mesh_component->GetMesh();
+		batches_[mesh].push_back(mesh_component);
+
+		++it;
+	}
+	mesh_component_list_.clear();
+
+	for (const auto& [mesh, components] : batches_)
+	{
+		auto mesh_type = mesh->mesh_type();
+		if (mesh_type != MeshType::kBillboardMesh)
+		{
+			for (const auto& component : components)
+			{
+				component->UpdateConstantBuffer(curr_frame_resource);
+			}
+		}
+		else
+		{
+			for (const auto& component : components)
+			{
+				component->UpdateConstantBufferForBillboard(curr_frame_resource);
+			}
+		}
+	}
+}
+
 void Material::Render(ID3D12GraphicsCommandList* command_list, 
 	FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, std::shared_ptr<CameraComponent> camera, bool bShadow)
 {
@@ -116,52 +155,26 @@ void Material::Render(ID3D12GraphicsCommandList* command_list,
 	if(!bShadow)
 		UpdateShaderVariables(command_list, curr_frame_resource, descriptor_manager);
 
-	std::unordered_map<Mesh*, std::vector<std::shared_ptr<MeshComponent>>> batches;
-
-	for (auto it = mesh_component_list_.begin(); it != mesh_component_list_.end();)
+	for (const auto& [mesh, components] : batches_)
 	{
-		auto mesh_component = it->lock();
-		if(!mesh_component)
-		{
-			it = mesh_component_list_.erase(it);
-			continue;
-		}
-
-		const auto& mesh = mesh_component->GetMesh();
-		if (mesh->instance_count())
-		{
-			batches[mesh].push_back(mesh_component);
-			++it;
-			continue;
-		}
-		if (bShadow)
-		{
-			mesh_component->Render(this, command_list, curr_frame_resource);
-			++it;
-			continue;
-		}
-		if (camera)
-		{
-			if (mesh_component->hierarchy_root()->is_in_view_sector())
+		auto mesh_type = mesh->mesh_type();
+		if (mesh_type == MeshType::kSkinnedMesh || mesh_type == MeshType::kUIMesh)
+		{	//skinned mesh와 ui mesh는 일반 렌더링으로 처리
+			for (const auto& component : components)
 			{
-				if (camera->CollisionCheckByMeshComponent(mesh_component))
-				{
-					mesh_component->Render(this, command_list, curr_frame_resource);
-				}
+				component->Render(this, command_list, curr_frame_resource);
 			}
 		}
-		else
-		{
-			mesh_component->Render(this, command_list, curr_frame_resource);
+		else 
+		{	//instance rendering
+			auto instance_count = components.size();
+			auto sub_mesh_index = components.front()->GetMaterialIndex(this);
+			auto instance_buffer_offset = components.front()->constant_buffer_index();
+			mesh->RenderInstancing(command_list, sub_mesh_index, curr_frame_resource, instance_count, instance_buffer_offset);
 		}
-		++it;
 	}
-
-	//instance rendering
-	for (auto& [mesh, instances] : batches)
-	{
-		instances[0]->Render(this, command_list, curr_frame_resource);
-	}
+	if(!bShadow)
+		batches_.clear();
 }
 
 int Material::CreateShaderResourceViews(ID3D12Device* device, DescriptorManager* descriptor_manager, int start_index)

@@ -4,15 +4,17 @@ class SkinnedMesh :
     public Mesh
 {
 public:
+    SkinnedMesh();
+
     virtual void CreateShaderVariables(ID3D12Device* device, ID3D12GraphicsCommandList* command_list) override;
     virtual void ReleaseUploadBuffer() override;
 
-    virtual void UpdateConstantBuffer(FrameResource* curr_frame_resource, int& cb_index) override;
-    virtual void UpdateConstantBufferForShadow(FrameResource* curr_frame_resource, int& cb_index) override;
 
     virtual void Render(ID3D12GraphicsCommandList* command_list, int material_index, FrameResource* curr_frame_resource) override;
 
     void LoadSkinnedMeshFromFile(std::ifstream& file);
+
+	const std::vector<std::string>& bone_names() const { return bone_names_; }
 
 private:
     int bones_per_vertex_ = 4;

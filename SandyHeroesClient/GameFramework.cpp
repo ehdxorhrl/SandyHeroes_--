@@ -646,6 +646,8 @@ void GameFramework::FrameAdvance()
 
     auto& command_allocator = frame_resource_manager_->curr_frame_resource()->d3d_allocator;
 	frame_resource_manager_->curr_frame_resource()->current_instance_offset = 0;
+    frame_resource_manager_->curr_frame_resource()->current_bone_transform_offset = 0;
+	frame_resource_manager_->curr_frame_resource()->current_ui_offset = 0;
 
     command_allocator->Reset();
 

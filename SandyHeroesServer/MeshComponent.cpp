@@ -81,10 +81,7 @@ MeshComponent& MeshComponent::operator=(const MeshComponent& rhs)
 
 MeshComponent::~MeshComponent()
 {
-    if (mesh_)
-    {
-        mesh_->DeleteMeshComponent(this);
-    }
+
 }
 
 void MeshComponent::set_mesh(Mesh* mesh) {

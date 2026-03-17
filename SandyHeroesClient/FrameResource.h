@@ -117,6 +117,8 @@ public:
 	std::unique_ptr<UploadBuffer<CBUi>> cb_ui;
 
 	int current_instance_offset = 0;
+	int current_bone_transform_offset = 0;
+	int current_ui_offset = 0;
 
 	UINT64 fence = 0;
 };

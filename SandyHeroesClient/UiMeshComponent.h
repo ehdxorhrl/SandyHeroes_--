@@ -17,7 +17,7 @@ public:
 
     virtual Component* GetCopy() override;
 
-    virtual void UpdateConstantBuffer(FrameResource* current_frame_resource, int cb_index);
+    virtual void UpdateConstantBuffer(FrameResource* current_frame_resource);
 
     virtual void Render(Material* material, ID3D12GraphicsCommandList* command_list, FrameResource* curr_frame_resource);
 

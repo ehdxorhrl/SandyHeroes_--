@@ -3,9 +3,16 @@
 #include "Shader.h"
 #include "MeshComponent.h"
 
+UIMesh::UIMesh()
+{
+	mesh_type_ = MeshType::kUIMesh;
+}
+
 UIMesh::UIMesh(float screen_x, float screen_y, float screen_width, float screen_height, float z_depth)
     :screen_position_(screen_x, screen_y), ui_size_(screen_width, screen_height)
 {
+    mesh_type_ = MeshType::kUIMesh;
+
     positions_.reserve(4);
 
     float left = 0.f;
@@ -37,6 +44,8 @@ UIMesh::UIMesh(float screen_x, float screen_y, float screen_width, float screen_
 UIMesh::UIMesh(float screen_width, float screen_height, float z_depth)
     :screen_position_(0.f, 0.f), ui_size_(screen_width, screen_height)
 {
+    mesh_type_ = MeshType::kUIMesh;
+
     positions_.reserve(4);
 
     float left = 0.f;
@@ -82,47 +91,6 @@ XMFLOAT2 UIMesh::screen_position() const
 XMFLOAT2 UIMesh::ui_size() const
 {
     return ui_size_;
-}
-
-void UIMesh::UpdateConstantBuffer(FrameResource* curr_frame_resource, int& cb_index)
-{
-    //메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
-    for (auto it = mesh_component_list_.begin(); it != mesh_component_list_.end();)
-    {
-        auto mesh_component = it->lock();
-        if (!mesh_component)
-        {
-            it = mesh_component_list_.erase(it);
-            continue;
-        }
-
-        // 그릴 필요 없는 대상에 대해서는 업데이트를 할 필요 없음
-    	if (!mesh_component->IsVisible())
-    		continue;
-    
-    	mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
-    
-    	++cb_index;
-    }
-}
-
-void UIMesh::UpdateConstantBufferForShadow(FrameResource* curr_frame_resource, int& cb_index)
-{    
-    //메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
-    for (auto it = mesh_component_list_.begin(); it != mesh_component_list_.end();)
-    {
-        auto mesh_component = it->lock();
-        if (!mesh_component)
-        {
-            it = mesh_component_list_.erase(it);
-            continue;
-        }
-
-        mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
-
-        ++cb_index;
-    }
-
 }
 
 void UIMesh::Render(ID3D12GraphicsCommandList* command_list, int material_index, FrameResource* curr_frame_resource)

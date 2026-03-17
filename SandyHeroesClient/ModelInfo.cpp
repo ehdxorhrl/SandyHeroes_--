@@ -148,7 +148,6 @@ std::shared_ptr<Object> ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, st
 		}
 
 		auto mesh_component = std::make_shared<MeshComponent>(frame.get(), mesh);
-		mesh->DeleteMeshComponent(mesh_component);
 		frame->AddComponent(mesh_component);
 
 		ReadStringFromFile(file, load_token);
@@ -236,7 +235,6 @@ std::shared_ptr<Object> ModelInfo::LoadFrameInfoFromFile(std::ifstream& file, st
 		}
 
 		auto skinned_mesh_component = std::make_shared<SkinnedMeshComponent>(frame.get(), skinned_mesh);
-		skinned_mesh->DeleteMeshComponent(skinned_mesh_component);
 		frame->AddComponent(skinned_mesh_component);
 
 		ReadStringFromFile(file, load_token);

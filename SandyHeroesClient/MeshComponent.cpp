@@ -11,27 +11,22 @@
 
 MeshComponent::MeshComponent(Object* owner, Mesh* mesh) : Component(owner), mesh_(mesh)
 {
-	mesh->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 }
 MeshComponent::MeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh) : Component(owner), mesh_(mesh)
 {
-	mesh->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 }
 
 MeshComponent::MeshComponent(Object* owner, Mesh* mesh, Material* material) : Component(owner), mesh_(mesh)
 {
-	mesh->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 	AddMaterial(material);
 }
 MeshComponent::MeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh, Material* material) : Component(owner), mesh_(mesh)
 {
-	mesh->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 	AddMaterial(material);
 }
 
 MeshComponent::MeshComponent(const MeshComponent& other) : Component(other), mesh_(other.mesh_)
 {
-	other.mesh_->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 	materials_.reserve(other.materials_.size());
 	for (const auto& const material : other.materials_)
 	{
@@ -43,16 +38,11 @@ MeshComponent& MeshComponent::operator=(const MeshComponent& rhs)
 {
 	//컴포넌트 복제시 owner_는 리셋되어야함
 	mesh_ = rhs.mesh_;
-	mesh_->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 	return *this;
 }
 
 MeshComponent::~MeshComponent()
 {
-	if (mesh_)
-	{
-		mesh_->DeleteMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
-	}
 }
 
 Component* MeshComponent::GetCopy()
@@ -60,42 +50,90 @@ Component* MeshComponent::GetCopy()
 	return new MeshComponent(*this);
 }
 
-void MeshComponent::UpdateConstantBuffer(FrameResource* current_frame_resource, int cb_index)
+void MeshComponent::Update(float elapsed_time)
 {
-	// 이 기능을 인스턴싱을 위해 Mesh 쪽으로 옮김 다만 여전히 skinned mesh는 이 함수가 필요하기 때문에 남겨둠
-	//if (!is_visible_)
-	//	return;
-
-	//if (cb_index == -1) cb_index = constant_buffer_index_;
-	//constant_buffer_index_ = cb_index;
-
-	//CBObject object_buffer{};
-	//XMStoreFloat4x4(&object_buffer.world_matrix,
-	//	XMMatrixTranspose(XMLoadFloat4x4(&owner_->world_matrix())));
-
-	//object_buffer.time = owner_->life_time();
-
-	//UploadBuffer<CBObject>* object_cb = current_frame_resource->cb_object.get();
-	//object_cb->CopyData(cb_index, object_buffer);
+	for(int i = 0; i < materials_.size(); ++i)
+	{
+		materials_[i]->AddMeshComponent(std::static_pointer_cast<MeshComponent>(shared_from_this()));
+	}
 }
 
-void MeshComponent::UpdateConstantBufferForShadow(FrameResource* current_frame_resource, int cb_index)
+void MeshComponent::UpdateConstantBuffer(FrameResource* current_frame_resource)
 {
-	//if (cb_index == -1) cb_index = constant_buffer_index_;
-	//constant_buffer_index_ = cb_index;
+	constant_buffer_index_ = current_frame_resource->current_instance_offset;
 
-	//CBObject object_buffer{};
-	//XMStoreFloat4x4(&object_buffer.world_matrix,
-	//	XMMatrixTranspose(XMLoadFloat4x4(&owner_->world_matrix())));
+	const auto& object = owner_.lock();
+	if (!object) return;
 
-	//UploadBuffer<CBObject>* object_cb = current_frame_resource->cb_object.get();
-	//object_cb->CopyData(cb_index, object_buffer);
+	InstanceData data{};
+	XMStoreFloat4x4(&data.world_matrix,
+		XMMatrixTranspose(XMLoadFloat4x4(&object->world_matrix())));
+
+	data.time = object->life_time();
+
+	current_frame_resource->sb_instance_data->CopyData(
+		current_frame_resource->current_instance_offset++,
+		data
+	);
+}
+
+void MeshComponent::UpdateConstantBufferForBillboard(FrameResource* current_frame_resource)
+{
+	constant_buffer_index_ = current_frame_resource->current_instance_offset;
+	const auto& camera_object = GameFramework::Instance()->scene()->main_camera()->owner();
+	if(!camera_object)
+	{
+		OutputDebugString(L"MeshComponent::UpdateConstantBufferForBillboard: Camera object is null.\n");
+		return;
+	}
+
+	const auto& object = owner_.lock();
+	if(!object)
+		return;
+
+	XMVECTOR pos = XMLoadFloat3(&object->world_position_vector());
+	XMVECTOR camPos = XMLoadFloat3(&camera_object->world_position_vector());
+	XMVECTOR up = XMLoadFloat3(&object->world_up_vector());
+
+	// 카메라와 빌보드 사이 벡터
+	XMVECTOR look = XMVector3Normalize(camPos - pos);
+	XMVECTOR right = XMVector3Normalize(XMVector3Cross(up, look));
+	up = XMVector3Cross(look, right);
+
+	XMMATRIX rotation = {
+		right,
+		up,
+		look,
+		XMVectorSet(0, 0, 0, 1)
+	};
+
+	XMMATRIX world_matrix = XMLoadFloat4x4(&object->world_matrix());
+
+	XMVECTOR scale;
+	XMVECTOR dummy_rot;
+	XMVECTOR dummy_pos;
+	XMMatrixDecompose(&scale, &dummy_rot, &dummy_pos, world_matrix);
+
+	XMMATRIX scale_matrix = XMMatrixScalingFromVector(scale);
+	XMMATRIX translation = XMMatrixTranslationFromVector(pos);
+
+	world_matrix = XMMatrixTranspose(scale_matrix * rotation * translation);
+
+	InstanceData data{};
+	XMStoreFloat4x4(&data.world_matrix,
+		XMMatrixTranspose(world_matrix));
+
+	data.time = object->life_time();
+
+	current_frame_resource->sb_instance_data->CopyData(
+		current_frame_resource->current_instance_offset++,
+		data
+	);
 }
 
 void MeshComponent::AddMaterial(Material* material)
 {
 	materials_.push_back(material);
-	material->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 }
 
 bool MeshComponent::ChangeMaterial(int index, Material* material)
@@ -105,9 +143,7 @@ bool MeshComponent::ChangeMaterial(int index, Material* material)
 		return false;
 	}
 
-	materials_[index]->DeleteMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 	materials_[index] = material;
-	material->AddMeshComponent(std::dynamic_pointer_cast<MeshComponent>(shared_from_this()));
 
 	return true;
 }
@@ -170,5 +206,15 @@ void MeshComponent::set_mesh(Mesh* mesh)
 UINT MeshComponent::constant_buffer_index() const
 {
 	return constant_buffer_index_;
+}
+
+int MeshComponent::GetMaterialIndex(Material* material) const
+{
+	for (int i = 0; i < materials_.size(); ++i)
+	{
+		if (materials_[i] == material)
+			return i;
+	}
+	return -1;
 }
 

@@ -6,6 +6,15 @@ struct FrameResource;
 class DescriptorManager;
 class Material;
 
+enum class MeshType
+{
+	kStaticMesh = 0,
+	kSkinnedMesh,
+	kUIMesh,
+	kBillboardMesh,
+	kSkyboxMesh
+};
+
 class Mesh
 {
 public:
@@ -15,19 +24,14 @@ public:
 	Mesh(const Mesh&) = delete;
 	Mesh& operator=(const Mesh&) = delete;
 
-	void AddMeshComponent(std::weak_ptr<MeshComponent> mesh_component);
-	void DeleteMeshComponent(std::weak_ptr<MeshComponent> mesh_component);
-
 	virtual void CreateShaderVariables(ID3D12Device* device, ID3D12GraphicsCommandList* command_list);
 
 	virtual void ReleaseUploadBuffer();
 
-	virtual void UpdateConstantBuffer(FrameResource* curr_frame_resource, int& start_index);
-	virtual void UpdateConstantBufferForShadow(FrameResource* curr_frame_resource, int& start_index);
-
 	virtual void Render(ID3D12GraphicsCommandList* command_list, int material_index, FrameResource* curr_frame_resource);
 
-
+	void RenderInstancing(ID3D12GraphicsCommandList* command_list, int material_index, 
+		FrameResource* curr_frame_resource, int instance_count, int instance_buffer_offset);
 
 	void LoadMeshFromFile(std::ifstream& file);
 
@@ -38,13 +42,11 @@ public:
 
 	//getter
 	std::string name() const;
-
-	const std::list<std::weak_ptr<MeshComponent>>& mesh_component_list() const;
+	MeshType mesh_type() const { return mesh_type_; }
 	BoundingBox bounds() const;
 	const std::vector<XMFLOAT3>& positions() const;
 	const std::vector<std::vector<UINT>>& indices_array() const;
 	D3D12_PRIMITIVE_TOPOLOGY primitive_topology() const;
-	int instance_count() const;
 
 	//setter
 	void set_name(const std::string& name);
@@ -88,10 +90,6 @@ protected:
 
 	BoundingBox bounds_{};
 
-	std::list<std::weak_ptr<MeshComponent>> mesh_component_list_;
-
-	// 하드웨어 인스턴싱을 위한 변수들
-	int instance_count_ = 0;
-	int instance_buffer_offset_ = 0;
+	MeshType mesh_type_ = MeshType::kStaticMesh;
 };
 

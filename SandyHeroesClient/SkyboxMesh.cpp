@@ -5,10 +5,14 @@
 
 SkyboxMesh::SkyboxMesh()
 {
+	mesh_type_ = MeshType::kSkyboxMesh;
+	name_ = "Skybox";
 }
 
 SkyboxMesh::SkyboxMesh(Mesh* source_mesh)
 {
+	mesh_type_ = MeshType::kSkyboxMesh;
+
 	name_ = "Skybox";
 
 	positions_.assign(source_mesh->positions().begin(), source_mesh->positions().end());

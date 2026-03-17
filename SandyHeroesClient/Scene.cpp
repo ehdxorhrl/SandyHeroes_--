@@ -19,10 +19,24 @@
 
 void Scene::Update(float elapsed_time)
 {
+	is_updating_objects_ = true;
 	for (const std::shared_ptr<Object>& object : object_list_)
 	{
 		object->Update(elapsed_time);
 	}
+	is_updating_objects_ = false;
+
+	for(const std::shared_ptr<Object>& object : add_object_list_)
+	{
+		object_list_.push_back(object);
+	}
+	add_object_list_.clear();
+
+	for(const std::shared_ptr<Object>& object : delete_object_list_)
+	{
+		object_list_.remove(object);
+	}
+	delete_object_list_.clear();
 
 	UpdateSector();
 
@@ -211,16 +225,21 @@ void Scene::set_is_play_cutscene(bool value)
 
 void Scene::AddObject(std::shared_ptr<Object> object)
 {
+	if(is_updating_objects_)
+	{
+		add_object_list_.push_back(object);
+		return;
+	}
 	object_list_.push_back(object);
 }
 
 void Scene::DeleteObject(std::shared_ptr<Object> object)
 {
-	for (auto& sector : sectors_)
+	if(is_updating_objects_)
 	{
-		sector.DeleteObject(object.get());
+		delete_object_list_.push_back(object);
+		return;
 	}
-
 	object_list_.remove(object);
 }
 
@@ -345,30 +364,6 @@ void Scene::UpdateRenderPassShadowBuffer(ID3D12GraphicsCommandList* command_list
 	command_list->SetGraphicsRootConstantBufferView((int)RootParameterIndex::kShadowPass, cb_shadow_address);
 }
 
-void Scene::UpdateObjectConstantBuffer(FrameResource* curr_frame_resource)
-{
-	int cb_object_index = 0;
-	int cb_skinned_mesh_index = 0;
-	int cb_ui_mesh_index = 0;
-	for (const auto& mesh : meshes_)
-	{
-		auto skinned_mesh = dynamic_cast<SkinnedMesh*>(mesh.get());
-		auto ui_mesh = dynamic_cast<UIMesh*>(mesh.get());
-		if (skinned_mesh)
-		{
-			skinned_mesh->UpdateConstantBuffer(curr_frame_resource, cb_skinned_mesh_index);
-		}
-		else if (ui_mesh)
-		{
-			ui_mesh->UpdateConstantBuffer(curr_frame_resource, cb_ui_mesh_index);
-		}
-		else
-		{
-			mesh->UpdateConstantBuffer(curr_frame_resource, cb_object_index);
-		}
-	}
-}
-
 void Scene::Render(ID3D12GraphicsCommandList* command_list)
 {
 	FrameResourceManager* frame_resource_manager = game_framework_->frame_resource_manager();
@@ -398,7 +393,12 @@ void Scene::ShadowRender(ID3D12GraphicsCommandList* command_list)
 	//Shadow-Render-Pass
 	UpdateRenderPassConstantBuffer(command_list);
 	UpdateRenderPassShadowBuffer(command_list);
-	UpdateObjectConstantBuffer(curr_frame_resource);
+
+	for (const auto& material : materials_)
+	{
+		material->UpdateObjectFrameResource(curr_frame_resource);
+	}
+
 
 	{
 		auto& skinnedShadow = shaders_[(int)ShaderType::kSkinnedShadow];
@@ -413,24 +413,6 @@ void Scene::ShadowRender(ID3D12GraphicsCommandList* command_list)
 		shadow_shader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_);
 		mesh_shader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_, true);
 	}
-
-	//for (int i = -1; i <= 1; ++i)
-	//{
-	//	int idx = std::clamp(stage_clear_num_ + i, 0, 7);
-	//	const auto& mesh_list_ = GetShadowMeshList(idx);
-	//	for (auto& mesh_component : mesh_list_)
-	//	{
-	//		mesh_component->UpdateConstantBufferForShadow(curr_frame_resource, -1);
-
-	//		auto gpu_address = curr_frame_resource->cb_object->Resource()->GetGPUVirtualAddress();
-	//		const auto cb_size = d3d_util::CalculateConstantBufferSize((sizeof(CBObject)));
-	//		gpu_address += cb_size * mesh_component->constant_buffer_index();
-
-	//		command_list->SetGraphicsRootShaderResourceView((int)RootParameterIndex::kInstanceData, gpu_address);
-
-	//		mesh_component->GetMesh()->Render(command_list, 0, curr_frame_resource);
-	//	}
-	//}
 
 }
 

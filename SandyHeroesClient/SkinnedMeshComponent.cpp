@@ -3,24 +3,29 @@
 #include "Mesh.h"
 #include "FrameResource.h"
 #include "Object.h"
+#include "SkinnedMesh.h"
 
 SkinnedMeshComponent::SkinnedMeshComponent(Object* owner, Mesh* mesh) 
 	: MeshComponent(owner, mesh)
 {
+	mesh_type_ = MeshType::kSkinnedMesh;
 }
 SkinnedMeshComponent::SkinnedMeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh) 
 	: MeshComponent(owner, mesh)
 {
+	mesh_type_ = MeshType::kSkinnedMesh;
+
 }
 
 SkinnedMeshComponent::SkinnedMeshComponent(const SkinnedMeshComponent& other) : MeshComponent(other)
 {
+	mesh_type_ = MeshType::kSkinnedMesh;
+
 }
 
 SkinnedMeshComponent& SkinnedMeshComponent::operator=(const SkinnedMeshComponent& rhs)
 {
 	mesh_ = rhs.mesh_;
-	mesh_->AddMeshComponent(std::dynamic_pointer_cast<SkinnedMeshComponent>(shared_from_this()));
 	return *this;
 }
 
@@ -29,13 +34,11 @@ Component* SkinnedMeshComponent::GetCopy()
     return new SkinnedMeshComponent(*this);
 }
 
-void SkinnedMeshComponent::UpdateConstantBuffer(FrameResource* current_frame_resource, int cb_index)
+void SkinnedMeshComponent::UpdateConstantBuffer(FrameResource* current_frame_resource)
 {
-	//if (!is_visible_)
-	//	return;
+	AttachBoneFrames();
 
-	if (cb_index == -1) cb_index = constant_buffer_index_;
-	constant_buffer_index_ = cb_index;
+	constant_buffer_index_ = current_frame_resource->current_bone_transform_offset;
 
 	CBBoneTransform bone_transform_buffer{};
 
@@ -45,25 +48,7 @@ void SkinnedMeshComponent::UpdateConstantBuffer(FrameResource* current_frame_res
 			XMMatrixTranspose(XMLoadFloat4x4(&bone_frames_[i]->world_matrix())));
 	}
 	UploadBuffer<CBBoneTransform>* bone_transform_cb = current_frame_resource->cb_bone_transform.get();
-	bone_transform_cb->CopyData(cb_index, bone_transform_buffer);
-
-}
-
-void SkinnedMeshComponent::UpdateConstantBufferForShadow(FrameResource* current_frame_resource, int cb_index)
-{
-
-	if (cb_index == -1) cb_index = constant_buffer_index_;
-	constant_buffer_index_ = cb_index;
-
-	CBBoneTransform bone_transform_buffer{};
-
-	for (int i = 0; i < bone_frames_.size(); ++i)
-	{
-		XMStoreFloat4x4(&bone_transform_buffer.bone_transform_matrix[i],
-			XMMatrixTranspose(XMLoadFloat4x4(&bone_frames_[i]->world_matrix())));
-	}
-	UploadBuffer<CBBoneTransform>* bone_transform_cb = current_frame_resource->cb_bone_transform.get();
-	bone_transform_cb->CopyData(cb_index, bone_transform_buffer);
+	bone_transform_cb->CopyData(current_frame_resource->current_bone_transform_offset++, bone_transform_buffer);
 
 }
 
@@ -91,10 +76,12 @@ void SkinnedMeshComponent::Render(Material* material, ID3D12GraphicsCommandList*
 	mesh_->Render(command_list, material_index, curr_frame_resource);
 }
 
-void SkinnedMeshComponent::AttachBoneFrames(const std::vector<std::string>& bone_names)
+void SkinnedMeshComponent::AttachBoneFrames()
 {
 	if (is_attached_bone_frames_)
 		return;
+
+	const auto& bone_names = static_cast<SkinnedMesh*>(mesh_)->bone_names();
 
 	bone_frames_.clear();
 	bone_frames_.reserve(bone_names.size());

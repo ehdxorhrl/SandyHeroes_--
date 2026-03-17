@@ -5,6 +5,7 @@
 class Scene;
 struct FrameResource;
 
+
 // 오브젝트에 메쉬 기능을 추가해 주는 클래스
 // 
 class MeshComponent :
@@ -22,8 +23,10 @@ public:
 
     virtual Component* GetCopy() override;
 
-    virtual void UpdateConstantBuffer(FrameResource* current_frame_resource, int cb_index);
-    virtual void UpdateConstantBufferForShadow(FrameResource* current_frame_resource, int cb_index);
+	void Update(float elapsed_time) override;
+
+    virtual void UpdateConstantBuffer(FrameResource* current_frame_resource);
+	void UpdateConstantBufferForBillboard(FrameResource* current_frame_resource);
 
     virtual void Render(Material* material, ID3D12GraphicsCommandList* command_list, FrameResource* curr_frame_resource);
 
@@ -45,7 +48,12 @@ public:
     void set_mesh(Mesh* mesh);
 
     UINT constant_buffer_index() const;
+
+	MeshType mesh_type() const { return mesh_type_; }
+	int GetMaterialIndex(Material* material) const;
 protected:
+	MeshType mesh_type_ = MeshType::kStaticMesh;
+
     UINT constant_buffer_index_{};
 
     Mesh* mesh_ = nullptr;

@@ -51,8 +51,6 @@ public:
 
 	virtual const std::list<std::weak_ptr<MeshComponent>>& GetShadowMeshList(int index = 0);
 
-	void UpdateObjectConstantBuffer(FrameResource* curr_frame_resource);
-
 	virtual void Render(ID3D12GraphicsCommandList* command_list);
 	virtual void ShadowRender(ID3D12GraphicsCommandList* command_list);
 	virtual void RenderText(ID2D1DeviceContext2* d2d_device_context);
@@ -92,7 +90,10 @@ public:
 	void set_is_play_cutscene(bool value);
 
 protected:
+	bool is_updating_objects_ = false;	//씬이 오브젝트들을 업데이트 중인지 여부.
 	std::list<std::shared_ptr<Object>> object_list_;
+	std::list<std::shared_ptr<Object>> add_object_list_;	//업데이트 중에 추가되는 오브젝트들을 임시로 저장하는 리스트. 업데이트가 끝나면 이 리스트의 오브젝트들이 씬의 오브젝트 리스트로 옮겨진다.
+	std::list<std::shared_ptr<Object>> delete_object_list_;	//업데이트 중에 삭제되는 오브젝트들을 임시로 저장하는 리스트. 업데이트가 끝나면 이 리스트의 오브젝트들이 씬의 오브젝트 리스트에서 제거된다.
 	std::unordered_map<int, std::unique_ptr<Shader>> shaders_;
 	std::vector<std::unique_ptr<Mesh>> meshes_;
 	std::vector<std::unique_ptr<ModelInfo>> model_infos_;
