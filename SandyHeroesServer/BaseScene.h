@@ -32,8 +32,8 @@ public:
 
 	std::shared_ptr<Object> CreateAndRegisterPlayer(long long session_id);
 
-	void AddObject(std::shared_ptr<Object> object) override;
-	void DeleteObject(std::shared_ptr<Object> object);
+	virtual void AddObject(std::shared_ptr<Object> object) override;
+	virtual void DeleteObject(std::shared_ptr<Object> object) override;
 	
 
 	//TODO: 단일 플레이어 뿐만 아니라 적, 다른 플레이어에 대한 ground 체크도 필요

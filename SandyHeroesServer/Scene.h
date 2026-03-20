@@ -31,10 +31,10 @@ public:
 	XMVECTOR GetPickingPointAtWorld(float sx, float sy, Object* picked_object);
 
 	virtual void AddObject(std::shared_ptr<Object> object);
+	virtual void DeleteObject(std::shared_ptr<Object> object);
 
 	virtual void Update(float elapsed_time);
 
-	void DeleteObject(std::shared_ptr<Object> object);
 
 	void UpdateObjectWorldMatrix();
 

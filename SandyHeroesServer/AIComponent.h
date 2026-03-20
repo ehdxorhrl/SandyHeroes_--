@@ -327,9 +327,12 @@ static BTNode* Build_Bomb_Dragon_Tree(std::shared_ptr<Object> self)
 static BTNode* Build_Shot_Dragon_Tree(std::shared_ptr<Object> self)
 {
     auto state = std::make_shared<ShotState>();
+	std::weak_ptr<Object> weak_self = self;
 
     // update thorn projectile list
-    auto thorn_update = [self, state](float elapsed_time) -> bool {
+    auto thorn_update = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
         auto& fired_thorns = state->fired_thorn_list;
         const auto& users = SessionManager::getInstance().getAllSessions();
 
@@ -343,7 +346,7 @@ static BTNode* Build_Shot_Dragon_Tree(std::shared_ptr<Object> self)
 			}
             ++it;
             auto thorn_position = thorn->world_position_vector();
-            if (xmath_util_float3::LengthSq(thorn_position - self->world_position_vector()) > 10000.f)
+            if (xmath_util_float3::LengthSq(thorn_position - locked_self->world_position_vector()) > 10000.f)
             {
 				GameFramework::Instance()->GetScene()->DeleteObject(thorn);
                 sc_packet_object_set_dead osd;
@@ -368,7 +371,7 @@ static BTNode* Build_Shot_Dragon_Tree(std::shared_ptr<Object> self)
                 if (hit_player)
                 {
                     auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player);
-                    auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+                    auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(locked_self);
                     playercomp->HitDamage(monstercomp->attack_force());
 
                     sc_packet_object_set_dead osd;
@@ -468,38 +471,42 @@ static BTNode* Build_Shot_Dragon_Tree(std::shared_ptr<Object> self)
         return true;
     };
 
-    auto rotate = [self](float elapsed_time) -> bool {
-        auto target = Set_Target(self);
+    auto rotate = [weak_self](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+        auto target = Set_Target(locked_self);
         if (!target) return false;    
 
-        auto ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(locked_self);
         if (!ai) return false;
 
         return ai->Rotate_To_Target(elapsed_time, target);
     };
 
-    auto attack = [self, state](float elapsed_time) -> bool {
+    auto attack = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
         if (state->attacked && (state->acc < state->fuse)) {
             state->acc += elapsed_time;
             return false;
         }
 
-        auto target = GetCurrentTarget(self);
+        auto target = GetCurrentTarget(locked_self);
         if (!target) return false;
 
         sc_packet_monster_change_animation mca;
         mca.size = sizeof(sc_packet_monster_change_animation);
         mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-        mca.id = self->id();
+        mca.id = locked_self->id();
         mca.loop_type = 0;
         mca.animation_track = 3; // kAttack
-        self->set_animation_state(3);
+        locked_self->set_animation_state(3);
 
         const auto& users = SessionManager::getInstance().getAllSessions();
         for (auto& u : users) {
             u.second->do_send(&mca);
         }
-        XMFLOAT3 thorn_position = self->FindFrame("AttackL")->world_position_vector();
+        XMFLOAT3 thorn_position = locked_self->FindFrame("AttackL")->world_position_vector();
 		XMFLOAT3 direction = target->FindFrame("Root_M")->world_position_vector() - thorn_position;
 		direction = xmath_util_float3::Normalize(direction);
 
@@ -534,7 +541,7 @@ static BTNode* Build_Shot_Dragon_Tree(std::shared_ptr<Object> self)
         sc_packet_shotdragon_attack sa;
         sa.size = sizeof(sc_packet_shotdragon_attack);
         sa.type = S2C_P_SHOTDRAGON_ATTACK;
-        sa.id = self->id();
+        sa.id = locked_self->id();
         sa.thorn_id = thorn_projectile->id();
         sa.dx = direction.x;
         sa.dy = direction.y;
@@ -573,10 +580,12 @@ static BTNode* Build_Hit_Dragon_Tree(std::shared_ptr<Object> self)
 	constexpr float attack_cool_time = 1.f; // ���� ��Ÿ��
 	auto state = std::make_shared<HitState>();
 
-
+	std::weak_ptr<Object> weak_self = self;
 
     // �ٰŸ� ���� ������
-    auto is_attacking = [self, state](float elapsed_time) -> bool {
+    auto is_attacking = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
 		constexpr float animation_spf = 0.03f; // ���� �ִϸ��̼� �����Ӵ� �ð�
 		constexpr float start_attack_time = animation_spf * 7.f; // ���� ���� �ð�
 		constexpr float end_attack_time = animation_spf * 20.f; // ���� ���� �ð�
@@ -599,7 +608,7 @@ static BTNode* Build_Hit_Dragon_Tree(std::shared_ptr<Object> self)
             {
                 //std::cout << "start_attack_time ����" << std::endl;
                 //std::cout << "state->attack_time �ð�: " << state->attack_time << std::endl;
-                auto left_arm = self->FindFrame("RigLArm2");
+                auto left_arm = locked_self->FindFrame("RigLArm2");
                 auto box = Object::GetComponent<BoxColliderComponent>(left_arm);
                 if (!box)
                 {
@@ -616,7 +625,7 @@ static BTNode* Build_Hit_Dragon_Tree(std::shared_ptr<Object> self)
                     if (box->animated_box().Intersects(player_box->animated_box())) 
                     {
                         auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player);
-                        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+                        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(locked_self);
                         playercomp->HitDamage(monstercomp->attack_force());
                         sc_packet_player_damaged pd;
                         pd.size = sizeof(sc_packet_player_damaged);
@@ -635,7 +644,7 @@ static BTNode* Build_Hit_Dragon_Tree(std::shared_ptr<Object> self)
 
         return !state->is_attacking; //���� ���� �ƴϸ� ����
         };
-    auto is_end_cooldown = [self, state](float elapsed_time) -> bool {
+    auto is_end_cooldown = [state](float elapsed_time) -> bool {
         state->attack_cooldown += elapsed_time;
         if (state->attack_cooldown >= attack_cool_time) { // 1�� ��Ÿ��
             state->attack_cooldown = 0.f; // ��Ÿ�� �ʱ�ȭ
@@ -643,24 +652,26 @@ static BTNode* Build_Hit_Dragon_Tree(std::shared_ptr<Object> self)
         }
         return false; // ���� ��Ÿ���� ������ ����
 		};
-    auto is_in_range = [self, state](float elapsed_time) -> bool {
-
-        auto target = GetCurrentTarget(self);
-        return InRangeXZ(self, target, range);
+    auto is_in_range = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+        auto target = GetCurrentTarget(locked_self);
+        return InRangeXZ(locked_self, target, range);
 		};
-    auto melee = [self, state](float elapsed_time) -> bool {
-		auto target = GetCurrentTarget(self);
+    auto melee = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		auto target = GetCurrentTarget(locked_self);
 		if (!target) return false; // Ÿ���� ������ ����
 		state->attack_cooldown = 0.f; // ���� ��Ÿ�� �ʱ�ȭ
 		state->is_attacking = true; // ���� ���·� ����
 
         // ȸ�� �� ����
-        auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+        auto movement = Object::GetComponentInChildren<MovementComponent>(locked_self);
 
-        XMFLOAT3 look = self->look_vector();
+        XMFLOAT3 look = locked_self->look_vector();
         look.y = 0.f;
         look = xmath_util_float3::Normalize(look);
-        XMFLOAT3 direction = target->world_position_vector() - self->world_position_vector();
+        XMFLOAT3 direction = target->world_position_vector() - locked_self->world_position_vector();
         direction.y = 0.f;
         direction = xmath_util_float3::Normalize(direction);
         float angle = xmath_util_float3::AngleBetween(look, direction);
@@ -673,17 +684,17 @@ static BTNode* Build_Hit_Dragon_Tree(std::shared_ptr<Object> self)
                 angle = -angle;
             }
             angle = XMConvertToDegrees(angle);
-            self->Rotate(0.f, angle, 0.f);
+            locked_self->Rotate(0.f, angle, 0.f);
         }
 
         //�ִϸ��̼� ���� ����
 		sc_packet_monster_change_animation mca;
 		mca.size = sizeof(sc_packet_monster_change_animation);
 		mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-		mca.id = self->id();
+		mca.id = locked_self->id();
 		mca.loop_type = 1; // Once
 		mca.animation_track = 7; // kSlashLeftAttack
-        self->set_animation_state(7);
+        locked_self->set_animation_state(7);
 		const auto& users = SessionManager::getInstance().getAllSessions();
 		for (auto& u : users) {
 			u.second->do_send(&mca);
@@ -693,17 +704,19 @@ static BTNode* Build_Hit_Dragon_Tree(std::shared_ptr<Object> self)
     };
 
 	// �÷��̾ ���� �̵�
-    auto move_to_player = [self, state](float elapsed_time) -> bool {
+    auto move_to_player = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
         if (state->is_attacking) {
             return false;
         }
-        auto target = Set_Target(self);
+        auto target = Set_Target(locked_self);
         if (!target) return false; 
 
-        auto ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(locked_self);
         if (!ai) return false;
 
-        bool is_range = InRangeXZ(self, target, range - 0.1f);
+        bool is_range = InRangeXZ(locked_self, target, range - 0.1f);
         if (is_range) return false; 
 
         //�ƴϸ� Ÿ�ٹ������� �̵�
@@ -742,8 +755,8 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
 	auto state = std::make_shared<StrongState>();
 	constexpr float range = 1.6f; // �ٰŸ� ���� ����
     constexpr float attack_cool_time = 1.f; // ���� ��Ÿ��
-
-    auto spawn_wait = [self, state](float elapsed_time) -> bool {
+	std::weak_ptr<Object> weak_self = self;
+    auto spawn_wait = [state](float elapsed_time) -> bool {
         constexpr float kSpawnWaitTime = 3.f; // ���� ��� �ð�
         if (state->spawn_time < kSpawnWaitTime) {
             state->spawn_time += elapsed_time;
@@ -752,14 +765,18 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
         return false; // ��ٸ� �Ϸ�
         };
 
-    auto shield = [self]() -> float {
-        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+    auto shield = [weak_self]() -> float {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return 0.f;
+        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(locked_self);
         if (!monstercomp) return 0.f;
         return monstercomp->shield();
     };
 
     //���� ���� 1ȸ ������
-    auto is_attacking = [self, state](float elapsed_time) -> bool {
+    auto is_attacking = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
         constexpr float animation_spf = 0.03f; // ���� �ִϸ��̼� �����Ӵ� �ð�
         constexpr float start_attack_time = animation_spf * 10.f; // ���� ���� �ð�
         constexpr float end_attack_time = animation_spf * 20.f; // ���� ���� �ð�
@@ -773,8 +790,8 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
             }
             if (state->attack_time > start_attack_time)
             {
-                auto left_arm = self->FindFrame("RigLArm1");
-                auto right_arm = self->FindFrame("RigRArm1");
+                auto left_arm = locked_self->FindFrame("RigLArm1");
+                auto right_arm = locked_self->FindFrame("RigRArm1");
                 auto box_list = Object::GetComponentsInChildren<BoxColliderComponent>(left_arm);
                 box_list.splice(box_list.end(), Object::GetComponentsInChildren<BoxColliderComponent>(right_arm));
                 if (!box_list.size())
@@ -799,7 +816,7 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
                         {
                             is_collide = true;
                             auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player);
-                            auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+                            auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(locked_self);
                             playercomp->HitDamage(monstercomp->attack_force());
                             sc_packet_player_damaged pd;
                             pd.size = sizeof(sc_packet_player_damaged);
@@ -818,17 +835,19 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
         }
         return !state->is_attacking;
         };
-    auto move_to_player_dash_in_place = [self, state](float elapsed_time) -> bool {
-        auto target = Set_Target(self);
+    auto move_to_player_dash_in_place = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+        auto target = Set_Target(locked_self);
         if (!target) return false; 
 
-        auto ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(locked_self);
         if (!ai) return false;
 
-		auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+		auto movement = Object::GetComponentInChildren<MovementComponent>(locked_self);
 		if (!movement) return false;
 
-        bool is_range = InRangeXZ(self, target, range - 0.2f);
+        bool is_range = InRangeXZ(locked_self, target, range - 0.2f);
         if (is_range)
         {
             movement->Stop();
@@ -842,24 +861,24 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
 			sc_packet_monster_change_animation mca;
 			mca.size = sizeof(sc_packet_monster_change_animation);
 			mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-			mca.id = self->id();
+			mca.id = locked_self->id();
 			mca.loop_type = 0; // Loop
 			mca.animation_track = 3; // kDashInPlace
-			self->set_animation_state(3);
+            locked_self->set_animation_state(3);
 		}
 
         //�ƴϸ� Ÿ�ٹ������� �̵�
         XMFLOAT3 target_position = target->world_position_vector();
-        XMFLOAT3 direction = target_position - self->world_position_vector();
+        XMFLOAT3 direction = target_position - locked_self->world_position_vector();
         XMFLOAT3 direction_xz = direction;
         direction_xz.y = 0.f;
         direction_xz = xmath_util_float3::Normalize(direction_xz);
         direction = xmath_util_float3::Normalize(direction);
         movement->Move(direction_xz, 5.f);
 
-        XMFLOAT3 look = self->look_vector();
+        XMFLOAT3 look = locked_self->look_vector();
         look.y = 0.f;
-        direction = target_position - self->world_position_vector(); // �׻� Ÿ���� �ٶ󺸵���
+        direction = target_position - locked_self->world_position_vector(); // �׻� Ÿ���� �ٶ󺸵���
         direction.y = 0.f;
         direction = xmath_util_float3::Normalize(direction);
         look = xmath_util_float3::Normalize(look);
@@ -872,18 +891,18 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
                 angle = -angle;
             }
             angle = XMConvertToDegrees(angle);
-            self->Rotate(0.f, angle, 0.f);
+            locked_self->Rotate(0.f, angle, 0.f);
         }
 
         const auto& users = SessionManager::getInstance().getAllSessions();
         sc_packet_monster_move mm;
         mm.size = sizeof(sc_packet_monster_move);
         mm.type = S2C_P_MONSTER_MOVE;
-        mm.id = self->id();
+        mm.id = locked_self->id();
         mm.speed = 5.f;
 		mm.animation_track = 3; // kDashInPlace
         XMFLOAT4X4 xf;
-        const XMFLOAT4X4& mat = self->transform_matrix();
+        const XMFLOAT4X4& mat = locked_self->transform_matrix();
         XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
         memcpy(mm.matrix, &xf, sizeof(float) * 16);
         for (auto& u : users) {
@@ -892,7 +911,7 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
 
         return false; 
         };
-    auto is_end_cooldown = [self, state](float elapsed_time) -> bool {
+    auto is_end_cooldown = [state](float elapsed_time) -> bool {
         state->attack_cooldown += elapsed_time;
         if (state->attack_cooldown >= attack_cool_time) { // 1�� ��Ÿ��
             state->attack_cooldown = 0.f; // ��Ÿ�� �ʱ�ȭ
@@ -900,34 +919,40 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
         }            
         return false; // ���� ��Ÿ���� ������ ����
         };
-    auto is_in_range = [self](float elapsed_time) -> bool {
-        auto target = GetCurrentTarget(self);
-        return InRangeXZ(self, target, range);
+    auto is_in_range = [weak_self](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+        auto target = GetCurrentTarget(locked_self);
+        return InRangeXZ(locked_self, target, range);
         };
-    auto spin_attack_once = [self, state](float elapsed_time) -> bool {
-            auto target = GetCurrentTarget(self);
-            if (!target) return false; // Ÿ���� ������ ����
-            state->attack_cooldown = 0.f; // ���� ��Ÿ�� �ʱ�ȭ
-            state->attack_time = 0.f;
-            state->is_attacking = true; // ���� ���·� ����
+    auto spin_attack_once = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+        auto target = GetCurrentTarget(locked_self);
+        if (!target) return false; // Ÿ���� ������ ����
+        state->attack_cooldown = 0.f; // ���� ��Ÿ�� �ʱ�ȭ
+        state->attack_time = 0.f;
+        state->is_attacking = true; // ���� ���·� ����
 
-            //�ִϸ��̼� ���� ����
-            sc_packet_monster_change_animation mca;
-            mca.size = sizeof(sc_packet_monster_change_animation);
-            mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-            mca.id = self->id();
-            mca.loop_type = 1; // Once
-            mca.animation_track = 4; // kSpinAttackOnce
-            self->set_animation_state(4);
-            const auto& users = SessionManager::getInstance().getAllSessions();
-            for (auto& u : users) {
-                u.second->do_send(&mca);
-            }
-            return true;
-            };
+        //�ִϸ��̼� ���� ����
+        sc_packet_monster_change_animation mca;
+        mca.size = sizeof(sc_packet_monster_change_animation);
+        mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
+        mca.id = locked_self->id();
+        mca.loop_type = 1; // Once
+        mca.animation_track = 4; // kSpinAttackOnce
+        locked_self->set_animation_state(4);
+        const auto& users = SessionManager::getInstance().getAllSessions();
+        for (auto& u : users) {
+            u.second->do_send(&mca);
+        }
+        return true;
+        };
 
 
-    auto is_loop_attacking = [self, state](float elapsed_time) -> bool {
+    auto is_loop_attacking = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
         if (!state->is_hp_low)
         {
             state->is_hp_low = true;
@@ -939,8 +964,8 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
         if (state->is_attacking) 
         {
             state->attack_time += elapsed_time; // ���� �ð� ����
-            auto left_arm = self->FindFrame("RigLArm1");
-            auto right_arm = self->FindFrame("RigRArm1");
+            auto left_arm = locked_self->FindFrame("RigLArm1");
+            auto right_arm = locked_self->FindFrame("RigRArm1");
             auto box_list = Object::GetComponentsInChildren<BoxColliderComponent>(left_arm);
             box_list.splice(box_list.end(), Object::GetComponentsInChildren<BoxColliderComponent>(right_arm));
             if (!box_list.size())
@@ -965,7 +990,7 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
                     {
                         is_collide = true;
                         auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player);
-                        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+                        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(locked_self);
                         playercomp->HitDamage(monstercomp->attack_force());
                         sc_packet_player_damaged pd;
                         pd.size = sizeof(sc_packet_player_damaged);
@@ -983,17 +1008,19 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
         }
         return true;
     };
-    auto chase_target = [self, state](float elapsed_time) -> bool {
-		auto target = Set_Target(self);
+    auto chase_target = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+		auto target = Set_Target(locked_self);
 		if (!target) return false; // Ÿ���� ������ ����
 
-        auto ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(locked_self);
         if (!ai) return false;
 
-        auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+        auto movement = Object::GetComponentInChildren<MovementComponent>(locked_self);
         if (!movement) return false;
 
-        bool is_range = InRangeXZ(self, target, range - 0.1f);
+        bool is_range = InRangeXZ(locked_self, target, range - 0.1f);
         if (is_range)
         {
             movement->set_velocity(XMFLOAT3{0.f,0.f,0.f});
@@ -1001,10 +1028,10 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
             sc_packet_monster_change_animation mca;
             mca.size = sizeof(sc_packet_monster_change_animation);
             mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-            mca.id = self->id();
+            mca.id = locked_self->id();
             mca.loop_type = 0; // Loop
             mca.animation_track = 5; // kSpinAttackLoop
-            self->set_animation_state(5);
+            locked_self->set_animation_state(5);
             const auto& users = SessionManager::getInstance().getAllSessions();
             for (auto& u : users) {
                 u.second->do_send(&mca);
@@ -1022,16 +1049,16 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
 
         //�ƴϸ� Ÿ�ٹ������� �̵�
         XMFLOAT3 target_position = target->world_position_vector();
-        XMFLOAT3 direction = target_position - self->world_position_vector();
+        XMFLOAT3 direction = target_position - locked_self->world_position_vector();
         XMFLOAT3 direction_xz = direction;
         direction_xz.y = 0.f;
         direction_xz = xmath_util_float3::Normalize(direction_xz);
         direction = xmath_util_float3::Normalize(direction);
         movement->Move(direction_xz, 5.f);
 
-        XMFLOAT3 look = self->look_vector();
+        XMFLOAT3 look = locked_self->look_vector();
         look.y = 0.f;
-        direction = target_position - self->world_position_vector(); // �׻� Ÿ���� �ٶ󺸵���
+        direction = target_position - locked_self->world_position_vector(); // �׻� Ÿ���� �ٶ󺸵���
         direction.y = 0.f;
         direction = xmath_util_float3::Normalize(direction);
         look = xmath_util_float3::Normalize(look);
@@ -1044,18 +1071,18 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
                 angle = -angle;
             }
             angle = XMConvertToDegrees(angle);
-            self->Rotate(0.f, angle, 0.f);
+            locked_self->Rotate(0.f, angle, 0.f);
         }
 
         const auto& users = SessionManager::getInstance().getAllSessions();
         sc_packet_monster_move mm;
         mm.size = sizeof(sc_packet_monster_move);
         mm.type = S2C_P_MONSTER_MOVE;
-        mm.id = self->id();
+        mm.id = locked_self->id();
         mm.speed = 5.f;
         mm.animation_track = 5; // kDashInPlace
         XMFLOAT4X4 xf;
-        const XMFLOAT4X4& mat = self->transform_matrix();
+        const XMFLOAT4X4& mat = locked_self->transform_matrix();
         XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
         memcpy(mm.matrix, &xf, sizeof(float) * 16);
         for (auto& u : users) {
@@ -1064,8 +1091,10 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
 
         return false;
         };
-    auto spin_attack_loop = [self, state](float elapsed_time) -> bool {
-        auto target = GetCurrentTarget(self);
+    auto spin_attack_loop = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+        auto target = GetCurrentTarget(locked_self);
         if (!target) return false; // Ÿ���� ������ ����
 		if (state->is_attacking) return false; // �̹� ���� ���̸� ����
         state->attack_time = 0.f;
@@ -1074,10 +1103,10 @@ static BTNode* Build_Strong_Dragon_Tree(std::shared_ptr<Object> self)
         sc_packet_monster_change_animation mca;
         mca.size = sizeof(sc_packet_monster_change_animation);
         mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-        mca.id = self->id();
+        mca.id = locked_self->id();
         mca.loop_type = 0; // Loop
         mca.animation_track = 5; // kSpinAttackLoop
-        self->set_animation_state(5);
+        locked_self->set_animation_state(5);
         const auto& users = SessionManager::getInstance().getAllSessions();
         for (auto& u : users) {
             u.second->do_send(&mca);
@@ -1133,14 +1162,19 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
     constexpr float kRange = 7.f; // �ٰŸ� ���� ����
 	constexpr float kSpeed = 8.f; // �̵� �ӵ�
 
+	std::weak_ptr<Object> weak_self = self;
 
-    auto shield = [self]() -> float {
-        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+    auto shield = [weak_self]() -> float {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return 0.f;
+        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(locked_self);
         if (!monstercomp) return 0.f;
         return monstercomp->shield();
         };
 
-    auto is_bite_attacking = [self, state](float elapsed_time) -> bool {
+    auto is_bite_attacking = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
         constexpr float animation_spf = 0.03f; // ���� �ִϸ��̼� �����Ӵ� �ð�
         constexpr float start_attack_time = animation_spf * 10.f; // ���� ���� �ð�
         constexpr float end_attack_time = animation_spf * 27.f; // ���� ���� �ð�
@@ -1154,7 +1188,7 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
             }
             if (state->attack_time > start_attack_time)
             {
-                auto head = self->FindFrame("RigHead");
+                auto head = locked_self->FindFrame("RigHead");
                 auto box = Object::GetComponent<BoxColliderComponent>(head);
                 if (!box)
                 {
@@ -1172,7 +1206,7 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
                     if (box->animated_box().Intersects(player_box->animated_box()))
                     {
                         auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player);
-                        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+                        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(locked_self);
                         playercomp->HitDamage(monstercomp->attack_force());
                         sc_packet_player_damaged pd;
                         pd.size = sizeof(sc_packet_player_damaged);
@@ -1190,17 +1224,21 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
         }
 		return !state->is_attacking;
         };
-    auto fly_to_sky = [self, state](float elapsed_time) -> bool {
-        auto ai = Object::GetComponentInChildren<AIComponent>(self);
+
+    auto fly_to_sky = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+
+        auto ai = Object::GetComponentInChildren<AIComponent>(locked_self);
         if (!ai) return false;
-		auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+		auto movement = Object::GetComponentInChildren<MovementComponent>(locked_self);
 		if (!movement) return false; 
 
         if (state->is_revolution) return true;
         if (state->is_move_to_target) return true;
 
 		constexpr XMFLOAT3 target_position{ 205.3f, 23.f, -91.f }; // �ϴ÷� ���ƿ��� ��ǥ ��ġ
-        XMFLOAT3 direction = target_position - self->world_position_vector();
+        XMFLOAT3 direction = target_position - locked_self->world_position_vector();
         if (xmath_util_float3::Length(direction) < 0.5f) 
         {
             state->is_fly_to_sky = false;
@@ -1219,7 +1257,7 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
                 direction = xmath_util_float3::Normalize(direction);
                 movement->Move(direction, kSpeed);
 
-                XMFLOAT3 look = self->look_vector();
+                XMFLOAT3 look = locked_self->look_vector();
                 look = xmath_util_float3::Normalize(look);
                 float angle = xmath_util_float3::AngleBetween(look, direction);
                 if (angle > XM_PI / 180.f * 5.f)
@@ -1230,17 +1268,17 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
                         angle = -angle;
                     }
                     angle = XMConvertToDegrees(angle);
-                    self->Rotate(0.f, angle, 0.f);
+                    locked_self->Rotate(0.f, angle, 0.f);
                 }
 
                 // �ִϸ��̼� ���� ����
                 sc_packet_monster_change_animation mca;
                 mca.size = sizeof(sc_packet_monster_change_animation);
                 mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-                mca.id = self->id();
+                mca.id = locked_self->id();
                 mca.loop_type = 0; // Loop
                 mca.animation_track = 4; // kFlyUpFast
-                self->set_animation_state(4);
+                locked_self->set_animation_state(4);
                 const auto& users = SessionManager::getInstance().getAllSessions();
                 for (auto& u : users) {
                     u.second->do_send(&mca);
@@ -1249,11 +1287,11 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
             sc_packet_monster_move mm;
             mm.size = sizeof(sc_packet_monster_move);
             mm.type = S2C_P_MONSTER_MOVE;
-            mm.id = self->id();
+            mm.id = locked_self->id();
             mm.speed = kSpeed;
 			mm.animation_track = 4; // kFlyUpFast
             XMFLOAT4X4 xf;
-            const XMFLOAT4X4& mat = self->transform_matrix();
+            const XMFLOAT4X4& mat = locked_self->transform_matrix();
             XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
             memcpy(mm.matrix, &xf, sizeof(float) * 16);
 
@@ -1265,8 +1303,11 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
             return false;
         }
 		};
-    auto revolution = [self, state](float elapsed_time) -> bool {
-        auto ai = Object::GetComponentInChildren<AIComponent>(self);
+
+    auto revolution = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+        auto ai = Object::GetComponentInChildren<AIComponent>(locked_self);
         if (!ai) return false;
 
         if (state->is_move_to_target) return true;
@@ -1286,7 +1327,7 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
             sc_packet_monster_change_animation mca;
             mca.size = sizeof(sc_packet_monster_change_animation);
             mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-            mca.id = self->id();
+            mca.id = locked_self->id();
             mca.loop_type = 0; // Loop
             mca.animation_track = 5; // kFlyRightFast
             const auto& users = SessionManager::getInstance().getAllSessions();
@@ -1318,7 +1359,7 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
             23.f, 
             revolution_center.z + revolution_radius * sinf(angle) };
 
-		self->set_position_vector(next_position); // ������Ʈ ��ġ ������Ʈ
+		locked_self->set_position_vector(next_position); // ������Ʈ ��ġ ������Ʈ
 
         // ���� ����(����ȭ)
         XMFLOAT3 tangent{
@@ -1328,7 +1369,7 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
         };
         tangent = xmath_util_float3::Normalize(tangent);
         tangent = tangent * -1.f;
-		XMFLOAT3 look = self->look_vector();
+		XMFLOAT3 look = locked_self->look_vector();
 		look = xmath_util_float3::Normalize(look);
         float rotate_angle = xmath_util_float3::AngleBetween(look, tangent);
         if (rotate_angle > XM_PI / 180.f * 5.f)
@@ -1339,17 +1380,17 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
                 rotate_angle = -rotate_angle;
             }
             rotate_angle = XMConvertToDegrees(rotate_angle);
-            self->Rotate(0.f, rotate_angle, 0.f);
+            locked_self->Rotate(0.f, rotate_angle, 0.f);
         }
 
         sc_packet_monster_move mm;
         mm.size = sizeof(sc_packet_monster_move);
         mm.type = S2C_P_MONSTER_MOVE;
-        mm.id = self->id();
+        mm.id = locked_self->id();
         mm.speed = 6.f;
 		mm.animation_track = 5; // kFlyRightFast
         XMFLOAT4X4 xf;
-        const XMFLOAT4X4& mat = self->transform_matrix();
+        const XMFLOAT4X4& mat = locked_self->transform_matrix();
         XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
         memcpy(mm.matrix, &xf, sizeof(float) * 16);
 
@@ -1360,12 +1401,15 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
 
 		return false;
 		};
-    auto move_to_target = [self, state](float elapsed_time) -> bool {
-        auto target = Set_Target(self);
+
+    auto move_to_target = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+        auto target = Set_Target(locked_self);
         if (!target) return false; // Ÿ���� ������ ����
-        auto ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(locked_self);
         if (!ai) return false;
-		auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+		auto movement = Object::GetComponentInChildren<MovementComponent>(locked_self);
 		if (!movement) return false;
 
 		constexpr float kGroundY = 3.6f; // ���� ����
@@ -1379,17 +1423,17 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
             sc_packet_monster_change_animation mca;
             mca.size = sizeof(sc_packet_monster_change_animation);
             mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-            mca.id = self->id();
+            mca.id = locked_self->id();
             mca.loop_type = 0; // Loop
             mca.animation_track = 6; // kFlyDownFast
             const auto& users = SessionManager::getInstance().getAllSessions();
             for (auto& u : users) {
                 u.second->do_send(&mca);
 			}
-            self->set_animation_state(6);
+            locked_self->set_animation_state(6);
         }
 
-        if (InRangeXZ(self, target, kRange + 0.5f) && self->position_vector().y < kGroundY - kFlyHeight)
+        if (InRangeXZ(locked_self, target, kRange + 0.5f) && locked_self->position_vector().y < kGroundY - kFlyHeight)
         {
             movement->set_velocity(XMFLOAT3{ 0.f,0.f,0.f });
             state->is_move_to_target = false;
@@ -1401,7 +1445,7 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
         //�ƴϸ� Ÿ�ٹ������� �̵�
 		XMFLOAT3 target_position = target->world_position_vector();
 		target_position.y -= kFlyHeight; // fly �ִϸ��̼��� �����Ͽ� Ÿ�� ��ġ�� �ణ ����
-        XMFLOAT3 direction = target_position - self->world_position_vector();
+        XMFLOAT3 direction = target_position - locked_self->world_position_vector();
 		XMFLOAT3 direction_xz = direction;
 		direction_xz.y = 0.f; 
 		direction_xz = xmath_util_float3::Normalize(direction_xz);
@@ -1409,9 +1453,9 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
         direction = xmath_util_float3::Normalize(direction);
         movement->Move(direction, kSpeed);
 
-        XMFLOAT3 look = self->look_vector();
+        XMFLOAT3 look = locked_self->look_vector();
 		look.y = 0.f; 
-        direction = target_position - self->world_position_vector(); // �׻� Ÿ���� �ٶ󺸵���
+        direction = target_position - locked_self->world_position_vector(); // �׻� Ÿ���� �ٶ󺸵���
         direction.y = 0.f;
         direction = xmath_util_float3::Normalize(direction);
         look = xmath_util_float3::Normalize(look);
@@ -1424,18 +1468,18 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
                 angle = -angle;
             }
             angle = XMConvertToDegrees(angle);
-            self->Rotate(0.f, angle, 0.f);
+            locked_self->Rotate(0.f, angle, 0.f);
         }
 
 		const auto& users = SessionManager::getInstance().getAllSessions();
 		sc_packet_monster_move mm;
 		mm.size = sizeof(sc_packet_monster_move);
 		mm.type = S2C_P_MONSTER_MOVE;
-		mm.id = self->id();
+		mm.id = locked_self->id();
 		mm.speed = kSpeed;
 		mm.animation_track = 6; // kFlyDownFast
 		XMFLOAT4X4 xf;
-		const XMFLOAT4X4& mat = self->transform_matrix();
+		const XMFLOAT4X4& mat = locked_self->transform_matrix();
 		XMStoreFloat4x4(&xf, XMLoadFloat4x4(&mat));
 		memcpy(mm.matrix, &xf, sizeof(float) * 16);
 		for (auto& u : users) {
@@ -1444,8 +1488,11 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
 
         return false;
         };
-    auto bite_attack = [self, state](float elapsed_time) -> bool {
-        auto target = GetCurrentTarget(self);
+
+    auto bite_attack = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+        auto target = GetCurrentTarget(locked_self);
         if (!target) return false; // Ÿ���� ������ ����
         state->attack_time = 0.f;
         state->is_attacking = true; // ���� ���·� ����
@@ -1454,10 +1501,10 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
         sc_packet_monster_change_animation mca;
         mca.size = sizeof(sc_packet_monster_change_animation);
         mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-        mca.id = self->id();
+        mca.id = locked_self->id();
         mca.loop_type = 1; // Once
         mca.animation_track = 7; // kFlyBiteAttackLow
-        self->set_animation_state(7);
+        locked_self->set_animation_state(7);
         const auto& users = SessionManager::getInstance().getAllSessions();
         for (auto& u : users) {
             u.second->do_send(&mca);
@@ -1465,8 +1512,10 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
         return true;
         };
 
-    auto is_breath_attacking = [self, state](float elapsed_time) -> bool {
-        auto movement = Object::GetComponentInChildren<MovementComponent>(self);
+    auto is_breath_attacking = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+        auto movement = Object::GetComponentInChildren<MovementComponent>(locked_self);
         if (!movement) return false;
 
         if (!state->is_hp_low)
@@ -1496,7 +1545,7 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
             }
             if (state->attack_time > start_attack_time)
             {
-                auto head = self->FindFrame("Breath");
+                auto head = locked_self->FindFrame("Breath");
                 auto box = Object::GetComponent<BoxColliderComponent>(head);
                 if (!box)
                 {
@@ -1514,7 +1563,7 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
                     if (box->animated_box().Intersects(player_box->animated_box()))
                     {
                         auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player);
-                        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+                        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(locked_self);
 						playercomp->HitDamage(monstercomp->attack_force());
                         sc_packet_player_damaged pd;
                         pd.size = sizeof(sc_packet_player_damaged);
@@ -1532,21 +1581,24 @@ static BTNode* Build_Super_Dragon_Tree(std::shared_ptr<Object> self)
         }
         return !state->is_attacking; //���� ���� �ƴϸ� ����
 		};
-    auto breath_attack = [self, state](float elapsed_time) -> bool {
-        auto target = GetCurrentTarget(self);
+
+    auto breath_attack = [weak_self, state](float elapsed_time) -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+        auto target = GetCurrentTarget(locked_self);
         if (!target) return false; // Ÿ���� ������ ����
         state->attack_time = 0.f;
         state->is_attacking = true; // ���� ���·� ����
 
-        if (self->animation_state() != 8) {
+        if (locked_self->animation_state() != 8) {
             //�ִϸ��̼� ���� ����
             sc_packet_monster_change_animation mca;
             mca.size = sizeof(sc_packet_monster_change_animation);
             mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-            mca.id = self->id();
+            mca.id = locked_self->id();
             mca.loop_type = 1; // Once
             mca.animation_track = 8; // kFlyFireBreathAttackLow
-            self->set_animation_state(8);
+            locked_self->set_animation_state(8);
 
             const auto& users = SessionManager::getInstance().getAllSessions();
             for (auto& u : users)

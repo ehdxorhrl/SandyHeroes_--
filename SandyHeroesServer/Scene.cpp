@@ -14,23 +14,35 @@ XMVECTOR Scene::GetPickingPointAtWorld(float sx, float sy, Object* picked_object
 
 void Scene::AddObject(std::shared_ptr<Object> object)
 {
+	if(is_updating_objects_)
+	{
+		add_object_list_.push_back(object);
+		return;
+	}
 	object_list_.push_back(object);
 }
 
 void Scene::DeleteObject(std::shared_ptr<Object> object)
 {
+
+	if(is_updating_objects_)
+	{
+		delete_object_list_.push_back(object);
+		return;
+	}
 	for (auto& sector : sectors_)
 	{
 		sector.DeleteObject(object.get());
 	}
 
 	object_list_.remove(object);
+	std::cout << "Object " << object->name() << " with id " << object->id() << " is destroyed by Scene\n";
+
 }
 
 void Scene::Update(float elapsed_time)
 {
 	is_updating_objects_ = true;
-
 	for (const std::shared_ptr<Object>& object : object_list_)
 	{
 		object->Update(elapsed_time);
@@ -46,6 +58,7 @@ void Scene::Update(float elapsed_time)
 	for (const std::shared_ptr<Object>& object : delete_object_list_)
 	{
 		object_list_.remove(object);
+		std::cout << "Object " << object->name() << " with id " << object->id() << " is destroyed by Scene\n";
 	}
 	delete_object_list_.clear();
 
