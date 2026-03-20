@@ -1187,6 +1187,7 @@ void GameFramework::ProcessPacket(char* p)
         if (!monster) break;
         auto monster_component = Object::GetComponentInChildren<MonsterComponent>(monster);
         if (!monster_component) break;
+        if (monster_component->IsDead()) break;
         XMFLOAT4X4 xf;
         memcpy(&xf, packet->matrix, sizeof(float) * 16);
         monster->set_transform_matrix(xf);
@@ -1262,6 +1263,8 @@ void GameFramework::ProcessPacket(char* p)
         auto packet = reinterpret_cast<sc_packet_monster_change_animation*>(p);
         auto monster = base_scene->FindObject(packet->id);
         if (!monster) break;
+        auto monster_component = Object::GetComponentInChildren<MonsterComponent>(monster);
+        if (monster_component && monster_component->IsDead()) break;
         auto animator = Object::GetComponent<AnimatorComponent>(monster);
         auto animation_state = animator->animation_state();
         animation_state->ChangeAnimationTrack((int)packet->animation_track, monster, animator);
