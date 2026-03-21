@@ -2152,9 +2152,6 @@ void BaseScene::change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t
 		++it;
 	}
 
-	auto gun_component = Object::GetComponent<GunComponent>(found_gun);
-	if (!gun_component) return;
-
 	auto player_gun_frame = player->FindFrame("WeaponR_locator");
 	if (!player_gun_frame) return;
 
@@ -2167,6 +2164,7 @@ void BaseScene::change_gun(uint32_t gun_id, const std::string& gun_name, uint8_t
 		if (!model_info) return;
 		player_gun_frame->ChangeChild(model_info->GetInstance(), name, false);
 	}
+
 }
 
 void BaseScene::OpenScrollChest(uint8_t scroll_type, uint8_t chest_num)

@@ -145,12 +145,6 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, std::shared_ptr<Object> bullet
         movement->Move(direction, bullet_speed_);
         bullet->Scale(3.f);
         scene->AddObject(bullet);
-        std::function<void(Object*)> on_destroy_func = [this](Object* bullet_ptr) {
-            fired_bullet_list_.remove_if([bullet_ptr](const std::weak_ptr<Object>& wp) {
-                return wp.lock().get() == bullet_ptr;
-            });
-        };
-        bullet->OnDestroy(on_destroy_func);
         fired_bullet_list_.push_back(bullet);
 
     }

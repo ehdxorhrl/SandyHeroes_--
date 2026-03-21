@@ -187,6 +187,8 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, std::shared_ptr<Object> bullet
             
             auto base_scene = dynamic_cast<BaseScene*>(scene);
             base_scene->CheckRayHitEnemy(locked_owner->world_position_vector(), direction, id);
+
+            std::cout << "총알 발사! 남은 탄창: " << loaded_bullets_ << std::endl;
         }
     }
     else

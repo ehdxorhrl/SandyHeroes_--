@@ -477,6 +477,7 @@ void Session::process_packet(unsigned char* p, float elapsed_time)
 		auto gun = Object::GetComponentInChildren<GunComponent>(player_object_);
 		if (gun) {
 			BaseScene* base_scene = dynamic_cast<BaseScene*>(GameFramework::Instance()->GetScene());
+			std::cout << "ÃÑ¾Ë ¹ß»ç!" << std::endl;
 
 			auto bullet_mesh = base_scene->FindModelInfo("SM_Bullet_01")->GetInstance();
 			gun->FireBullet(fire_direction_, bullet_mesh, base_scene, id_);

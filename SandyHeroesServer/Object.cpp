@@ -18,8 +18,6 @@ Object::Object(const std::string& name) : name_(name)
 
 Object::~Object()
 {
-	if(name_ != "SM_Bullet_01")
-		std::cout << "Object " << name_ << " with id " << id_ << " is destroyed.\n";
 
 }
 

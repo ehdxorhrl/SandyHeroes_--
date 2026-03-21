@@ -58,7 +58,6 @@ void Scene::Update(float elapsed_time)
 	for (const std::shared_ptr<Object>& object : delete_object_list_)
 	{
 		object_list_.remove(object);
-		std::cout << "Object " << object->name() << " with id " << object->id() << " is destroyed by Scene\n";
 	}
 	delete_object_list_.clear();
 

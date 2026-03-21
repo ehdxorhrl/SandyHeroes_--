@@ -1768,10 +1768,12 @@ void BaseScene::CheckRayHitEnemy(const XMFLOAT3& ray_origin, const XMFLOAT3& ray
 		auto monster = it->lock();
 		if (!monster)
 		{
-			monster_list_.erase(it);
+			it = monster_list_.erase(it);
 			continue;
 		}
+		++it;
 		const auto& object = monster->owner();
+		if (!object) continue;
 
 		auto box_list = Object::GetComponentsInChildren<BoxColliderComponent>(object);
 		if (box_list.empty()) continue;
