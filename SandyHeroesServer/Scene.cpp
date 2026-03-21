@@ -36,7 +36,6 @@ void Scene::DeleteObject(std::shared_ptr<Object> object)
 	}
 
 	object_list_.remove(object);
-	std::cout << "Object " << object->name() << " with id " << object->id() << " is destroyed by Scene\n";
 
 }
 

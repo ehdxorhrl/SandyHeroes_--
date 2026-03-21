@@ -952,14 +952,6 @@ void BaseScene::AddObject(std::shared_ptr<Object> object)
 
 void BaseScene::DeleteObject(std::shared_ptr<Object> object)
 {
-	CollideType collide_type = object->collide_type();
-	if (collide_type.wall_check)
-	{
-		wall_check_object_list_.remove_if([&object](const WallCheckObject& wall_check_object) {
-			return wall_check_object.object.expired() || wall_check_object.object.lock() == object;
-			});
-	}
-
 	Scene::DeleteObject(object);
 }
 
@@ -990,8 +982,8 @@ void BaseScene::UpdateObjectHitWall()
 		auto object = it->object.lock();
 		auto movement = it->movement.lock();
 		if (!object || !movement) { it = wall_check_object_list_.erase(it); continue; }
-		CheckPlayerHitWall(object, movement);
 		++it;
+		CheckPlayerHitWall(object, movement);
 	}
 }
 
