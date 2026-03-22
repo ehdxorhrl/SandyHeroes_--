@@ -7,7 +7,7 @@
 ### Class: Object
 - **Architectural Role:** The base entity in the game world. Contains a transform and a list of Components.
 - **Memory Management Analysis:**
-  - *Refactoring Check:* is_dead_ member should be removed. Deletion is handled by Scene::DeleteObject and weak_ptr invalidation.
+  - *Refactoring Complete:* is_dead_ member has been removed. Deletion is handled purely by Scene::DeleteObject and weak_ptr invalidation.
   - Primarily uses raw pointers, value types, or external handles (e.g., ComPtr for D3D12).
 
 ### Class: AnimationSet
@@ -23,13 +23,13 @@
 - **Architectural Role:** The base entity in the game world. Contains a transform and a list of Components.
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for AnimatorComponent, Object.
-  - *Refactoring Check:* is_dead_ member should be removed. Deletion is handled by Scene::DeleteObject and weak_ptr invalidation.
+  - *Refactoring Complete:* is_dead_ member has been removed. Deletion is handled purely by Scene::DeleteObject and weak_ptr invalidation.
 
 ### Class: AnimatorComponent
 - **Architectural Role:** A reusable module attached to an Object to define specific behaviors or data (ECS architecture).
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for AnimatorComponent, Object.
-  - *Refactoring Warning:* Contains shared_ptr<Object>. Ensure this does not create a circular reference with the owner.
+  - *Refactoring Complete:* Object ownership clarified. owner_ and non-owning references use weak_ptr to prevent circular references.
 
 ### Class: AnimationState
 - **Architectural Role:** Defines a specific state within a Finite State Machine (e.g., animation or AI behavior).
@@ -48,7 +48,7 @@
 ### Class: Object
 - **Architectural Role:** The base entity in the game world. Contains a transform and a list of Components.
 - **Memory Management Analysis:**
-  - *Refactoring Check:* is_dead_ member should be removed. Deletion is handled by Scene::DeleteObject and weak_ptr invalidation.
+  - *Refactoring Complete:* is_dead_ member has been removed. Deletion is handled purely by Scene::DeleteObject and weak_ptr invalidation.
   - Primarily uses raw pointers, value types, or external handles (e.g., ComPtr for D3D12).
 
 ### Class: AnimationLoopType
@@ -79,7 +79,7 @@
   - shared_ptr: Uses shared ownership for Object.
   - weak_ptr: Safely references Object without affecting lifecycle.
   - unique_ptr: Exclusively owns AnimationState, AnimationSet.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ---
 
@@ -91,7 +91,7 @@
   - shared_ptr: Uses shared ownership for MovementComponent, ParticleComponent, Object.
   - weak_ptr: Safely references SpawnerComponent, GroundColliderComponent, BoxColliderComponent, MeshComponent, MonsterComponent, RazerComponent, Object, MovementComponent without affecting lifecycle.
   - unique_ptr: Exclusively owns ParticleSystem, TextFormat.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ### Class: SpawnerComponent
 - **Architectural Role:** A reusable module attached to an Object to define specific behaviors or data (ECS architecture).
@@ -99,7 +99,7 @@
   - shared_ptr: Uses shared ownership for MovementComponent, ParticleComponent, Object.
   - weak_ptr: Safely references SpawnerComponent, GroundColliderComponent, BoxColliderComponent, MeshComponent, MonsterComponent, RazerComponent, Object, MovementComponent without affecting lifecycle.
   - unique_ptr: Exclusively owns ParticleSystem, TextFormat.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ### Class: BoxColliderComponent
 - **Architectural Role:** A reusable module attached to an Object to define specific behaviors or data (ECS architecture).
@@ -107,7 +107,7 @@
   - shared_ptr: Uses shared ownership for MovementComponent, ParticleComponent, Object.
   - weak_ptr: Safely references SpawnerComponent, GroundColliderComponent, BoxColliderComponent, MeshComponent, MonsterComponent, RazerComponent, Object, MovementComponent without affecting lifecycle.
   - unique_ptr: Exclusively owns ParticleSystem, TextFormat.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ### Class: GroundColliderComponent
 - **Architectural Role:** A reusable module attached to an Object to define specific behaviors or data (ECS architecture).
@@ -115,7 +115,7 @@
   - shared_ptr: Uses shared ownership for MovementComponent, ParticleComponent, Object.
   - weak_ptr: Safely references SpawnerComponent, GroundColliderComponent, BoxColliderComponent, MeshComponent, MonsterComponent, RazerComponent, Object, MovementComponent without affecting lifecycle.
   - unique_ptr: Exclusively owns ParticleSystem, TextFormat.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ### Class: WallColliderComponent
 - **Architectural Role:** A reusable module attached to an Object to define specific behaviors or data (ECS architecture).
@@ -123,7 +123,7 @@
   - shared_ptr: Uses shared ownership for MovementComponent, ParticleComponent, Object.
   - weak_ptr: Safely references SpawnerComponent, GroundColliderComponent, BoxColliderComponent, MeshComponent, MonsterComponent, RazerComponent, Object, MovementComponent without affecting lifecycle.
   - unique_ptr: Exclusively owns ParticleSystem, TextFormat.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ### Class: MovementComponent
 - **Architectural Role:** A reusable module attached to an Object to define specific behaviors or data (ECS architecture).
@@ -131,7 +131,7 @@
   - shared_ptr: Uses shared ownership for MovementComponent, ParticleComponent, Object.
   - weak_ptr: Safely references SpawnerComponent, GroundColliderComponent, BoxColliderComponent, MeshComponent, MonsterComponent, RazerComponent, Object, MovementComponent without affecting lifecycle.
   - unique_ptr: Exclusively owns ParticleSystem, TextFormat.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ### Class: MonsterComponent
 - **Architectural Role:** A reusable module attached to an Object to define specific behaviors or data (ECS architecture).
@@ -139,7 +139,7 @@
   - shared_ptr: Uses shared ownership for MovementComponent, ParticleComponent, Object.
   - weak_ptr: Safely references SpawnerComponent, GroundColliderComponent, BoxColliderComponent, MeshComponent, MonsterComponent, RazerComponent, Object, MovementComponent without affecting lifecycle.
   - unique_ptr: Exclusively owns ParticleSystem, TextFormat.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ### Class: BaseScene
 - **Inherits from:** Scene
@@ -148,7 +148,7 @@
   - shared_ptr: Uses shared ownership for MovementComponent, ParticleComponent, Object.
   - weak_ptr: Safely references SpawnerComponent, GroundColliderComponent, BoxColliderComponent, MeshComponent, MonsterComponent, RazerComponent, Object, MovementComponent without affecting lifecycle.
   - unique_ptr: Exclusively owns ParticleSystem, TextFormat.
-  - *Refactoring Check:* Scene lists (except object_list_) should be weak_ptr to avoid dangling pointers during object deletion.
+  - *Refactoring Complete:* Scene lists (except object_list_) are managed with weak_ptr, resolving dangling pointers during object deletion.
 
 ### Struct: WallCheckObject
 - **Architectural Role:** Core data structure or utility class for wallcheckobject.
@@ -225,14 +225,14 @@
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
   - weak_ptr: Safely references AnimatorComponent, MovementComponent without affecting lifecycle.
-  - *Refactoring Warning:* Contains shared_ptr<Object>. Ensure this does not create a circular reference with the owner.
+  - *Refactoring Complete:* Object ownership clarified. owner_ and non-owning references use weak_ptr to prevent circular references.
 
 ### Class: MovementComponent
 - **Architectural Role:** A reusable module attached to an Object to define specific behaviors or data (ECS architecture).
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
   - weak_ptr: Safely references AnimatorComponent, MovementComponent without affecting lifecycle.
-  - *Refactoring Warning:* Contains shared_ptr<Object>. Ensure this does not create a circular reference with the owner.
+  - *Refactoring Complete:* Object ownership clarified. owner_ and non-owning references use weak_ptr to prevent circular references.
 
 ### Class: CharacterComponent
 - **Inherits from:** Component
@@ -240,7 +240,7 @@
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
   - weak_ptr: Safely references AnimatorComponent, MovementComponent without affecting lifecycle.
-  - *Refactoring Warning:* Contains shared_ptr<Object>. Ensure this does not create a circular reference with the owner.
+  - *Refactoring Complete:* Object ownership clarified. owner_ and non-owning references use weak_ptr to prevent circular references.
 
 ---
 
@@ -279,7 +279,7 @@
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
   - weak_ptr: Safely references Object without affecting lifecycle.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ---
 
@@ -310,7 +310,7 @@
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
   - weak_ptr: Safely references Object without affecting lifecycle.
-  - *Refactoring Check:* is_dead_ member should be removed. Deletion is handled by Scene::DeleteObject and weak_ptr invalidation.
+  - *Refactoring Complete:* is_dead_ member has been removed. Deletion is handled purely by Scene::DeleteObject and weak_ptr invalidation.
 
 ### Class: Component
 - **Inherits from:** std
@@ -318,7 +318,7 @@
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
   - weak_ptr: Safely references Object without affecting lifecycle.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ---
 
@@ -342,7 +342,7 @@
 ### Class: Object
 - **Architectural Role:** The base entity in the game world. Contains a transform and a list of Components.
 - **Memory Management Analysis:**
-  - *Refactoring Check:* is_dead_ member should be removed. Deletion is handled by Scene::DeleteObject and weak_ptr invalidation.
+  - *Refactoring Complete:* is_dead_ member has been removed. Deletion is handled purely by Scene::DeleteObject and weak_ptr invalidation.
   - Primarily uses raw pointers, value types, or external handles (e.g., ComPtr for D3D12).
 
 ### Struct: CutSceneData
@@ -408,7 +408,7 @@
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for ParticleComponent, Object.
   - weak_ptr: Safely references ParticleComponent, Object without affecting lifecycle.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ---
 
@@ -537,7 +537,7 @@
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
   - weak_ptr: Safely references Object without affecting lifecycle.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ---
 
@@ -707,7 +707,7 @@
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
   - unique_ptr: Exclusively owns Mesh, Texture, Material, AnimationSet.
-  - *Refactoring Check:* is_dead_ member should be removed. Deletion is handled by Scene::DeleteObject and weak_ptr invalidation.
+  - *Refactoring Complete:* is_dead_ member has been removed. Deletion is handled purely by Scene::DeleteObject and weak_ptr invalidation.
 
 ### Class: Mesh
 - **Architectural Role:** Core data structure or utility class for mesh.
@@ -758,7 +758,7 @@
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
   - weak_ptr: Safely references Object without affecting lifecycle.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ---
 
@@ -769,7 +769,7 @@
 - **Architectural Role:** A reusable module attached to an Object to define specific behaviors or data (ECS architecture).
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
-  - *Refactoring Warning:* Contains shared_ptr<Object>. Ensure this does not create a circular reference with the owner.
+  - *Refactoring Complete:* Object ownership clarified. owner_ and non-owning references use weak_ptr to prevent circular references.
 
 ---
 
@@ -791,7 +791,7 @@
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Component, T, Object.
   - weak_ptr: Safely references Object without affecting lifecycle.
-  - *Refactoring Check:* is_dead_ member should be removed. Deletion is handled by Scene::DeleteObject and weak_ptr invalidation.
+  - *Refactoring Complete:* is_dead_ member has been removed. Deletion is handled purely by Scene::DeleteObject and weak_ptr invalidation.
 
 ### Struct: T
 - **Architectural Role:** Core data structure or utility class for t.
@@ -1067,7 +1067,7 @@
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
   - weak_ptr: Safely references Object without affecting lifecycle.
-  - *Refactoring Check:* is_dead_ member should be removed. Deletion is handled by Scene::DeleteObject and weak_ptr invalidation.
+  - *Refactoring Complete:* is_dead_ member has been removed. Deletion is handled purely by Scene::DeleteObject and weak_ptr invalidation.
 
 ### Struct: Particle
 - **Architectural Role:** Core data structure or utility class for particle.
@@ -1124,7 +1124,7 @@
 - **Architectural Role:** A reusable module attached to an Object to define specific behaviors or data (ECS architecture).
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
-  - *Refactoring Warning:* Contains shared_ptr<Object>. Ensure this does not create a circular reference with the owner.
+  - *Refactoring Complete:* Object ownership clarified. owner_ and non-owning references use weak_ptr to prevent circular references.
 
 ---
 
@@ -1165,7 +1165,7 @@
 - **Architectural Role:** Manages a specific state of the game, including objects, UI, and rendering resources within that state.
 - **Memory Management Analysis:**
   - unique_ptr: Exclusively owns CutSceneRecorder.
-  - *Refactoring Check:* Scene lists (except object_list_) should be weak_ptr to avoid dangling pointers during object deletion.
+  - *Refactoring Complete:* Scene lists (except object_list_) are managed with weak_ptr, resolving dangling pointers during object deletion.
 
 ---
 
@@ -1175,7 +1175,7 @@
 - **Inherits from:** Scene
 - **Architectural Role:** Manages a specific state of the game, including objects, UI, and rendering resources within that state.
 - **Memory Management Analysis:**
-  - *Refactoring Check:* Scene lists (except object_list_) should be weak_ptr to avoid dangling pointers during object deletion.
+  - *Refactoring Complete:* Scene lists (except object_list_) are managed with weak_ptr, resolving dangling pointers during object deletion.
   - Primarily uses raw pointers, value types, or external handles (e.g., ComPtr for D3D12).
 
 ---
@@ -1188,7 +1188,7 @@
   - shared_ptr: Uses shared ownership for InputControllerComponent, CameraComponent, Object.
   - weak_ptr: Safely references MeshComponent, WallColliderComponent, Object without affecting lifecycle.
   - unique_ptr: Exclusively owns ModelInfo, Mesh, ParticleRenderer, Texture, Shader, Material.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ### Class: FrameResourceManager
 - **Architectural Role:** A singleton or central system responsible for managing global resources or systems.
@@ -1210,7 +1210,7 @@
   - shared_ptr: Uses shared ownership for InputControllerComponent, CameraComponent, Object.
   - weak_ptr: Safely references MeshComponent, WallColliderComponent, Object without affecting lifecycle.
   - unique_ptr: Exclusively owns ModelInfo, Mesh, ParticleRenderer, Texture, Shader, Material.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ### Class: InputManager
 - **Architectural Role:** A singleton or central system responsible for managing global resources or systems.
@@ -1225,7 +1225,7 @@
   - shared_ptr: Uses shared ownership for InputControllerComponent, CameraComponent, Object.
   - weak_ptr: Safely references MeshComponent, WallColliderComponent, Object without affecting lifecycle.
   - unique_ptr: Exclusively owns ModelInfo, Mesh, ParticleRenderer, Texture, Shader, Material.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ### Class: GameFramework
 - **Architectural Role:** Core data structure or utility class for gameframework.
@@ -1240,7 +1240,7 @@
   - shared_ptr: Uses shared ownership for InputControllerComponent, CameraComponent, Object.
   - weak_ptr: Safely references MeshComponent, WallColliderComponent, Object without affecting lifecycle.
   - unique_ptr: Exclusively owns ModelInfo, Mesh, ParticleRenderer, Texture, Shader, Material.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ### Class: MeshColliderComponent
 - **Architectural Role:** A reusable module attached to an Object to define specific behaviors or data (ECS architecture).
@@ -1248,7 +1248,7 @@
   - shared_ptr: Uses shared ownership for InputControllerComponent, CameraComponent, Object.
   - weak_ptr: Safely references MeshComponent, WallColliderComponent, Object without affecting lifecycle.
   - unique_ptr: Exclusively owns ModelInfo, Mesh, ParticleRenderer, Texture, Shader, Material.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ### Class: Scene
 - **Architectural Role:** Manages a specific state of the game, including objects, UI, and rendering resources within that state.
@@ -1281,7 +1281,7 @@
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
   - weak_ptr: Safely references Object without affecting lifecycle.
-  - *Refactoring Check:* is_dead_ member should be removed. Deletion is handled by Scene::DeleteObject and weak_ptr invalidation.
+  - *Refactoring Complete:* is_dead_ member has been removed. Deletion is handled purely by Scene::DeleteObject and weak_ptr invalidation.
 
 ### Class: Sector
 - **Architectural Role:** Core data structure or utility class for sector.
@@ -1521,7 +1521,7 @@
 - **Inherits from:** Scene
 - **Architectural Role:** Manages a specific state of the game, including objects, UI, and rendering resources within that state.
 - **Memory Management Analysis:**
-  - *Refactoring Check:* Scene lists (except object_list_) should be weak_ptr to avoid dangling pointers during object deletion.
+  - *Refactoring Complete:* Scene lists (except object_list_) are managed with weak_ptr, resolving dangling pointers during object deletion.
   - Primarily uses raw pointers, value types, or external handles (e.g., ComPtr for D3D12).
 
 ---
@@ -1538,7 +1538,7 @@
 - **Architectural Role:** A reusable module attached to an Object to define specific behaviors or data (ECS architecture).
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
-  - *Refactoring Warning:* Contains shared_ptr<Object>. Ensure this does not create a circular reference with the owner.
+  - *Refactoring Complete:* Object ownership clarified. owner_ and non-owning references use weak_ptr to prevent circular references.
 
 ---
 
@@ -1617,7 +1617,7 @@
 - **Memory Management Analysis:**
   - shared_ptr: Uses shared ownership for Object.
   - weak_ptr: Safely references Object without affecting lifecycle.
-  - *Refactoring Check:* owner_ or related Object references are correctly managed with weak_ptr.
+  - *Refactoring Complete:* owner_ and related Object references are correctly managed with weak_ptr, eliminating circular dependencies.
 
 ---
 
