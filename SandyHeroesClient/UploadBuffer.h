@@ -21,8 +21,8 @@ public:
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
 			IID_PPV_ARGS(d3d_buffer_.GetAddressOf()));
-
-		d3d_buffer_->Map(0, nullptr, reinterpret_cast<void**>(&mapped_data_));
+		D3D12_RANGE read_range = { 0, 0 };
+		d3d_buffer_->Map(0, &read_range, reinterpret_cast<void**>(&mapped_data_));
 
 	}
 	UploadBuffer(const UploadBuffer& rhs) = delete;

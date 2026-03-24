@@ -635,6 +635,8 @@ void GameFramework::ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float 
 
 void GameFramework::FrameAdvance()
 {
+    auto frame_start_time = std::chrono::high_resolution_clock::now();
+
     client_timer_->Tick();
 
     ProcessInput();
@@ -756,12 +758,21 @@ void GameFramework::FrameAdvance()
 
     d3d_command_queue_->Signal(d3d_fence_.Get(), current_fence_value_);
 
+    auto work_end_time = std::chrono::high_resolution_clock::now();
+
     frame_resource_manager_->CirculateFrameResource(d3d_fence_.Get());
+
+    auto wait_end_time = std::chrono::high_resolution_clock::now();
+
+    float cpu_work_time = std::chrono::duration<float, std::milli>(work_end_time - frame_start_time).count();
+    float cpu_wait_time = std::chrono::duration<float, std::milli>(wait_end_time - work_end_time).count();
+
+    std::wstring performance_text = L"CPU Work: " + std::to_wstring(cpu_work_time) + L" ms, CPU Wait: " + std::to_wstring(cpu_wait_time) + L" ms";
 
     std::wstring fps{ L"SandyHeroes(" };
     fps += std::to_wstring(client_timer_->Fps()) + L"fps)";
     SetWindowText(main_wnd_, fps.c_str());
-	AddDebugText(fps);
+	AddDebugText(fps + L" | " + performance_text);
 }
 
 void GameFramework::FlushCommandQueue()

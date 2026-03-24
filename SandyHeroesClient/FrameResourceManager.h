@@ -2,8 +2,8 @@
 
 #include "FrameResource.h"
 
-//´ÙÁß ÇÁ·¹ÀÓÀ» À§ÇÑ ÇÁ·¹ÀÓ¸®¼Ò½º¸¦ °ü¸®ÇÏ´Â Å¬·¡½º
-//½Ì±ÛÅæÀ¸·Î »ç¿ëÇÑ´Ù.
+//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ó¸ï¿½ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+//ï¿½Ì±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 class FrameResourceManager
 {
 private:
@@ -23,27 +23,22 @@ public:
 
 	FrameResource* GetResource(int index) const;
 
-	// ÇÁ·¹ÀÓ¸®¼Ò½ºµéÀ» ÃÊ±âÈ­ÇÑ´Ù.
 	void ResetFrameResources(ID3D12Device* device, UINT cb_pass_count, 
 		UINT cb_object_count, UINT cb_skinned_mesh_object_count, 
 		UINT cb_material_count, UINT cb_ui_mesh_count);
 
-	//ÇÁ·¹ÀÓ¸®¼ÒµåµéÀ» ¼øÈ¯ ½ÃÅ²´Ù (Áï, ´ÙÀ½ ÇÁ·¹ÀÓ¸®¼Ò½º¿¡ ´ëÇÑ ¾÷µ¥ÀÌÆ® ½ÃÀÛ)
 	void CirculateFrameResource(ID3D12Fence* fence);
 
-	//´ÙÁßÇÁ·¹ÀÓ °³¼ö
+	//í”„ë ˆì„ë¦¬ì†ŒìŠ¤ ê°œìˆ˜
 	static const int kFrameCount = 3;
 
 private:
 	static FrameResourceManager* kFrameResourceManager;
 
-	//´ÙÁßÇÁ·¹ÀÓÀ» À§ÇÑ ¸®¼Ò½ºµéÀ» ´ãÀº º¤ÅÍ
 	std::vector<std::unique_ptr<FrameResource>> frame_resources_;
 
-	//ÇöÀç ÇÁ·¹ÀÓ ¸®¼Ò½º
 	FrameResource* curr_frame_resource_ = nullptr;
 
-	//ÇöÀç ÇÁ·¹ÀÓ¸®¼Ò½ºÀÇ ÀÎµ¦½º
 	int curr_frame_resource_index_ = 0;
 
 	int pass_count_ = 0;

@@ -133,7 +133,8 @@ float4 PS(VertexOut p_in) : SV_Target
     }
     float shadow_factor = min(CalcShadowFactor(p_in.position_s) + 0.5f , 1.0f);
     
-    float3 to_eye_vector = normalize(g_camera_position - p_in.position_w);
+    float3 to_eye_vector = g_camera_position - p_in.position_w;
+    to_eye_vector /= dist_to_eye;
     
     float4 ambient = g_ambient_light * diffuse_albedo;
     Material mat = { diffuse_albedo, fresnel_r0, glossiness, emission_color };
