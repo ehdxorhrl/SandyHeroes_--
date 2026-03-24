@@ -230,24 +230,27 @@ std::unique_ptr<AIComponent> CreateMonsterAI(MonsterPtr monster) {
 static BTNode* Build_Bomb_Dragon_Tree(std::shared_ptr<Object> self)
 {
     auto state = std::make_shared<BombState>();
+	auto weak_self = std::weak_ptr<Object>(self);
 
-    auto move_to_player = [self, state](float elapsed_time)->bool {
+    auto move_to_player = [weak_self, state](float elapsed_time)->bool {
         if (state->prepared) return false; // prepare_to_explode ���۽� �߰� X
-
-        auto target = Set_Target(self);
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+        auto target = Set_Target(locked_self);
         if (!target) return false; // Ÿ���� ������ ����
-        auto ai = Object::GetComponentInChildren<AIComponent>(self);
+        auto ai = Object::GetComponentInChildren<AIComponent>(locked_self);
         if (!ai) return false;
 
-        bool is_range = InRangeXZ(self, target, 1.0f);
+        bool is_range = InRangeXZ(locked_self, target, 1.0f);
         if (is_range) return false; // �����ȿ� Ÿ���� ������ ������������ �Ѿ��
 
         //�ƴϸ� Ÿ�ٹ������� �̵�
         return ai->Move_To_Target(elapsed_time); // ���� ���������� true
     };
 
-    auto prepare_to_explode = [self, state](float elapsed_time) -> bool { // acc�� �����ð�, fuse�� �غ�ð�
-
+    auto prepare_to_explode = [weak_self, state](float elapsed_time) -> bool { // acc�� �����ð�, fuse�� �غ�ð�
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
         state->acc += elapsed_time;
         if (state->acc >= state->fuse) { state->acc = 0.f; return true; }
 
@@ -255,10 +258,10 @@ static BTNode* Build_Bomb_Dragon_Tree(std::shared_ptr<Object> self)
             sc_packet_monster_change_animation mca;
             mca.size = sizeof(sc_packet_monster_change_animation);
             mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-            mca.id = self->id();
+            mca.id = locked_self->id();
             mca.loop_type = 0;
             mca.animation_track = 2; // kGoingToExplode
-            self->set_animation_state(2);
+            locked_self->set_animation_state(2);
 
             const auto& users = SessionManager::getInstance().getAllSessions();
             for (auto& u : users) {
@@ -270,17 +273,19 @@ static BTNode* Build_Bomb_Dragon_Tree(std::shared_ptr<Object> self)
         return false;
     };  
 
-    auto explode = [self]() -> bool {
-        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(self);
+    auto explode = [weak_self]() -> bool {
+		auto locked_self = weak_self.lock();
+		if (!locked_self) return false;
+        auto monstercomp = Object::GetComponentInChildren<MonsterComponent>(locked_self);
 		if (!monstercomp) return false; 
 
         sc_packet_monster_change_animation mca;
         mca.size = sizeof(sc_packet_monster_change_animation);
         mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-        mca.id = self->id();
+        mca.id = locked_self->id();
         mca.loop_type = 1;
         mca.animation_track = 3; // kExplode
-        self->set_animation_state(3);
+        locked_self->set_animation_state(3);
 
         const auto& users = SessionManager::getInstance().getAllSessions();
         for (auto& u : users) {
@@ -290,7 +295,7 @@ static BTNode* Build_Bomb_Dragon_Tree(std::shared_ptr<Object> self)
         for (const auto& player : users)
         {
             const auto& player_object = player.second->get_player_object();
-            if (InRangeXZ(self, player_object, 2.0f)) {
+            if (InRangeXZ(locked_self, player_object, 2.0f)) {
                 auto playercomp = Object::GetComponentInChildren<PlayerComponent>(player_object);
                 playercomp->HitDamage(monstercomp->attack_force());
             }

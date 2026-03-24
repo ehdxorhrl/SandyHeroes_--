@@ -148,6 +148,18 @@ ModelInfo* Scene::FindModelInfo(const std::string& name)
 	return nullptr;
 }
 
+Material* Scene::FindMaterial(const std::string& material_name)
+{
+	auto it = std::find_if(materials_.begin(), materials_.end(), [&material_name](const std::unique_ptr<Material>& mat) {
+		return mat.get()->name() == material_name;
+		});
+	if (it != materials_.end())
+	{
+		return (*it).get();
+	}
+	return nullptr;
+}
+
 
 Mesh* Scene::FindMesh(const std::string& mesh_name, const std::vector<std::unique_ptr<Mesh>>& meshes)
 {

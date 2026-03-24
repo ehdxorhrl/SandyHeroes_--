@@ -73,6 +73,8 @@ public:
 	std::shared_ptr<Object> FindObject(const long long id);
 	ModelInfo* FindModelInfo(const std::string& name);
 
+	Material* FindMaterial(const std::string& material_name);
+
 	static Mesh* FindMesh(const std::string& mesh_name, const std::vector<std::unique_ptr<Mesh>>& meshes);
 	static Material* FindMaterial(const std::string& material_name, const std::vector<std::unique_ptr<Material>>& materials);
 	static Texture* FindTexture(const std::string& texture_name, const std::vector<std::unique_ptr<Texture>>& textures);

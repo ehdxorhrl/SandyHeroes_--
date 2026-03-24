@@ -478,6 +478,18 @@ void ParticleComponent::set_direction_pivot_object(Object* value)
 void ParticleComponent::set_color(const XMFLOAT4& color)
 {
 	color_ = color;
+	if (IsZero(color - XMFLOAT4{ 0.9f, 0.1f, 0.1f, 0.5f })) //Green
+	{
+		material_ = scene_->FindMaterial("ParticleRed");
+	}
+	if (IsZero(color - XMFLOAT4{ 0.9f, 0.9f, 0.1f, 0.5f })) //Green
+	{
+		material_ = scene_->FindMaterial("ParticleYellow");
+	}
+	if (IsZero(color - XMFLOAT4{ 0.1f, 0.9f, 0.1f, 0.5f })) //Green
+	{
+		material_ = scene_->FindMaterial("ParticleGreen");
+	}
 	for (int i = 0; i < capacity_; ++i)
 		particles_[i].color_ = color;
 }

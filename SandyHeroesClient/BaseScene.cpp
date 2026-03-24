@@ -377,13 +377,27 @@ void BaseScene::BuildMaterial(ID3D12Device* device, ID3D12GraphicsCommandList* c
 
 	//Create Particle Material
 	{
-		material = new Material{ "Trail_1", (int)ShaderType::kParticle };
 		textures_.push_back(std::make_unique<Texture>());
 		textures_.back()->name = "Trail_1";
 		textures_.back()->type = TextureType::kAlbedoMap;
+		material = new Material{ "ParticleRed", (int)ShaderType::kParticle };
 		material->AddTexture(textures_.back().get());
+		material->set_albedo_color(0.9f, 0.1f, 0.1f, 0.5f);
 		materials_.emplace_back();
 		materials_.back().reset(material);
+
+		material = new Material{ "ParticleYellow", (int)ShaderType::kParticle };
+		material->AddTexture(textures_.back().get());
+		material->set_albedo_color(0.9f, 0.9f, 0.1f, 0.5f);
+		materials_.emplace_back();
+		materials_.back().reset(material);
+
+		material = new Material{ "ParticleGreen", (int)ShaderType::kParticle };
+		material->AddTexture(textures_.back().get());
+		material->set_albedo_color(0.1f, 0.9f, 0.1f, 0.5f);
+		materials_.emplace_back();
+		materials_.back().reset(material);
+
 	}
 
 	//Create Breathing Material
@@ -544,7 +558,7 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 		object_list_.push_back(monster_particle);
 		monster_particle->set_local_position({ 0, 0, 0 });
 		Material* monster_particle_material = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
-			return material->name() == "Trail_1";
+			return material->name() == "ParticleRed";
 			})->get();
 		auto monster_particle_component = std::make_shared<ParticleComponent>(monster_particle, device, 1000, ParticleComponent::Sphere, monster_particle_material);
 		monster_particle_component->set_scene(this);
@@ -649,7 +663,7 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 	
 			// 파티클
 			Material* particle_material = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
-				return material->name() == "Trail_1";
+				return material->name() == "ParticleRed";
 				})->get();
 			auto chest_particle = std::make_shared<ParticleComponent>(
 				chest, device, 222, ParticleComponent::eShape::UpCone, particle_material);
@@ -1143,7 +1157,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 
 			// 총 발사 파티클 생성
 			Material* particleMaterial = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
-				return material->name() == "Trail_1";
+				return material->name() == "ParticleRed";
 				})->get();
 			auto particleComponent = std::make_shared<ParticleComponent>(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
 			particleComponent->set_scene(this);
@@ -1172,7 +1186,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 
 			// 총 발사 파티클 생성
 			Material* particleMaterial = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
-				return material->name() == "Trail_1";
+				return material->name() == "ParticleRed";
 				})->get();
 			auto particleComponent = std::make_shared<ParticleComponent>(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
 			particleComponent->set_scene(this);
@@ -1201,7 +1215,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 
 			// 총 발사 파티클 생성
 			Material* particleMaterial = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
-				return material->name() == "Trail_1";
+				return material->name() == "ParticleRed";
 				})->get();
 			auto particleComponent = std::make_shared<ParticleComponent>(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
 			particleComponent->set_scene(this);
@@ -1234,7 +1248,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 
 			// 총 발사 파티클 생성
 			Material* particleMaterial = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
-				return material->name() == "Trail_1";
+				return material->name() == "ParticleRed";
 				})->get();
 			auto particleComponent = std::make_shared<ParticleComponent>(player_gun_particle_pivot, device, 1000, ParticleComponent::BigCone, particleMaterial);
 			particleComponent->set_scene(this);
@@ -1263,7 +1277,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 
 			// 총 발사 파티클 생성
 			Material* particleMaterial = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
-				return material->name() == "Trail_1";
+				return material->name() == "ParticleRed";
 				})->get();
 			auto particleComponent = std::make_shared<ParticleComponent>(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
 			particleComponent->set_scene(this);
@@ -1292,7 +1306,7 @@ void BaseScene::BuildModelInfo(ID3D12Device* device)
 
 			// 총 발사 파티클 생성
 			Material* particleMaterial = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
-				return material->name() == "Trail_1";
+				return material->name() == "ParticleRed";
 				})->get();
 			auto particleComponent = std::make_shared<ParticleComponent>(player_gun_particle_pivot, device, 50, ParticleComponent::Cone, particleMaterial);
 			particleComponent->set_scene(this);
@@ -1784,10 +1798,11 @@ void BaseScene::ActivateStageMonsterSpawner(int stage_num)
 	{
 		return;
 	}
-	for (auto it = stage_monster_spawner_list_[stage_num].begin(); it != stage_monster_spawner_list_[stage_num].end(); ) {
-	auto spawner = it->lock();
-	if (!spawner) { it = stage_monster_spawner_list_[stage_num].erase(it); continue; }
-	++it;
+	for (auto it = stage_monster_spawner_list_[stage_num].begin(); it != stage_monster_spawner_list_[stage_num].end(); ) 
+	{
+		auto spawner = it->lock();
+		if (!spawner) { it = stage_monster_spawner_list_[stage_num].erase(it); continue; }
+		++it;
 		spawner->ActivateSpawn();
 	}
 }
@@ -2093,7 +2108,7 @@ void BaseScene::add_drop_gun(int id, uint8_t gun_type, uint8_t upgrade_level, ui
 
 	// 파티클 추가
 	Material* particle_material = std::find_if(materials_.begin(), materials_.end(), [&](const auto& material) {
-		return material->name() == "Trail_1";
+		return material->name() == "ParticleRed";
 		})->get();
 		auto particle = std::make_shared<ParticleComponent>(
 			dropped_gun,

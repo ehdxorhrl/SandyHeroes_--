@@ -98,6 +98,19 @@ inline bool IsZero(float value, float epsilon = std::numeric_limits<float>::epsi
 {
 	return std::fabs(value) < epsilon;
 }
+inline bool IsZero(XMFLOAT4 value, float epsilon = std::numeric_limits<float>::epsilon() * 100)
+{
+	if(std::fabs(value.x) >= epsilon)
+		return false;
+	if (std::fabs(value.y) >= epsilon)
+		return false;
+	if (std::fabs(value.z) >= epsilon)
+		return false;
+	if (std::fabs(value.w) >= epsilon)
+		return false;
+	return true;
+}
+
 
 std::wstring StringToWString(const std::string& str);
 
@@ -270,6 +283,7 @@ inline void operator+=(XMFLOAT3& lhs, const XMFLOAT3& rhs) { lhs = xmath_util_fl
 inline XMFLOAT3 operator-(const XMFLOAT3& lhs, const XMFLOAT3& rhs) { return xmath_util_float3::Subtract(lhs, rhs); }
 inline void operator-=(XMFLOAT3& lhs, const XMFLOAT3& rhs) { lhs = xmath_util_float3::Subtract(lhs, rhs); }
 inline XMFLOAT3 operator*(const XMFLOAT3& lhs, const float& rhs) { return xmath_util_float3::ScalarProduct(lhs, rhs); }
+inline XMFLOAT4 operator-(const XMFLOAT4& lhs, const XMFLOAT4& rhs) { return xmath_util_float4::Subtract(lhs, rhs); }
 inline XMFLOAT4X4 operator*(const XMFLOAT4X4& lhs, const XMFLOAT4X4& rhs) { return xmath_util_float4x4::Multiply(lhs, rhs); }
 inline bool operator==(const XMFLOAT4X4& lhs, const XMFLOAT4X4& rhs) 
 {  

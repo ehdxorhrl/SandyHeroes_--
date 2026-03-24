@@ -13,7 +13,7 @@ void ParticleRenderer::ParticleRender(
 {
 	for (ParticleComponent* particleComponent : particle_components_)
 	{
-		particleComponent->material()->Render(command_list, curr_frame_resource, descriptor_manager, camera);
+		particleComponent->material()->UpdateShaderVariables(command_list, curr_frame_resource, descriptor_manager);
 		particleComponent->Render(command_list, curr_frame_resource);
 	}
 

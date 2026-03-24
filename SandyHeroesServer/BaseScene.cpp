@@ -804,10 +804,11 @@ void BaseScene::ActivateStageMonsterSpawner(int stage_num)
 	{
 		return;
 	}
-	for (auto it = stage_monster_spawner_list_[stage_num].begin(); it != stage_monster_spawner_list_[stage_num].end(); ) {
-	auto spawner = it->lock();
-	if (!spawner) { it = stage_monster_spawner_list_[stage_num].erase(it); continue; }
-	++it;
+	for (auto it = stage_monster_spawner_list_[stage_num].begin(); it != stage_monster_spawner_list_[stage_num].end(); ) 
+	{
+		auto spawner = it->lock();
+		if (!spawner) { it = stage_monster_spawner_list_[stage_num].erase(it); continue; }
+		++it;
 		spawner->ActivateSpawn();
 	}
 }
@@ -1240,15 +1241,12 @@ void BaseScene::CheckPlayerHitGun(std::shared_ptr<Object> object)
 			}
 
 			DeleteObject(gun);
-			it = dropped_guns_.erase(it);
 
 			// F 키를 한 번만 사용하도록 해제
 			session->SetKeyDown('F', false);
 		}
-		else
-		{
-			++it;
-		}
+		++it;
+
 	}
 
 }
@@ -1366,10 +1364,11 @@ void BaseScene::CheckPlayerHitWall(std::shared_ptr<Object> object, std::shared_p
 	int a = 0;
 	constexpr float MAX_DISTANCE = 0.5f;
 
-	for (auto it = stage_wall_collider_list_[stage_clear_num_].begin(); it != stage_wall_collider_list_[stage_clear_num_].end(); ) {
-	auto mesh_collider = it->lock();
-	if (!mesh_collider) { it = stage_wall_collider_list_[stage_clear_num_].erase(it); continue; }
-	++it;
+	for (auto it = stage_wall_collider_list_[stage_clear_num_].begin(); it != stage_wall_collider_list_[stage_clear_num_].end(); )
+	{
+		auto mesh_collider = it->lock();
+		if (!mesh_collider) { it = stage_wall_collider_list_[stage_clear_num_].erase(it); continue; }
+		++it;
 		++a;
 		float t{};
 		if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
@@ -1382,10 +1381,11 @@ void BaseScene::CheckPlayerHitWall(std::shared_ptr<Object> object, std::shared_p
 	}
 	if (stage_clear_num_ - 1 >= 0)
 	{
-		for (auto it = stage_wall_collider_list_[stage_clear_num_ - 1].begin(); it != stage_wall_collider_list_[stage_clear_num_ - 1].end(); ) {
-	auto mesh_collider = it->lock();
-	if (!mesh_collider) { it = stage_wall_collider_list_[stage_clear_num_ - 1].erase(it); continue; }
-	++it;
+		for (auto it = stage_wall_collider_list_[stage_clear_num_ - 1].begin(); it != stage_wall_collider_list_[stage_clear_num_ - 1].end(); ) 
+		{
+			auto mesh_collider = it->lock();
+			if (!mesh_collider) { it = stage_wall_collider_list_[stage_clear_num_ - 1].erase(it); continue; }
+			++it;
 			++a;
 			float t{};
 			if (mesh_collider->CollisionCheckByRay(ray_origin, ray_direction, t))
@@ -2087,8 +2087,10 @@ void BaseScene::TickNoClipTimers(float elapsed_time)
 {
 	for (auto it = noclip_monmon_.begin(); it != noclip_monmon_.end(); ) {
 		it->second -= elapsed_time;
-		if (it->second <= 0.f) it = noclip_monmon_.erase(it);
-		else ++it;
+		if (it->second <= 0.f) 
+			it = noclip_monmon_.erase(it);
+		else 
+			++it;
 	}
 }
 
