@@ -1,47 +1,33 @@
-\# 코드 리팩토링 프로젝트
+# 엔진 프로그래머 채용 공고를 위한 프로젝트 문서화
 
+## 개요
+- 아래 자격 요건에 맞추어 채용 공고에 사용할 수 있도록 SandyHeroes 프로젝트를 문서화한다.
 
+## 자격 요건
+- C++ 프로그래밍에 숙련하신 분
+- 그래픽스 프로그래밍에 대한 이해(렌더링 파이프라인/쉐이더 등)가 있으신 분
+- 원활한 커뮤니케이션과 협업 역량(문서화/코드 리뷰 포함)을 갖추신 분
 
-\## 리팩토링 목표
+## 문서 핵심 어필 목록
+### CPU, GPU 병렬성을 고려한 리소스 설계
+- 과거 DirectX12를 막 배울 당시 CPU, GPU가 서로의 작업이 모두 끝날 때까지 기다리는 비효율적인 구조를 가지고 있었다. 왜냐하면, CPU, GPU가 하나의 공유 자원을 가지고 렌더링 작업을 수행했기 때문이다. 따라서, 이를 개선하기 위해서는 복수의 공유 자원이 필요하다고 생각하였고, 프로젝트에서 사용할 다이렉트X 12의 업로트 버퍼 및 CommandAllocator를 프레임리소스라는 구조체로 묶고 이를 3개의 원형 버퍼로 관리하여 CPU, GPU 병렬성을 증대하였다.
+### 최저한의 GPU 상태 변경을 위한 PSO, Material, Mesh순의 배치처리
+- DirectX12는 상태 머신의 구조를 가지고 있기 때문에 GPU의 상태를 변경하는 것은 비용이 많이 드는 작업이라고 배웠다. 따라서 단순히 씬에 있는 오브젝트들을 순서대로 렌더링하지 않고 동일한 PSO, Material을 사용하는 오브젝트들을 모아서 렌더링하는 배치처리를 구현하였다.
+### 컴포넌트 패턴 기반 게임오브젝트 프레임워크
+- 게임을 구성하는 오브젝트들은 다양한 기능을 가진 클래스를 상속받는 경우보다 일부 기능만 필요한 플래스가 더 많았다. 이에 따라 동일한 기능을 하는 코드들이 중복되는 현상이 일어났고, 이를 해결하기 위해 컴포넌트 패턴을 적용하여 오브젝트와 기능들을 분리하였다.
 
-* 코드 컨벤션 2번의 맞게 Object, Component 클래스를 'shared\_ptr', 'weak\_ptr'로 관리
-* Scene의 object\_list\_만 shared\_ptr로 변경하고 나머지 오브젝트 및 컴포넌트 관련 리스트를 'weak\_ptr'로 변경하여 오브젝트 삭제시 나머지 리스트는 리스트 순회시 포인터의 유효성 체크 후 안정적으로 제거되게 수정
-* 최종적으로 Object의 'is\_dead\_' 멤버 및 Scene의 오브젝트 지연삭제 기능을 제거하고 대신 Scene::DeleteObject 함수를 사용하고 'shared\_ptr', 'weak\_ptr'이 댕글링 포인터를 방지
+## 원칙
+- 프로젝트의 구조를 파악하기 위해 ResearchClient.md를 먼저 읽는다.
+- 문서화는 PPT로 포트폴리오를 작성하기 위한 뒷받침 용도이다.
+- PPT는 어필 목록에 작성된 각 핵심별 나의 생각과 그에 대한 핵심 코드 및 해당 개발 내용의 성능 측정으로 구성된다.
+- 따라서 어필 목록에 대해서 질문을 받으면 그에 대한 핵심 코드와 성능 측정을 제시할 수 있어야 한다.
+- 프로젝트에 성능 측정을 위한 코드 삽입은 상관없지만 허락없이 프로젝트를 개선하기 위한 임의의 추가 수정을 하지 않는다.
+- 모든 질문들은 질문 내역 아래에 기록한다.
+- 질문 내역에 대한 답변은 포트폴리오.md에서 해당하는 문항 아래에 기록한다.
+- 진행 상황은 내가 PPT 작성이 끝나는 대로 직접 수정할 것이니 읽기만하고 수정하지 않는다.
+- 만일 핵심 어필 목록에 적혀있는 내 생각이 잘못되었다면 반드시 수정본을 제안한다.
 
+## 질문 내역
 
-
-\## 리팩토링 원칙
-
-* 기능 변경하지 않기
-* 단계적으로 코드를 수정하며 대규모 재작성 피하기
-* ModelInfo 클래스의 파일 로드 로직을 절대 수정하지 말 것
-* 렌더링 및 Directx12 관련 로직을 절대 수정하지 말 것
-* 절대 git에 커밋하지 말 것
-* "수정해"라는 명령이 없다면 절대 코드를 직접 수정하지 말 것
-* 리팩토링 작업을 할 때 마다 '## 리팩토링 상황' 아래에 기록한다.
-
-## 리팩토링 상황
-
-* \[2026-02-27] Object 클래스 리팩토링 완료 (shared\_ptr, weak\_ptr 적용 및 is\_dead\_ 멤버 제거)
-* \[2026-02-27] Scene 클래스 리팩토링 완료 (object\_list\_ shared\_ptr 적용, 지연 삭제 로직 제거 및 기타 참조 리스트 weak\_ptr 적용)
-* \[2026-02-27] Sector 클래스 리팩토링 완료 (object\_list\_ weak\_ptr 적용 및 지연 삭제 로직 제거)
-* \[2026-02-27] Component 클래스 리팩토링 완료 (owner\_ weak\_ptr 적용 및 shared\_ptr 기반 관리)
-* \[2026-02-27] BaseScene 클래스 리팩토링 완료 (모든 참조 리스트 weak\_ptr 적용, 지연 삭제 로직 제거 및 shared\_ptr 기반 객체 생성 적용)
-* \[2026-02-28] ModelInfo 클래스 리팩토링 완료 (hierarchy\_root\_ shared\_ptr 적용 및 프레임/컴포넌트 객체 생성 시 shared\_ptr 사용)
-* \[2026-02-28] FPSControllerComponent 클래스 리팩토링 완료 (참조 객체 멤버 weak\_ptr 적용)
-* \[2026-02-28] MonsterComponent 클래스 리팩토링 완료 (target\_ 멤버 weak\_ptr 적용 및 관련 Getter/Setter 수정)
-* \[2026-03-01] AIComponent 클래스 리팩토링 완료 (Object 파라미터 shared\_ptr 적용, GetComponentInChildren 리턴 타입에 맞게 auto 적용 및 owner\_ weak\_ptr 대응)
-* \[2026-03-01] Animation 관련 클래스(AnimationState 하위 클래스 및 AnimatorComponent) 리팩토링 완료 (Object 파라미터 shared\_ptr 적용, bone\_frames\_ 및 root\_bone\_frame\_ weak\_ptr 적용)
-* \[2026-03-03] SpawnerComponent 클래스 리팩토링 완료 (Client/Server 공통, component\_list\_ shared\_ptr 적용 및 ForceSpawn 내부 weak\_ptr 대응)
-* \[2026-03-03] GunComponent 클래스 리팩토링 완료 (Client/Server 공통, fired\_bullet\_list\_ weak\_ptr 적용 및 FireBullet 내부 shared\_ptr 대응)
-* \[2026-03-03] ChestComponent 클래스 리팩토링 완료 (Server 전용, scroll\_object\_ weak\_ptr 적용 및 파라미터 shared\_ptr 대응)
-* \[2026-03-03] ParticleSystem 클래스 리팩토링 완료 (Client 전용, particle\_object weak\_ptr 적용 및 scene->DeleteObject 적용)
-* \[2026-03-03] MovementComponent 클래스 리팩토링 완료 (Client/Server 공통, owner\_ weak\_ptr 적용)
-* \[2026-03-03] ChestComponent 클래스 리팩토링 완료 (Client 전용, scroll\_object\_ weak\_ptr 적용 및 파라미터 shared\_ptr 대응)
-* \[2026-03-03] 나머지 모든 Component 클래스 리팩토링 완료 (Client/Server 공통, owner\_ 접근 시 lock() 사용 및 지연삭제 제거)
-* \[2026-03-03] UiComponent 클래스 리팩토링 완료 (Client 전용, view\_ weak\_ptr 적용 및 하위 클래스들 lock() 적용)
-* \[2026-03-03] CharacterComponent 클래스 리팩토링 완료 (Client 전용, animator\_, movement\_ weak\_ptr 적용 및 파생 클래스 lock() 적용)
-* \[2026-03-03] MeshComponent 클래스 리팩토링 완료 (Client 전용, InitAfterOwnerSet 도입으로 shared\_from\_this() 안전 호출 보장 및 Mesh/Material weak\_ptr 대응)
-* \[2026-03-03] CameraComponent 클래스 리팩토링 완료 (Client/Server 공통, owner\_ weak\_ptr 적용)
-* \[2026-03-04] GameFramework 클래스 리팩토링 완료 (Client/Server 공통, FindObject 및 player\_ 반환 타입 변경에 따른 shared\_ptr 대응)
-* \[2026-03-04] RecorderScene 클래스 리팩토링 완료 (Client 전용, Object 및 Component 객체 생성 시 shared\_ptr 기반 적용)
+## 상황
+- 'CPU, GPU 병렬성을 고려한 리소스 설계'에 대한 부분은 작성이 완료되었다.
