@@ -121,7 +121,7 @@ void MeshComponent::UpdateConstantBufferForBillboard(FrameResource* current_fram
 
 	InstanceData data{};
 	XMStoreFloat4x4(&data.world_matrix,
-		XMMatrixTranspose(world_matrix));
+		world_matrix);
 
 	data.time = object->life_time();
 

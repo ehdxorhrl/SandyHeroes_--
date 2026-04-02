@@ -64,7 +64,7 @@ void PlayerComponent::Update(float elapsed_time)
 										 monster_pos.y + 50.f,
 										 monster_pos.z + random_position(kRandomGenerator) };
 
-					auto razer = razer_model_info_->GetInstance();
+					auto& razer = razer_model_info_->GetInstance();
 					auto razer_component = Object::GetComponent<RazerComponent>(razer);
 					razer_component->InitRazer(start_pos, end_pos);
 					scene_->AddObject(razer);

@@ -1,12 +1,12 @@
 #include "stdafx.h"
 #include "RazerMesh.h"
 
-RazerMesh::RazerMesh()
+RazerMesh::RazerMesh() : BillboardMesh()
 {
 	name_ = "RazerMesh";
 }
 
-RazerMesh::RazerMesh(float width, float height)
+RazerMesh::RazerMesh(float width, float height) : BillboardMesh()
 {
 	name_ = "RazerMesh";
 

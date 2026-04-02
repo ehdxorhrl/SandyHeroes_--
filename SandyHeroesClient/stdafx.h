@@ -111,6 +111,40 @@ inline bool IsZero(XMFLOAT4 value, float epsilon = std::numeric_limits<float>::e
 	return true;
 }
 
+// 두 단위 벡터 a에서 b로 회전하는 쿼터니언을 반환합니다.
+// (주의: a와 b는 반드시 정규화된 단위 벡터여야 합니다.)
+inline XMVECTOR GetRotationBetweenVectors(FXMVECTOR a, FXMVECTOR b)
+{
+	// 1. 내적을 통해 두 벡터 사이의 코사인 값을 구합니다.
+	XMVECTOR dot = XMVector3Dot(a, b);
+	float d = XMVectorGetX(dot);
+
+	// 2. 엣지 케이스: 두 벡터가 정반대 방향일 경우 (180도 회전)
+	// 내적값이 -1에 매우 가까울 때를 잡아냅니다.
+	if (d < -0.999999f)
+	{
+		// a와 직교하는 임의의 축을 찾기 위해 Right 벡터와 외적합니다.
+		XMVECTOR right = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+		XMVECTOR axis = XMVector3Cross(right, a);
+
+		// 만약 a가 Right 벡터와 평행에 가깝다면 Up 벡터를 대신 사용합니다.
+		if (XMVectorGetX(XMVector3LengthSq(axis)) < 1e-6f)
+		{
+			XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+			axis = XMVector3Cross(up, a);
+		}
+
+		axis = XMVector3Normalize(axis);
+		return XMQuaternionRotationAxis(axis, XM_PI); // 찾은 축을 기준으로 180도 회전
+	}
+
+	// 3. 일반 케이스 (최적화된 방식)
+	// 외적 벡터의 W 컴포넌트를 (1 + 내적값)으로 덮어씌운 후 정규화합니다.
+	XMVECTOR cross = XMVector3Cross(a, b);
+	XMVECTOR q = XMVectorSetW(cross, 1.0f + d);
+
+	return XMQuaternionNormalize(q);
+}
 
 std::wstring StringToWString(const std::string& str);
 
