@@ -30,9 +30,6 @@ Component* CameraComponent::GetCopy()
 
 void CameraComponent::Update(float elapsed_time)
 {
-	auto view = XMLoadFloat4x4(&view_matrix_);
-	auto inv_view = XMMatrixInverse(&XMMatrixDeterminant(view), view);
-	view_frustum_.Transform(world_frustum_, inv_view);
 }
 
 void CameraComponent::CreateProjectionMatrix(
@@ -95,6 +92,10 @@ void CameraComponent::UpdateCameraInfo()
 	view_matrix_._41 = -DotProduct(position, right_vector);
 	view_matrix_._42 = -DotProduct(position, up_vector);
 	view_matrix_._43 = -DotProduct(position, look_vector);
+
+	auto view = XMLoadFloat4x4(&view_matrix_);
+	auto inv_view = XMMatrixInverse(&XMMatrixDeterminant(view), view);
+	view_frustum_.Transform(world_frustum_, inv_view);
 }
 
 XMFLOAT4X4 CameraComponent::view_matrix() const
@@ -120,4 +121,9 @@ XMFLOAT3 CameraComponent::up_vector() const
 BoundingFrustum CameraComponent::view_frustum() const
 {
 	return view_frustum_;
+}
+
+BoundingFrustum CameraComponent::world_frustum() const
+{
+	return world_frustum_;
 }

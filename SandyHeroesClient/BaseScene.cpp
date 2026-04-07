@@ -278,7 +278,11 @@ void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* comma
 			object_list_.back()->set_transform_matrix(transfrom);
 			if (is_sector)
 			{
-				sectors_.back().object_list().push_back(object_list_.back());
+				auto mesh_component_list = Object::GetComponentsInChildren<MeshComponent>(object_list_.back());
+				for (const auto& mesh_component : mesh_component_list)
+				{
+					sectors_.back().mesh_component_list().push_back(mesh_component);
+				}
 			}
 		}
 	}
@@ -711,8 +715,11 @@ void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* com
 
 	//Create Skybox
 	auto skybox = std::make_shared<Object>();
-	skybox->AddComponent(std::make_shared<MeshComponent>(skybox, 
-		Scene::FindMesh("Skybox", meshes_), Scene::FindMaterial("Skybox_Cube2", materials_)));
+	auto skybox_mesh_component = std::make_shared<MeshComponent>(skybox,
+		Scene::FindMesh("Skybox", meshes_), Scene::FindMaterial("Skybox_Cube2", materials_));
+	skybox_mesh_component->set_is_using_view_frustum_culling(false);
+	skybox_mesh_component->set_is_using_shadow_map_obb_culling(false); 
+	skybox->AddComponent(skybox_mesh_component);
 	AddObject(skybox);
 
 

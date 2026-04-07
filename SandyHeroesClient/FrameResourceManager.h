@@ -29,6 +29,8 @@ public:
 
 	void CirculateFrameResource(ID3D12Fence* fence);
 
+	void ResetCurrentOffset();
+
 	//프레임리소스 개수
 	static const int kFrameCount = 3;
 

@@ -87,7 +87,7 @@ extern std::mt19937 kRandomGenerator;
 
 
 enum class RootParameterIndex {
-	kInstanceData = 0, kBoneTransform, kBoneOffset, kUi, kRenderPass,
+	kInstanceData = 0, kMainVisibleIndices, kShadowVisibleIndices, kBoneTransform, kBoneOffset, kUi, kRenderPass,
 	kMaterial, kAlbedoMap, kSpecGlosMap, kMetalGlosMap, kEmissionMap,
 	kNormalMap, kCubeMap, kShadowMap, kShadowPass
 };

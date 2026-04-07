@@ -66,8 +66,6 @@ public:
 	//Sector를 순회하며 오브젝트가 올바른 섹터에 있는지 확인하고 업데이트한다.
 	void UpdateSector();
 
-	//View Frustum Culling 실시
-	void RunViewFrustumCulling();
 
 	std::shared_ptr<Object> FindObject(const std::string& object_name);
 	std::shared_ptr<Object> FindObject(const long long id);
@@ -91,6 +89,11 @@ public:
 	void set_main_camera(std::shared_ptr<CameraComponent> value);
 	void set_is_play_cutscene(bool value);
 
+private:
+	//View Frustum Culling 실시
+	void RunViewFrustumCulling();
+	void XM_CALLCONV RunShadowMapViewFrustumCulling(FXMVECTOR light_position, const BoundingBox& shadow_map_aabb, const float& radius);
+
 protected:
 	bool is_updating_objects_ = false;	//씬이 오브젝트들을 업데이트 중인지 여부.
 	std::list<std::shared_ptr<Object>> object_list_;
@@ -102,6 +105,9 @@ protected:
 	std::vector<std::unique_ptr<Material>> materials_;
 	std::vector<std::unique_ptr<Texture>> textures_;
 	std::vector<Sector> sectors_;
+
+	// 씬에 존재하는 모든 메쉬 컴포넌트의 리스트. 절두체 컬링 과정에서 잦은 GetComponentsInChildren 호출을 줄이기 위해 씬에서 관리한다.
+	std::list<std::weak_ptr<MeshComponent>> all_mesh_component_list_;	
 
 	GameFramework* game_framework_{ nullptr };
 
@@ -120,7 +126,6 @@ protected:
 
 	bool is_play_cutscene_{ false };
 
-protected:
 	//그림자를 위해 일부 base scene 멤버 변수들 scene으로 옮김
 	bool is_prepare_ground_checking_ = false;
 	//맵 바닥체크를 위한 메쉬 콜라이더 리스트 배열
@@ -134,5 +139,7 @@ protected:
 	//For ParticleRender
 	std::unique_ptr<ParticleRenderer> particle_renderer_{ nullptr };	//파티클 렌더러
 
+	//For Skybox Render
+	Material* skybox_material_{ nullptr };
 };
 

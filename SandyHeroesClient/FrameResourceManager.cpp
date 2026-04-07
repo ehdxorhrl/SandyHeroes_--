@@ -80,3 +80,12 @@ void FrameResourceManager::CirculateFrameResource(ID3D12Fence* fence)
     }
 
 }
+
+void FrameResourceManager::ResetCurrentOffset()
+{
+	curr_frame_resource_->current_bone_transform_offset = 0;
+	curr_frame_resource_->current_instance_offset = 0;
+	curr_frame_resource_->current_main_visible_offset = 0;
+	curr_frame_resource_->current_shadow_visible_offset = 0;
+	curr_frame_resource_->current_ui_offset = 0;
+}

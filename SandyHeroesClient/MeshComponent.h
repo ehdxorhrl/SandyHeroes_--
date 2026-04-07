@@ -38,8 +38,12 @@ public:
 
     void set_is_visible(bool value);
 	void set_is_in_view_frustum(bool value);
+    void set_is_in_shadow_map_obb(bool value) { if(is_using_shadow_map_obb_culling) is_in_shadow_map_obb_ = value; }
+	void set_is_using_view_frustum_culling(bool value) { is_using_view_frustum_culling = value; }
+	void set_is_using_shadow_map_obb_culling(bool value) { is_using_shadow_map_obb_culling = value; }
 
 	bool is_in_view_frustum() const;
+    bool is_in_shadow_map_obb() const { return is_in_shadow_map_obb_; }
 
     Mesh* GetMesh() const;
 
@@ -63,5 +67,10 @@ protected:
     bool is_visible_ = true;
 
 	bool is_in_view_frustum_ = false;
+    bool is_in_shadow_map_obb_ = false;
+
+	//뷰 프러스텀 컬링이 적용되는지 여부. 이 값이 false이면 컬링이 적용되지 않는다.(항상 렌더링 됨)
+	bool is_using_view_frustum_culling = true;
+	bool is_using_shadow_map_obb_culling = true;
 };
 

@@ -56,14 +56,17 @@ void MeshComponent::Update(float elapsed_time)
 	{
 		materials_[i]->AddMeshComponent(std::static_pointer_cast<MeshComponent>(shared_from_this()));
 	}
+
+	is_in_view_frustum_ = !is_using_view_frustum_culling;
+	is_in_shadow_map_obb_ = !is_using_shadow_map_obb_culling;
 }
 
 void MeshComponent::UpdateConstantBuffer(FrameResource* current_frame_resource)
 {
-	constant_buffer_index_ = current_frame_resource->current_instance_offset;
-
 	const auto& object = owner_.lock();
 	if (!object) return;
+	
+	constant_buffer_index_ = current_frame_resource->current_instance_offset;
 
 	InstanceData data{};
 	XMStoreFloat4x4(&data.world_matrix,
@@ -71,15 +74,32 @@ void MeshComponent::UpdateConstantBuffer(FrameResource* current_frame_resource)
 
 	data.time = object->life_time();
 
+	if(is_in_view_frustum_)
+	{
+		current_frame_resource->sb_main_visible_indices->CopyData(
+			current_frame_resource->current_main_visible_offset++,
+			constant_buffer_index_
+		);
+	}
+
+	if(is_in_shadow_map_obb_)
+	{
+		current_frame_resource->sb_shadow_visible_indices->CopyData(
+			current_frame_resource->current_shadow_visible_offset++,
+			constant_buffer_index_
+		);
+	}
+
 	current_frame_resource->sb_instance_data->CopyData(
 		current_frame_resource->current_instance_offset++,
 		data
 	);
+
+
 }
 
 void MeshComponent::UpdateConstantBufferForBillboard(FrameResource* current_frame_resource)
 {
-	constant_buffer_index_ = current_frame_resource->current_instance_offset;
 	const auto& camera_object = GameFramework::Instance()->scene()->main_camera()->owner();
 	if(!camera_object)
 	{
@@ -90,6 +110,8 @@ void MeshComponent::UpdateConstantBufferForBillboard(FrameResource* current_fram
 	const auto& object = owner_.lock();
 	if(!object)
 		return;
+
+	constant_buffer_index_ = current_frame_resource->current_instance_offset;
 
 	XMVECTOR pos = XMLoadFloat3(&object->world_position_vector());
 	XMVECTOR camPos = XMLoadFloat3(&camera_object->world_position_vector());
@@ -124,6 +146,22 @@ void MeshComponent::UpdateConstantBufferForBillboard(FrameResource* current_fram
 		world_matrix);
 
 	data.time = object->life_time();
+
+	if (is_in_view_frustum_)
+	{
+		current_frame_resource->sb_main_visible_indices->CopyData(
+			current_frame_resource->current_main_visible_offset++,
+			constant_buffer_index_
+		);
+	}
+
+	if (is_in_shadow_map_obb_)
+	{
+		current_frame_resource->sb_shadow_visible_indices->CopyData(
+			current_frame_resource->current_shadow_visible_offset++,
+			constant_buffer_index_
+		);
+	}
 
 	current_frame_resource->sb_instance_data->CopyData(
 		current_frame_resource->current_instance_offset++,
@@ -179,7 +217,8 @@ void MeshComponent::set_is_visible(bool value)
 
 void MeshComponent::set_is_in_view_frustum(bool value)
 {
-	is_in_view_frustum_ = value;
+	if (is_using_view_frustum_culling)
+		is_in_view_frustum_ = value;
 }
 
 bool MeshComponent::is_in_view_frustum() const

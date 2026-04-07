@@ -101,6 +101,8 @@ public:
 		cb_bone_transform = std::make_unique<UploadBuffer<CBBoneTransform>>(device, skinned_mesh_object_count, true);
 		cb_material = std::make_unique<UploadBuffer<CBMaterial>>(device, material_count, true);
 		cb_ui = std::make_unique<UploadBuffer<CBUi>>(device, ui_mesh_count, true);
+		sb_main_visible_indices = std::make_unique<UploadBuffer<UINT>>(device, object_count, false);
+		sb_shadow_visible_indices = std::make_unique<UploadBuffer<UINT>>(device, object_count, false);
 	}
 	FrameResource(const FrameResource& rhs) = delete;
 	FrameResource& operator=(const FrameResource& rhs) = delete;
@@ -115,8 +117,12 @@ public:
 	std::unique_ptr<UploadBuffer<CBBoneTransform>> cb_bone_transform;
 	std::unique_ptr<UploadBuffer<CBMaterial>> cb_material;
 	std::unique_ptr<UploadBuffer<CBUi>> cb_ui;
+	std::unique_ptr<UploadBuffer<UINT>> sb_main_visible_indices; 
+	std::unique_ptr<UploadBuffer<UINT>> sb_shadow_visible_indices;
 
 	int current_instance_offset = 0;
+	int current_main_visible_offset = 0;
+	int current_shadow_visible_offset = 0;
 	int current_bone_transform_offset = 0;
 	int current_ui_offset = 0;
 

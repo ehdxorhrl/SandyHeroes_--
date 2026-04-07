@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 
-class Object;
+class MeshComponent;
 
 class Sector
 {
@@ -12,29 +12,30 @@ public:
 
 	//오브젝트가 이 Sector에 속하는지 검사하고 속하면 오브젝트를 추가
 	//반환 값: true면 오브젝트가 추가됨
-	bool InsertObject(std::shared_ptr<Object> object);
+	bool InsertMeshComponent(const std::shared_ptr<MeshComponent>& mesh_component);
 
-	void DeleteOutOfBoundsObjects();
+	void DeleteOutOfBounds();
 
-	bool CheckObjectInSectorObjectList(Object* object)
+	bool CheckObjectInSectorMeshComponentList(const std::shared_ptr<MeshComponent>& mesh_component)
 	{
-		return std::find_if(object_list_.begin(), object_list_.end(), [object](const std::weak_ptr<Object>& wp) {
+		return std::find_if(mesh_component_list_.begin(), mesh_component_list_.end(), 
+			[mesh_component](const std::weak_ptr<MeshComponent>& wp) {
 			auto locked = wp.lock();
-			return locked && locked.get() == object;
-		}) != object_list_.end();
+			return locked && (locked == mesh_component);
+		}) != mesh_component_list_.end();
 	}
 
-	void DeleteObject(Object* object);
+	void DeleteMeshComponent(const std::shared_ptr<MeshComponent>& mesh_component);
 	//setter
 	void set_bounds(const BoundingBox& bounds);
 
 	//getter
 	BoundingBox bounds() const { return bounds_; }
-	std::list<std::weak_ptr<Object>>& object_list() { return object_list_; }
+	std::list<std::weak_ptr<MeshComponent>>& mesh_component_list() { return mesh_component_list_; }
 
 private:
 	std::string name_;
 	BoundingBox bounds_;
-	std::list<std::weak_ptr<Object>> object_list_;
+	std::list<std::weak_ptr<MeshComponent>> mesh_component_list_;
 };
 

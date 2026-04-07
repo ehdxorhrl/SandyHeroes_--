@@ -31,7 +31,7 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList* command_list, int material_index, FrameResource* curr_frame_resource);
 
 	void RenderInstancing(ID3D12GraphicsCommandList* command_list, int material_index, 
-		FrameResource* curr_frame_resource, int instance_count, int instance_buffer_offset);
+		FrameResource* curr_frame_resource, UINT instance_count);
 
 	void LoadMeshFromFile(std::ifstream& file);
 

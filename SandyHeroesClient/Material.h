@@ -71,6 +71,19 @@ public:
     bool DeleteMeshComponent(std::weak_ptr<MeshComponent> component);
 
     void CopyMaterialData(Material* material);
+
+    struct InstanceCount
+    {
+        InstanceCount(UINT main_offset, UINT main_count, UINT shadow_offset, UINT shadow_count)
+            : main_visible_indices_offset(main_offset), main_visible_count(main_count),
+			shadow_visible_indices_offset(shadow_offset), shadow_visible_count(shadow_count) {
+		}
+		UINT main_visible_indices_offset = 0;
+        UINT main_visible_count = 0;
+		UINT shadow_visible_indices_offset = 0;
+        UINT shadow_visible_count = 0;
+	};
+
 private:
     // 재질 정보가 저장된 frame resource의 버퍼 인덱스
     int frame_resource_index_ = -1;
@@ -90,5 +103,6 @@ private:
 
     std::list<std::weak_ptr<MeshComponent>> mesh_component_list_;
     std::unordered_map<Mesh*, std::vector<std::shared_ptr<MeshComponent>>> batches_;
+	std::vector<InstanceCount> instance_counts_;
 };
 

@@ -79,6 +79,8 @@ struct InstanceData
 };
 
 StructuredBuffer<InstanceData> g_instance_data : register(t0, space1);
+StructuredBuffer<uint> g_main_visible_indices : register(t1, space1);
+StructuredBuffer<uint> g_shadow_visible_indices : register(t2, space1);
 
 Texture2D g_albedo_map : register(t0);
 Texture2D g_spec_glos_map : register(t1);

@@ -31,7 +31,7 @@ VertexOut MeshVS(MeshVertexIn v_in, uint instance_id : SV_InstanceID)
 {
     VertexOut v_out;
     
-    matrix world = g_instance_data[instance_id].world_matrix;
+    matrix world = g_instance_data[g_shadow_visible_indices[instance_id]].world_matrix;
 
     v_out.position_w = mul(float4(v_in.position, 1.f), world).xyz;
     v_out.position = mul(float4(v_out.position_w, 1.f), light_view_proj);

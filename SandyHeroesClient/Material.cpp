@@ -128,14 +128,20 @@ void Material::UpdateObjectFrameResource(FrameResource* curr_frame_resource)
 	}
 	mesh_component_list_.clear();
 
+	instance_counts_.reserve(batches_.size());
+
 	for (const auto& [mesh, components] : batches_)
 	{
 		auto mesh_type = mesh->mesh_type();
+		UINT main_visible_count = 0;
+		UINT shadow_visible_count = 0;
 		if (mesh_type != MeshType::kBillboardMesh)
 		{
 			for (const auto& component : components)
 			{
 				component->UpdateConstantBuffer(curr_frame_resource);
+				main_visible_count += component->is_in_view_frustum();
+				shadow_visible_count += component->is_in_shadow_map_obb();
 			}
 		}
 		else
@@ -143,8 +149,13 @@ void Material::UpdateObjectFrameResource(FrameResource* curr_frame_resource)
 			for (const auto& component : components)
 			{
 				component->UpdateConstantBufferForBillboard(curr_frame_resource);
+				main_visible_count += component->is_in_view_frustum();
+				shadow_visible_count += component->is_in_shadow_map_obb();
 			}
 		}
+		auto main_visible_offset = curr_frame_resource->current_main_visible_offset - main_visible_count;
+		auto shadow_visible_offset = curr_frame_resource->current_shadow_visible_offset - shadow_visible_count;
+		instance_counts_.emplace_back(main_visible_offset, main_visible_count, shadow_visible_offset, shadow_visible_count);
 	}
 }
 
@@ -155,8 +166,13 @@ void Material::Render(ID3D12GraphicsCommandList* command_list,
 	if(!bShadow)
 		UpdateShaderVariables(command_list, curr_frame_resource, descriptor_manager);
 
+	auto it = instance_counts_.begin();
 	for (const auto& [mesh, components] : batches_)
 	{
+		const auto& instance_count = *it;
+		if(it != instance_counts_.end())
+			++it;
+
 		auto mesh_type = mesh->mesh_type();
 		if (mesh_type == MeshType::kSkinnedMesh || mesh_type == MeshType::kUIMesh)
 		{	//skinned mesh와 ui mesh는 일반 렌더링으로 처리
@@ -167,14 +183,34 @@ void Material::Render(ID3D12GraphicsCommandList* command_list,
 		}
 		else 
 		{	//instance rendering
-			auto instance_count = components.size();
 			auto sub_mesh_index = components.front()->GetMaterialIndex(this);
-			auto instance_buffer_offset = components.front()->constant_buffer_index();
-			mesh->RenderInstancing(command_list, sub_mesh_index, curr_frame_resource, instance_count, instance_buffer_offset);
+			if (bShadow)
+			{
+				auto gpu_address = 
+					curr_frame_resource->sb_shadow_visible_indices->Resource()->GetGPUVirtualAddress() 
+					+ (sizeof(UINT) * instance_count.shadow_visible_indices_offset);
+				command_list->SetGraphicsRootShaderResourceView(
+					(int)RootParameterIndex::kShadowVisibleIndices, 
+					gpu_address);
+				mesh->RenderInstancing(command_list, sub_mesh_index, curr_frame_resource, instance_count.shadow_visible_count);
+			}
+			else
+			{
+				auto gpu_address =
+					curr_frame_resource->sb_main_visible_indices->Resource()->GetGPUVirtualAddress()
+					+ (sizeof(UINT) * instance_count.main_visible_indices_offset);
+				command_list->SetGraphicsRootShaderResourceView(
+					(int)RootParameterIndex::kMainVisibleIndices,
+					gpu_address);
+				mesh->RenderInstancing(command_list, sub_mesh_index, curr_frame_resource, instance_count.main_visible_count);
+			}
 		}
 	}
-	if(!bShadow)
+	if (!bShadow)
+	{
 		batches_.clear();
+		instance_counts_.clear();
+	}
 }
 
 int Material::CreateShaderResourceViews(ID3D12Device* device, DescriptorManager* descriptor_manager, int start_index)

@@ -2,6 +2,7 @@
 #include "Sector.h"
 #include "Object.h"
 #include "BoxColliderComponent.h"
+#include "MeshComponent.h"
 
 Sector::Sector(const std::string& name, const BoundingBox& bounds)
 	: name_(name), bounds_(bounds)
@@ -9,56 +10,48 @@ Sector::Sector(const std::string& name, const BoundingBox& bounds)
 
 }
 
-bool Sector::InsertObject(std::shared_ptr<Object> object)
+bool Sector::InsertMeshComponent(const std::shared_ptr<MeshComponent>& mesh_component)
 {
-	auto in_object = std::find_if(object_list_.begin(), object_list_.end(), [&object](const std::weak_ptr<Object>& wp) {
-		return wp.lock() == object;
-	});
-
-	if (in_object != object_list_.end())
+	if (CheckObjectInSectorMeshComponentList(mesh_component))
 	{
 		return true;
 	}
 
-	auto box_collider = Object::GetComponentInChildren<BoxColliderComponent>(object);
-	if (box_collider)
+	BoundingOrientedBox obb;
+	auto aabb = mesh_component->GetMesh()->bounds();
+	BoundingOrientedBox::CreateFromBoundingBox(obb, aabb);
+	obb.Transform(obb, XMLoadFloat4x4(&mesh_component->owner()->world_matrix()));
+
+	if (bounds_.Contains(obb) != ContainmentType::DISJOINT)
 	{
-		box_collider->Update(0.f);
-		if (bounds_.Contains(box_collider->animated_box()) != ContainmentType::DISJOINT)
-		{
-			object_list_.push_back(object);
-			return true;
-		}
-	}
-	
-	XMFLOAT3 pos = object->position_vector();
-	if (bounds_.Contains(XMLoadFloat3(&pos)))
-	{
-		object_list_.push_back(object);
+		mesh_component_list_.push_back(mesh_component);
 		return true;
 	}
+
 	return false;
 }
 
-void Sector::DeleteOutOfBoundsObjects()
+void Sector::DeleteOutOfBounds()
 {
-	object_list_.remove_if([this](const std::weak_ptr<Object>& wp) {
-		auto object = wp.lock();
-		if (!object)
+	mesh_component_list_.remove_if([this](const std::weak_ptr<MeshComponent>& wp) {
+		auto mesh_component = wp.lock();
+		if (!mesh_component)
 			return true;
-		if (!object->is_movable())
-			return false;
-		
-		XMFLOAT3 pos = object->position_vector();
-		return bounds_.Contains(XMLoadFloat3(&pos)) == ContainmentType::DISJOINT;
+
+		BoundingOrientedBox obb;
+		auto aabb = mesh_component->GetMesh()->bounds();
+		BoundingOrientedBox::CreateFromBoundingBox(obb, aabb);
+		obb.Transform(obb, XMLoadFloat4x4(&mesh_component->owner()->world_matrix()));
+
+		return bounds_.Contains(obb) == ContainmentType::DISJOINT;
 	});
 }
 
-void Sector::DeleteObject(Object* object)
+void Sector::DeleteMeshComponent(const std::shared_ptr<MeshComponent>& mesh_component)
 {
-	object_list_.remove_if([object](const std::weak_ptr<Object>& wp) {
+	mesh_component_list_.remove_if([mesh_component](const std::weak_ptr<MeshComponent>& wp) {
 		auto locked = wp.lock();
-		return !locked || locked.get() == object;
+		return !locked || locked == mesh_component;
 	});
 }
 

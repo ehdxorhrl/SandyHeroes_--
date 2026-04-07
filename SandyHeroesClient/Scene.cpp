@@ -28,7 +28,7 @@ void Scene::Update(float elapsed_time)
 
 	for(const std::shared_ptr<Object>& object : add_object_list_)
 	{
-		object_list_.push_back(object);
+		AddObject(object);
 	}
 	add_object_list_.clear();
 
@@ -55,56 +55,80 @@ void Scene::UpdateSector()
 {
 	for (auto& sector : sectors_)
 	{
-		//섹터로 부터 벗어난 오브젝트를 해당 섹터에서 삭제
-		sector.DeleteOutOfBoundsObjects();
+		//섹터로 부터 벗어난 메쉬 컴포넌트를 해당 섹터에서 삭제
+		sector.DeleteOutOfBounds();
 	}
 
-	for (const auto& object : object_list_)
+	for (const auto& wp : all_mesh_component_list_)
 	{
-		if(!object->is_movable())
+		auto mesh_component = wp.lock();
+		if (!mesh_component)
 			continue;
-		bool is_inserted = false;
+		auto object = mesh_component->owner();
+		if(!object || !object->is_movable())
+			continue;
+
 		for (auto& sector : sectors_)
 		{
-			if (sector.CheckObjectInSectorObjectList(object.get()))
-			{
-				is_inserted = true;
-				break;
-			}
-		}
-		if (is_inserted)
-			continue;
-		for (auto& sector : sectors_)
-		{
-			if (sector.InsertObject(object))
-				break;
+			sector.InsertMeshComponent(mesh_component);
 		}
 	}
 }
 
 void Scene::RunViewFrustumCulling()
 {
-	int i = 0;
-	int j = 0;
-	BoundingFrustum world_frustum;
-	auto view = XMLoadFloat4x4(&main_camera_->view_matrix());
-	auto inv_view = XMMatrixInverse(&XMMatrixDeterminant(view), view);
-	main_camera_->view_frustum().Transform(world_frustum, inv_view);
+	const auto& world_frustum = main_camera_->world_frustum();
 
 	for (auto& sector : sectors_)
 	{
-		bool is_in_view_sector = sector.bounds().Intersects(world_frustum);
-		for (const auto& object : sector.object_list())
+		if (sector.bounds().Intersects(world_frustum))
 		{
-			auto object_ptr = object.lock();
-			if(!object_ptr)
-				continue;
-			object_ptr->set_is_in_view_sector(is_in_view_sector);
+			for (const auto& mesh_component : sector.mesh_component_list())
+			{
+				auto locked_mesh_component = mesh_component.lock();
+				if (!locked_mesh_component)
+					continue;
+				BoundingOrientedBox obb;
+				auto aabb = locked_mesh_component->GetMesh()->bounds();
+				BoundingOrientedBox::CreateFromBoundingBox(obb, aabb);
+				obb.Transform(obb, XMLoadFloat4x4(&locked_mesh_component->owner()->world_matrix()));
+				locked_mesh_component->set_is_in_view_frustum(world_frustum.Intersects(obb));
+			}
 		}
 	}
-	//std::string str = "View Frustum Culling: " + std::to_string(i) + " objects checked.\n" + std::to_string(j) + " Sectors checked.\n";
-	//std::wstring wstr(str.begin(), str.end());
-	//OutputDebugString(wstr.c_str());
+}
+
+void Scene::RunShadowMapViewFrustumCulling(FXMVECTOR light_position, const BoundingBox& shadow_map_aabb, const float& radius)
+{
+	constexpr float culling_radius_offset = 10.0f; // 오브젝트의 반지름에 추가할 여유 공간
+	const float culling_radius = radius + culling_radius_offset;
+	const float culling_radius_squared = culling_radius * culling_radius;
+	for(auto it = all_mesh_component_list_.begin(); it != all_mesh_component_list_.end();)
+	{
+		auto locked_mesh_component = it->lock();
+		if (!locked_mesh_component)
+		{
+			it = all_mesh_component_list_.erase(it);
+			continue;
+		}
+		++it;
+
+		auto object = locked_mesh_component->owner();
+		if(!object)
+			continue;
+
+		XMVECTOR object_position = XMLoadFloat3(&object->world_position_vector());
+		float distance_squared = XMVectorGetX(XMVector3LengthSq(object_position - light_position));
+		if (distance_squared < culling_radius_squared)
+		{
+			BoundingOrientedBox obb;
+			auto aabb = locked_mesh_component->GetMesh()->bounds();
+			BoundingOrientedBox::CreateFromBoundingBox(obb, aabb);
+			obb.Transform(obb, XMLoadFloat4x4(&locked_mesh_component->owner()->world_matrix()));
+			locked_mesh_component->set_is_in_shadow_map_obb(shadow_map_aabb.Intersects(obb));
+		}
+	}
+
 }
 
 std::shared_ptr<Object> Scene::FindObject(const std::string& object_name)
@@ -245,6 +269,10 @@ void Scene::AddObject(std::shared_ptr<Object> object)
 		return;
 	}
 	object_list_.push_back(object);
+	for (const auto& mesh_component : Object::GetComponentsInChildren<MeshComponent>(object))
+	{
+		all_mesh_component_list_.push_back(mesh_component);
+	}
 }
 
 void Scene::DeleteObject(std::shared_ptr<Object> object)
@@ -268,6 +296,8 @@ void Scene::ReleaseMeshUploadBuffer()
 void Scene::UpdateRenderPassConstantBuffer(ID3D12GraphicsCommandList* command_list)
 {
 	main_camera_->UpdateCameraInfo();
+
+	RunViewFrustumCulling();
 
 	XMMATRIX view = XMLoadFloat4x4(&main_camera_->view_matrix());
 	XMMATRIX proj = XMLoadFloat4x4(&main_camera_->projection_matrix());
@@ -334,7 +364,14 @@ void Scene::UpdateRenderPassShadowBuffer(ID3D12GraphicsCommandList* command_list
 	XMVECTOR targetPos = XMLoadFloat3(&player_pos); // 플레이어를 타겟으로
 	XMVECTOR lightDir = XMLoadFloat3(&shadow_pass.light_dir);
 	XMVECTOR lightPos = targetPos - 2.0f * radius * lightDir;
+	// [수정 3] Up 벡터 평행(Gimbal Lock) 방지
 	XMVECTOR lightUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMVECTOR epsilon = XMVectorSet(0.0001f, 0.0001f, 0.0001f, 0.0f);
+	if (XMVector3NearEqual(XMVectorAbs(lightDir), lightUp, epsilon))
+	{
+		// 빛이 수직에 가까우면 Up 벡터를 Z축으로 임시 변경
+		lightUp = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	}
 
 	XMMATRIX lightView = XMMatrixLookAtLH(lightPos, targetPos, lightUp);
 	XMStoreFloat3(&shadow_pass.light_pos_w, lightPos);
@@ -362,6 +399,12 @@ void Scene::UpdateRenderPassShadowBuffer(ID3D12GraphicsCommandList* command_list
 		0.0f, -0.5f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.5f, 0.5f, 0.0f, 1.0f);
+
+	// [수정 1] 직교 투영이므로 BoundingFrustum 대신 BoundingBox(OBB) 생성
+	// 라이트 뷰 스페이스에서의 섀도우 영역은 중심이 sphereCenterLS 이고 반경이 radius인 AABB입니다.
+	BoundingBox light_space_aabb(sphereCenterLS, XMFLOAT3(radius, radius, (f - n) * 0.5f));
+
+	RunShadowMapViewFrustumCulling(lightPos, light_space_aabb, radius);
 
 	XMMATRIX S = lightView * lightProj * T;
 	XMStoreFloat4x4(&shadow_pass.light_view, XMMatrixTranspose(lightView));
@@ -391,7 +434,10 @@ void Scene::Render(ID3D12GraphicsCommandList* command_list)
 
 	for (const auto& [type, shader] : shaders_)
 	{
-		if (shader->shader_type() == ShaderType::kDebug && !is_render_debug_mesh_)
+		auto shader_type = shader->shader_type();
+		if ((shader_type == ShaderType::kDebug && !is_render_debug_mesh_) 
+			|| shader_type == ShaderType::kShadow 
+			|| shader_type == ShaderType::kSkinnedShadow)
 		{
 			continue;
 		}
@@ -408,11 +454,17 @@ void Scene::ShadowRender(ID3D12GraphicsCommandList* command_list)
 	UpdateRenderPassConstantBuffer(command_list);
 	UpdateRenderPassShadowBuffer(command_list);
 
+
 	for (const auto& material : materials_)
 	{
 		material->UpdateObjectFrameResource(curr_frame_resource);
 	}
 
+	//인스턴스 버퍼 set
+	D3D12_GPU_VIRTUAL_ADDRESS base =
+		curr_frame_resource->sb_instance_data->Resource()->GetGPUVirtualAddress();
+	command_list->SetGraphicsRootShaderResourceView(
+		(int)RootParameterIndex::kInstanceData, base);
 
 	{
 		auto& skinnedShadow = shaders_[(int)ShaderType::kSkinnedShadow];
@@ -583,23 +635,14 @@ void Scene::BuildScene()
 
 void Scene::InitializeSectorObjectlist()
 {
-	for (const auto& object : object_list_)
+	for (const auto& mesh_component : all_mesh_component_list_)
 	{
-		bool is_inserted = false;
-		for (auto& sector : sectors_)
-		{
-			if (sector.CheckObjectInSectorObjectList(object.get()))
-			{
-				is_inserted = true;
-				break;
-			}
-		}
-		if (is_inserted)
+		auto locked_mesh_component = mesh_component.lock();
+		if (!locked_mesh_component)
 			continue;
 		for (auto& sector : sectors_)
 		{
-			if (sector.InsertObject(object))
-				break;
+			sector.InsertMeshComponent(locked_mesh_component);
 		}
 	}
 }

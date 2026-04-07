@@ -193,23 +193,17 @@ void Mesh::Render(ID3D12GraphicsCommandList* command_list, int material_index, F
 	//}
 }
 
-void Mesh::RenderInstancing(ID3D12GraphicsCommandList* command_list, int material_index, FrameResource* curr_frame_resource, int instance_count, int instance_buffer_offset)
+void Mesh::RenderInstancing(ID3D12GraphicsCommandList* command_list, int material_index, 
+	FrameResource* curr_frame_resource, UINT instance_count)
 {
+	if(instance_count == 0)
+		return;
+
 	command_list->IASetPrimitiveTopology(primitive_topology_);
 
 	//정점 버퍼 set
 	command_list->IASetVertexBuffers(0,
 		vertex_buffer_views_.size(), vertex_buffer_views_.data());
-
-	//인스턴스 버퍼 set
-	D3D12_GPU_VIRTUAL_ADDRESS base =
-		curr_frame_resource->sb_instance_data->Resource()->GetGPUVirtualAddress();
-
-	command_list->SetGraphicsRootShaderResourceView(
-		(int)RootParameterIndex::kInstanceData,
-		base + instance_buffer_offset * sizeof(InstanceData)
-	);
-
 
 	if (material_index < indices_array_.size())
 	{

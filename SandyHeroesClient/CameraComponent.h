@@ -36,6 +36,7 @@ public:
 	XMFLOAT3 world_position() const;
 	XMFLOAT3 up_vector() const;
 	BoundingFrustum view_frustum() const;
+	BoundingFrustum world_frustum() const;
 
 private:
 	XMFLOAT4X4 view_matrix_ = xmath_util_float4x4::Identity();
