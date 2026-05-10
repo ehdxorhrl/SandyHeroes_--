@@ -228,7 +228,7 @@ void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* comma
 		{
 			load_token.erase(0, 1);			
 			std::string object_name = load_token;
-			object_list_.push_back(FindModelInfo(object_name)->GetInstance());
+			AddObject(FindModelInfo(object_name)->GetInstance());
 
 			ReadStringFromFile(scene_file, load_token); 
 			XMFLOAT4X4 transfrom;
@@ -273,7 +273,7 @@ void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* comma
 
 			model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/World/" + object_name + ".bin", meshes_, materials_, textures_));
 
-			object_list_.push_back(model_infos_.back()->GetInstance());
+			AddObject(model_infos_.back()->GetInstance());
 
 			object_list_.back()->set_transform_matrix(transfrom);
 			if (is_sector)

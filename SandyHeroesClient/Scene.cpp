@@ -103,6 +103,7 @@ void Scene::RunShadowMapViewFrustumCulling(FXMVECTOR light_position, const Bound
 	constexpr float culling_radius_offset = 10.0f; // 오브젝트의 반지름에 추가할 여유 공간
 	const float culling_radius = radius + culling_radius_offset;
 	const float culling_radius_squared = culling_radius * culling_radius;
+	int a = 0;
 	for(auto it = all_mesh_component_list_.begin(); it != all_mesh_component_list_.end();)
 	{
 		auto locked_mesh_component = it->lock();
@@ -127,8 +128,9 @@ void Scene::RunShadowMapViewFrustumCulling(FXMVECTOR light_position, const Bound
 			obb.Transform(obb, XMLoadFloat4x4(&locked_mesh_component->owner()->world_matrix()));
 			locked_mesh_component->set_is_in_shadow_map_obb(shadow_map_aabb.Intersects(obb));
 		}
+		else
+			locked_mesh_component->set_is_in_shadow_map_obb(false);
 	}
-
 }
 
 std::shared_ptr<Object> Scene::FindObject(const std::string& object_name)
@@ -401,10 +403,10 @@ void Scene::UpdateRenderPassShadowBuffer(ID3D12GraphicsCommandList* command_list
 		0.5f, 0.5f, 0.0f, 1.0f);
 
 	// [수정 1] 직교 투영이므로 BoundingFrustum 대신 BoundingBox(OBB) 생성
-	// 라이트 뷰 스페이스에서의 섀도우 영역은 중심이 sphereCenterLS 이고 반경이 radius인 AABB입니다.
-	BoundingBox light_space_aabb(sphereCenterLS, XMFLOAT3(radius, radius, (f - n) * 0.5f));
+	// 월드 스페이스에서의 섀도우 영역은 중심이 player_pos 이고 반경이 radius인 AABB입니다.
+	BoundingBox light_space_aabb(player_pos, XMFLOAT3(radius, radius, radius));
 
-	RunShadowMapViewFrustumCulling(lightPos, light_space_aabb, radius);
+	RunShadowMapViewFrustumCulling(targetPos, light_space_aabb, radius);
 
 	XMMATRIX S = lightView * lightProj * T;
 	XMStoreFloat4x4(&shadow_pass.light_view, XMMatrixTranspose(lightView));
