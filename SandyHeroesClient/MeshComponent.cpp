@@ -25,7 +25,13 @@ MeshComponent::MeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh, M
 	AddMaterial(material);
 }
 
-MeshComponent::MeshComponent(const MeshComponent& other) : Component(other), mesh_(other.mesh_)
+MeshComponent::MeshComponent(const MeshComponent& other) : Component(other), 
+mesh_(other.mesh_),
+is_visible_(other.is_visible_),
+is_in_view_frustum_(other.is_in_view_frustum_),
+is_in_shadow_map_obb_(other.is_in_shadow_map_obb_),
+is_using_view_frustum_culling(other.is_using_view_frustum_culling),
+is_using_shadow_map_obb_culling(other.is_using_shadow_map_obb_culling)
 {
 	materials_.reserve(other.materials_.size());
 	for (const auto& const material : other.materials_)

@@ -214,6 +214,15 @@ void BaseScene::BuildMesh(ID3D12Device* device, ID3D12GraphicsCommandList* comma
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Super_Dragon.bin", meshes_, materials_, textures_));
 	
 	model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/Monster/Thorn_Projectile.bin", meshes_, materials_, textures_));	//15 쏴용 무기
+	
+	std::vector<std::string> guns{ "classic", "sherif", "specter", "vandal", "odin", "flamethrower" };
+	for (const auto& name : guns)
+	{
+		ModelInfo* model_info = FindModelInfo(name);
+		auto mesh_component = Object::GetComponent<MeshComponent>(model_info->hierarchy_root());
+		mesh_component->set_is_using_shadow_map_obb_culling(false);
+		mesh_component->set_is_using_view_frustum_culling(false);
+	}
 
 	std::ifstream scene_file{ "./Resource/Model/World/Scene.bin", std::ios::binary };
 
