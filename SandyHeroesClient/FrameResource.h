@@ -80,7 +80,7 @@ struct InstanceData
 {
 	XMFLOAT4X4 world_matrix;
 	float time;
-	float padding[3];
+	//float padding[3];
 };
 
 // 게임에서 한 프레임에 사용하는 리소스에 대한 구조체

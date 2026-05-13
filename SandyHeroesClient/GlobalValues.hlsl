@@ -75,7 +75,6 @@ struct InstanceData
 {
     matrix world_matrix;
     float object_time;
-    float3 padding;
 };
 
 StructuredBuffer<InstanceData> g_instance_data : register(t0, space1);
