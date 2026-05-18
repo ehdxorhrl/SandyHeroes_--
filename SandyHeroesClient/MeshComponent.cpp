@@ -69,9 +69,11 @@ void MeshComponent::Update(float elapsed_time)
 
 void MeshComponent::UpdateConstantBuffer(FrameResource* current_frame_resource)
 {
+	//weak_ptr이므로 lock해서 shared_ptr로 변환 후 사용
 	const auto& object = owner_.lock();
 	if (!object) return;
 	
+	//기존 상수 버퍼 인덱스를 인스턴싱 적용에 따라 인스턴스 버퍼의 오프셋으로 활용
 	constant_buffer_index_ = current_frame_resource->current_instance_offset;
 
 	InstanceData data{};
@@ -100,7 +102,6 @@ void MeshComponent::UpdateConstantBuffer(FrameResource* current_frame_resource)
 		current_frame_resource->current_instance_offset++,
 		data
 	);
-
 
 }
 
