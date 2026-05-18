@@ -72,16 +72,25 @@ public:
 
     void CopyMaterialData(Material* material);
 
-    struct InstanceCount
+    struct MeshInstanceInfo
     {
-        InstanceCount(UINT main_offset, UINT main_count, UINT shadow_offset, UINT shadow_count)
+        MeshInstanceInfo() {}
+		MeshInstanceInfo(Mesh* mesh) : mesh(mesh) {}
+        MeshInstanceInfo(UINT main_offset, UINT main_count, 
+            UINT shadow_offset, UINT shadow_count, 
+            Mesh* mesh, const std::shared_ptr<MeshComponent>& component)
             : main_visible_indices_offset(main_offset), main_visible_count(main_count),
-			shadow_visible_indices_offset(shadow_offset), shadow_visible_count(shadow_count) {
+			shadow_visible_indices_offset(shadow_offset), shadow_visible_count(shadow_count),
+            mesh(mesh)
+        {
+			components.push_back(component);
 		}
 		UINT main_visible_indices_offset = 0;
         UINT main_visible_count = 0;
 		UINT shadow_visible_indices_offset = 0;
         UINT shadow_visible_count = 0;
+		Mesh* mesh = nullptr;
+		std::vector<std::shared_ptr<MeshComponent>> components;
 	};
 
 private:
@@ -101,8 +110,7 @@ private:
     
     std::string name_{ "None" };
 
-    std::list<std::weak_ptr<MeshComponent>> mesh_component_list_;
-    std::unordered_map<Mesh*, std::vector<std::shared_ptr<MeshComponent>>> batches_;
-	std::vector<InstanceCount> instance_counts_;
+    std::vector<std::weak_ptr<MeshComponent>> mesh_components_;
+	std::vector<MeshInstanceInfo> mesh_instance_infos_;
 };
 

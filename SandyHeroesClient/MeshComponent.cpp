@@ -230,7 +230,9 @@ void MeshComponent::set_is_in_view_frustum(bool value)
 
 bool MeshComponent::is_in_view_frustum() const
 {
-	return is_in_view_frustum_;
+	if(is_using_view_frustum_culling)
+		return is_in_view_frustum_;
+	return true;
 }
 
 Mesh* MeshComponent::GetMesh() const

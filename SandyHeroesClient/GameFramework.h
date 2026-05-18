@@ -93,7 +93,7 @@ private:
 	static const UINT kSwapChainBufferCount = 2;	// 스왑체인 버퍼 수
 	static const UINT kDepthStencilBufferCount = 2;	// DepthStencil, Shadow
 
-	static constexpr UINT SHADOW_MAP_SIZE = 4096;
+	static constexpr UINT SHADOW_MAP_SIZE = 2048;
 
 	HINSTANCE app_instance_ = nullptr;	// 어플리케이션 인스턴스 핸들
 	HWND main_wnd_ = nullptr;			// 메인 윈도우 핸들

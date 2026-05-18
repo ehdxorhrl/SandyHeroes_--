@@ -112,50 +112,50 @@ void Material::UpdateShaderVariables(ID3D12GraphicsCommandList* command_list,
 
 void Material::UpdateObjectFrameResource(FrameResource* curr_frame_resource)
 {
-	batches_.reserve(mesh_component_list_.size());
-	for (auto it = mesh_component_list_.begin(); it != mesh_component_list_.end();)
-	{
-		auto mesh_component = it->lock();
-		if (!mesh_component)
+	//메시 컴포넌트 vector에서 expired된 weak_ptr 제거 및 메시 순으로 정렬
+	std::erase_if(mesh_components_, [](const std::weak_ptr<MeshComponent>& weak_component)
 		{
-			it = mesh_component_list_.erase(it);
-			continue;
-		}
+			return weak_component.expired();
+		});
+	std::sort(mesh_components_.begin(), mesh_components_.end(),
+		[](const std::weak_ptr<MeshComponent>& a, const std::weak_ptr<MeshComponent>& b)
+		{
+			auto mesh_a = a.lock();
+			auto mesh_b = b.lock();
+			return mesh_a->GetMesh() < mesh_b->GetMesh();
+		});
+
+	//정렬된 메시 컴포넌트 vector를 순회하면서 메시가 바뀔 때마다 mesh_instance_infos_에 새로운 요소 추가
+	mesh_instance_infos_.reserve(mesh_components_.size());
+	Mesh* prev_mesh = nullptr;
+	for(const auto& weak_component : mesh_components_)
+	{
+		auto mesh_component = weak_component.lock();
 		const auto& mesh = mesh_component->GetMesh();
-		batches_[mesh].push_back(mesh_component);
-
-		++it;
+		if(prev_mesh != mesh)
+		{
+			mesh_instance_infos_.emplace_back(mesh);
+			prev_mesh = mesh;
+		}
+		mesh_instance_infos_.back().components.push_back(mesh_component);
 	}
-	mesh_component_list_.clear();
 
-	instance_counts_.reserve(batches_.size());
-
-	for (const auto& [mesh, components] : batches_)
+	//mesh_instance_infos_를 순회하면서 각 메시 인스턴스 버퍼 업데이트 및 인스턴스 횟수 체크
+	for(auto& mesh_instance_info : mesh_instance_infos_)
 	{
+		const auto& mesh = mesh_instance_info.mesh;
 		auto mesh_type = mesh->mesh_type();
-		UINT main_visible_count = 0;
-		UINT shadow_visible_count = 0;
-		if (mesh_type != MeshType::kBillboardMesh)
+		mesh_instance_info.shadow_visible_indices_offset = curr_frame_resource->current_shadow_visible_offset;
+		mesh_instance_info.main_visible_indices_offset = curr_frame_resource->current_main_visible_offset;
+		for(const auto& component : mesh_instance_info.components)
 		{
-			for (const auto& component : components)
-			{
+			if (mesh_type != MeshType::kBillboardMesh)
 				component->UpdateConstantBuffer(curr_frame_resource);
-				main_visible_count += component->is_in_view_frustum();
-				shadow_visible_count += component->is_in_shadow_map_obb();
-			}
-		}
-		else
-		{
-			for (const auto& component : components)
-			{
+			else
 				component->UpdateConstantBufferForBillboard(curr_frame_resource);
-				main_visible_count += component->is_in_view_frustum();
-				shadow_visible_count += component->is_in_shadow_map_obb();
-			}
+			mesh_instance_info.main_visible_count += component->is_in_view_frustum();
+			mesh_instance_info.shadow_visible_count += component->is_in_shadow_map_obb();
 		}
-		auto main_visible_offset = curr_frame_resource->current_main_visible_offset - main_visible_count;
-		auto shadow_visible_offset = curr_frame_resource->current_shadow_visible_offset - shadow_visible_count;
-		instance_counts_.emplace_back(main_visible_offset, main_visible_count, shadow_visible_offset, shadow_visible_count);
 	}
 }
 
@@ -166,50 +166,52 @@ void Material::Render(ID3D12GraphicsCommandList* command_list,
 	if(!bShadow)
 		UpdateShaderVariables(command_list, curr_frame_resource, descriptor_manager);
 
-	auto it = instance_counts_.begin();
-	for (const auto& [mesh, components] : batches_)
+	for(const auto& mesh_instance_info : mesh_instance_infos_)
 	{
-		const auto& instance_count = *it;
-		if(it != instance_counts_.end())
-			++it;
-
-		auto mesh_type = mesh->mesh_type();
+		auto mesh_type = mesh_instance_info.mesh->mesh_type();
+		//skinned mesh와 ui mesh는 일반 렌더링으로 처리
 		if (mesh_type == MeshType::kSkinnedMesh || mesh_type == MeshType::kUIMesh)
-		{	//skinned mesh와 ui mesh는 일반 렌더링으로 처리
-			for (const auto& component : components)
+		{
+			for (const auto& component : mesh_instance_info.components)
 			{
 				component->Render(this, command_list, curr_frame_resource);
 			}
 		}
-		else 
-		{	//instance rendering
-			auto sub_mesh_index = components.front()->GetMaterialIndex(this);
+		//인스턴싱 렌더링
+		else
+		{
+			auto sub_mesh_index = mesh_instance_info.components.front()->GetMaterialIndex(this);
 			if (bShadow)
 			{
-				auto gpu_address = 
-					curr_frame_resource->sb_shadow_visible_indices->Resource()->GetGPUVirtualAddress() 
-					+ (sizeof(UINT) * instance_count.shadow_visible_indices_offset);
+				auto gpu_address =
+					curr_frame_resource->sb_shadow_visible_indices->Resource()->GetGPUVirtualAddress()
+					+ (sizeof(UINT) * mesh_instance_info.shadow_visible_indices_offset);
 				command_list->SetGraphicsRootShaderResourceView(
-					(int)RootParameterIndex::kShadowVisibleIndices, 
+					(int)RootParameterIndex::kShadowVisibleIndices,
 					gpu_address);
-				mesh->RenderInstancing(command_list, sub_mesh_index, curr_frame_resource, instance_count.shadow_visible_count);
+				mesh_instance_info.mesh->RenderInstancing(
+					command_list, sub_mesh_index, 
+					curr_frame_resource, mesh_instance_info.shadow_visible_count);
 			}
 			else
 			{
 				auto gpu_address =
 					curr_frame_resource->sb_main_visible_indices->Resource()->GetGPUVirtualAddress()
-					+ (sizeof(UINT) * instance_count.main_visible_indices_offset);
+					+ (sizeof(UINT) * mesh_instance_info.main_visible_indices_offset);
 				command_list->SetGraphicsRootShaderResourceView(
 					(int)RootParameterIndex::kMainVisibleIndices,
 					gpu_address);
-				mesh->RenderInstancing(command_list, sub_mesh_index, curr_frame_resource, instance_count.main_visible_count);
+				mesh_instance_info.mesh->RenderInstancing(
+					command_list, sub_mesh_index, 
+					curr_frame_resource, mesh_instance_info.main_visible_count);
 			}
 		}
 	}
+
 	if (!bShadow)
 	{
-		batches_.clear();
-		instance_counts_.clear();
+		mesh_components_.clear();
+		mesh_instance_infos_.clear();
 	}
 }
 
@@ -413,7 +415,7 @@ std::string Material::GetTextureName(UINT index) const
 
 void Material::AddMeshComponent(std::weak_ptr<MeshComponent> component)
 {
-	mesh_component_list_.push_back(component);
+	mesh_components_.push_back(component);
 }
 
 bool Material::DeleteMeshComponent(std::weak_ptr<MeshComponent> component)

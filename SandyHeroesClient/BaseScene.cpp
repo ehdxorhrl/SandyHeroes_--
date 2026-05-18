@@ -514,7 +514,7 @@ void BaseScene::BuildMaterial(ID3D12Device* device, ID3D12GraphicsCommandList* c
 
 void BaseScene::BuildObject(ID3D12Device* device, ID3D12GraphicsCommandList* command_list)
 {
-	cb_object_capacity_ = 11000;
+	cb_object_capacity_ = 7000;
 	cb_skinned_mesh_object_capacity_ = 1000;
 	cb_ui_mesh_capacity_ = 1000;
 	
