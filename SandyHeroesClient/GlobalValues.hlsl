@@ -102,11 +102,11 @@ float CalcShadowFactor(float4 shadowPosH)
     // Depth in NDC space.
     float depth = shadowPosH.z;
 
-    uint width, height, numMips;
-    g_shadow_map.GetDimensions(0, width, height, numMips);
+    //uint width, height, numMips;
+    //g_shadow_map.GetDimensions(0, width, height, numMips);
     
     // Texel size.
-    float dx = 1.0f / (float) width;
+    float dx = 1.0f / (float) 1024;
 
     float percentLit = 0.0f;
     const float2 offsets[9] =

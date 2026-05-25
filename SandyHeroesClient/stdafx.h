@@ -79,7 +79,7 @@ constexpr int kDefaultFrameBufferWidth = 1920;
 constexpr int kDefaultFrameBufferHeight = 1080;
 constexpr UINT kDefaultRefreshRate = 60;
 constexpr int kMaxBoneCount = 128; //skinned mesh의 본 최대 개수
-constexpr int kMaxLights = 16;		// 조명처리의 최대 개수
+constexpr int kMaxLights = 1;		// 조명처리의 최대 개수
 
 //랜덤 머신
 extern std::random_device kRandomDevice;

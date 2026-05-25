@@ -330,8 +330,8 @@ void Scene::UpdateRenderPassConstantBuffer(ID3D12GraphicsCommandList* command_li
 	//cb_pass.lights[1].enable = true;
 	//cb_pass.lights[1].type = 2;
 
-	for (int i = 1; i < 16; ++i)
-		cb_pass.lights[i].enable = false;
+	//for (int i = 1; i < 16; ++i)
+	//	cb_pass.lights[i].enable = false;
 
 	FrameResourceManager* frame_resource_manager = game_framework_->frame_resource_manager();
 	frame_resource_manager->curr_frame_resource()->cb_pass.get()->CopyData(0, cb_pass);
