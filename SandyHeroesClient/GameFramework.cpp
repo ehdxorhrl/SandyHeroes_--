@@ -770,7 +770,9 @@ void GameFramework::FrameAdvance()
     std::wstring fps{ L"SandyHeroes(" };
     fps += std::to_wstring(client_timer_->Fps()) + L"fps)";
     SetWindowText(main_wnd_, fps.c_str());
-	AddDebugText(fps + L" | " + performance_text);
+	//AddDebugText(fps + L" | " + performance_text);	
+    AddDebugText(fps);
+
 }
 
 void GameFramework::FlushCommandQueue()

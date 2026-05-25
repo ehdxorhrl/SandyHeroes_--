@@ -112,11 +112,17 @@ void Material::UpdateShaderVariables(ID3D12GraphicsCommandList* command_list,
 
 void Material::UpdateObjectFrameResource(FrameResource* curr_frame_resource)
 {
-	//메시 컴포넌트 vector에서 expired된 weak_ptr 제거 및 메시 순으로 정렬
+	//메시 컴포넌트 vector에서 expired된 weak_ptr 제거 및 
+	//카메라 절두체, 그림자 범위 두 곳 모두에 포함되지 않은 메시 컴포넌트 제거
 	std::erase_if(mesh_components_, [](const std::weak_ptr<MeshComponent>& weak_component)
 		{
-			return weak_component.expired();
+			auto mesh_component = weak_component.lock();
+			if(!mesh_component)
+				return true;
+			return !mesh_component->is_in_shadow_map_obb() && !mesh_component->is_in_view_frustum();
 		});
+
+	//메쉬순으로 정렬하여 같은 메쉬를 사용하는 컴포넌트들이 연속되도록 함(인스턴싱 렌더링을 위해)
 	std::sort(mesh_components_.begin(), mesh_components_.end(),
 		[](const std::weak_ptr<MeshComponent>& a, const std::weak_ptr<MeshComponent>& b)
 		{

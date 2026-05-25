@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sandy Heroes — 페이지 9 예제</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #1a1a2e;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+}
+
+/* ── Slide container: 1280×720 ── */
+.slide {
+  width: 1280px;
+  min-height: 720px;
+  background: #0d1117;
+  border: 1px solid #21262d;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 40px rgba(0,0,0,.7);
+}
+
+/* ── Top bar ── */
+.slide-topbar {
+  background: #161b22;
+  border-bottom: 1px solid #21262d;
+  padding: 0 36px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.slide-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: #3fb950;
+  background: rgba(63,185,80,.12);
+  border: 1px solid rgba(63,185,80,.25);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.slide-project {
+  font-size: 0.8rem;
+  color: #8b949e;
+  letter-spacing: .06em;
+}
+
+/* ── Title section ── */
+.slide-title-area {
+  padding: 28px 36px 20px;
+  border-bottom: 1px solid #21262d;
+}
+
+.slide-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #e6edf3;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+}
+
+.slide-subtitle {
+  font-size: 0.85rem;
+  color: #8b949e;
+  margin-top: 6px;
+}
+
+/* ── Body ── */
+.slide-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 0;
+}
+
+/* ── Left panel: problem description ── */
+.panel-left {
+  padding: 24px 28px 24px 36px;
+  border-right: 1px solid #21262d;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.problem-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.problem-num {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #8b949e;
+}
+
+.problem-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #f85149;
+  line-height: 1.4;
+}
+
+.problem-title.resolved {
+  color: #3fb950;
+}
+
+.problem-body {
+  font-size: 0.8rem;
+  color: #8b949e;
+  line-height: 1.8;
+  font-family: 'D2Coding', 'Consolas', 'Courier New', monospace;
+  white-space: pre-wrap;
+}
+
+.arrow-resolve {
+  font-size: 0.8rem;
+  color: #58a6ff;
+  font-style: italic;
+  line-height: 1.6;
+  font-family: 'D2Coding', 'Consolas', monospace;
+  white-space: pre-wrap;
+}
+
+.divider-h {
+  border: none;
+  border-top: 1px solid #21262d;
+}
+
+/* ── Right panel: code comparison ── */
+.panel-right {
+  padding: 24px 36px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.snippet-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #8b949e;
+  margin-bottom: 2px;
+}
+
+/* ── VS2022 code window ── */
+.code-window {
+  background: #1E1E1E;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,.65);
+  border: 1px solid #3C3C3C;
+}
+
+.code-win-header {
+  background: #2D2D2D;
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid #252526;
+}
+
+.win-filename {
+  background: #1E1E1E;
+  border-top: 2px solid #007ACC;
+  padding: 6px 14px;
+  font-family: 'Segoe UI', 'Malgun Gothic', -apple-system, sans-serif;
+  font-size: 0.72rem;
+  color: #CCCCCC;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.win-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 4px 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  border-left: 1px solid #3C3C3C;
+}
+
+.win-label.before { background: rgba(248,81,73,.12); color: #f85149; }
+.win-label.after  { background: rgba(63,185,80,.12);  color: #3fb950; }
+
+.code-window pre {
+  margin: 0 !important;
+  border-radius: 0 !important;
+  background: #1E1E1E !important;
+  padding: 12px 16px !important;
+}
+
+.code-window pre code {
+  font-family: 'Consolas', 'D2Coding', 'Courier New', monospace !important;
+  font-size: 0.78rem !important;
+  line-height: 1.58 !important;
+  background: transparent !important;
+}
+
+/* ── callout ── */
+.callout {
+  border-radius: 0 6px 6px 0;
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  border-left: 3px solid #bc8cff;
+  background: rgba(188,140,255,.08);
+  color: #c9aaff;
+}
+
+.callout code {
+  background: rgba(255,255,255,.08);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: 'Consolas', monospace;
+  font-size: 0.9em;
+}
+
+/* ── VS2022 Dark+ — Prism.js 토큰 색상 ── */
+code[class*="language-"],
+pre[class*="language-"]     { background: #1E1E1E !important; color: #D4D4D4 !important; text-shadow: none !important; }
+/* 키워드 (void, int, float, for, if, const, auto, class ...) → 파랑 */
+.token.keyword              { color: #569CD6 !important; }
+.token.builtin              { color: #569CD6 !important; }
+.token.boolean              { color: #569CD6 !important; }
+/* 숫자 → 연두 */
+.token.number               { color: #B5CEA8 !important; }
+/* 문자열·문자 → 주황 */
+.token.string               { color: #CE9178 !important; }
+.token.char                 { color: #CE9178 !important; }
+/* 주석 → 초록 이탤릭 */
+.token.comment              { color: #6A9955 !important; font-style: italic; }
+/* 함수명 → 노랑 */
+.token.function             { color: #DCDCAA !important; }
+/* 클래스·타입명 → 청록 */
+.token.class-name           { color: #4EC9B0 !important; }
+.token.namespace            { color: #4EC9B0 !important; }
+/* 변수 → 하늘 */
+.token.variable             { color: #9CDCFE !important; }
+/* 전처리기·매크로 → 보라 */
+.token.directive-hash       { color: #C586C0 !important; }
+.token.directive.keyword    { color: #C586C0 !important; }
+.token.macro                { color: #C586C0 !important; }
+/* 연산자·구두점 → 기본 */
+.token.operator             { color: #D4D4D4 !important; }
+.token.punctuation          { color: #D4D4D4 !important; }
+</style>
+</head>
+<body>
+<div class="slide">
+
+  <!-- ── Top bar ── -->
+  <div class="slide-topbar">
+    <span class="slide-num">PAGE 09</span>
+    <span class="slide-project">Sandy Heroes — 엔진 프로그래머 포트폴리오</span>
+  </div>
+
+  <!-- ── Title ── -->
+  <div class="slide-title-area">
+    <div class="slide-title">하드웨어 인스턴싱 설계 근거</div>
+    <div class="slide-subtitle">기존 렌더링 구조에서 인스턴싱을 적용할 수 없었던 두 가지 구조적 한계</div>
+  </div>
+
+  <!-- ── Body ── -->
+  <div class="slide-body">
+
+    <!-- Left: problem description -->
+    <div class="panel-left">
+
+      <div class="problem-block">
+        <div class="problem-num">한계 1</div>
+        <div class="problem-title">ConstantBuffer는 인스턴싱에<br>사용할 수 없다</div>
+        <div class="problem-body">DrawIndexedInstanced로 N개를 그려도
+모든 인스턴스가 cbuffer의 동일한
+world_matrix를 사용해 겹쳐서 렌더링</div>
+        <div class="arrow-resolve">→ SV_InstanceID로 인덱싱 가능한
+  StructuredBuffer 필요</div>
+      </div>
+
+      <hr class="divider-h">
+
+      <div class="problem-block">
+        <div class="problem-num">한계 2</div>
+        <div class="problem-title">Mesh::Render()는 인스턴스<br>개수를 알 수 없다</div>
+        <div class="problem-body">오브젝트마다 개별 호출되는 구조
+Mesh는 씬에서 자신을 공유하는
+오브젝트 수를 파악할 수 없음
+→ DrawIndexedInstanced 인스턴스
+  개수가 구조적으로 항상 1</div>
+        <div class="arrow-resolve">→ Material이 batches_로 집계 후
+  RenderInstancing에 count 전달 필요</div>
+      </div>
+
+    </div>
+
+    <!-- Right: code comparison -->
+    <div class="panel-right">
+
+      <div>
+        <div class="snippet-label">Before — Mesh::Render()</div>
+        <div class="code-window">
+          <div class="code-win-header">
+            <span class="win-filename">Mesh.cpp</span>
+            <span class="win-label before">Before</span>
+          </div>
+          <pre><code class="language-cpp">// 각 MeshComponent가 개별적으로 호출 → 인스턴스 개수 = 1로 고정
+void Mesh::Render(
+    ID3D12GraphicsCommandList* command_list,
+    int material_index, FrameResource* curr_frame_resource)
+{
+    command_list->IASetVertexBuffers(0, ...);
+    command_list->IASetIndexBuffer(&amp;index_buffer_views_[material_index]);
+
+    // Mesh는 자신을 공유하는 오브젝트 수를 알 수 없음
+    command_list->DrawIndexedInstanced(
+        indices_array_[material_index].size(),
+        1,   // ← 항상 1 (인스턴스 개수를 받을 인터페이스 없음)
+        0, 0, 0);
+}
+// 동일한 Mesh 오브젝트 100개 → 이 함수 100번 호출</code></pre>
+        </div>
+      </div>
+
+      <div>
+        <div class="snippet-label">After — Material::Render() + Mesh::RenderInstancing()</div>
+        <div class="code-window">
+          <div class="code-win-header">
+            <span class="win-filename">Material.cpp + Mesh.cpp</span>
+            <span class="win-label after">After</span>
+          </div>
+          <pre><code class="language-cpp">// Material: 같은 Mesh를 공유하는 컴포넌트 수를 batches_로 집계
+for (const auto&amp; [mesh, components] : batches_)
+{
+    auto instance_count         = components.size();         // 집계된 수
+    auto instance_buffer_offset = components.front()->constant_buffer_index();
+    mesh->RenderInstancing(cmd, sub_mesh_index,
+        curr_frame_resource, instance_count, instance_buffer_offset);
+}
+
+// Mesh: Material에서 받은 instance_count를 DrawCall에 그대로 전달
+void Mesh::RenderInstancing(..., int instance_count, int offset)
+{
+    command_list->DrawIndexedInstanced(
+        indices_array_[material_index].size(),
+        instance_count,   // ← Material에서 집계된 실제 인스턴스 수
+        0, 0, 0);
+}</code></pre>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>핵심:</strong> <code>Mesh::Render()</code>는 호출마다 무조건 <code>Draw(1)</code>을 발행하므로,
+        같은 Mesh를 공유하는 오브젝트가 100개여도 100회 Draw Call이 발생한다.
+        <code>Material</code>이 <code>batches_</code>로 집계한 <code>instance_count</code>를
+        <code>RenderInstancing</code>에 전달함으로써 <strong>1회 Draw Call</strong>로 전환된다.
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+</body>
+</html>

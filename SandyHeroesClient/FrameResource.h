@@ -80,13 +80,20 @@ struct InstanceData
 {
 	XMFLOAT4X4 world_matrix;
 	float time;
-	//float padding[3];
 };
 
 // 게임에서 한 프레임에 사용하는 리소스에 대한 구조체
 struct FrameResource
 {
-public:
+public:		
+	std::unique_ptr<UploadBuffer<InstanceData>> sb_instance_data;
+	int current_instance_offset = 0;
+
+	std::unique_ptr<UploadBuffer<UINT>> sb_main_visible_indices;
+	std::unique_ptr<UploadBuffer<UINT>> sb_shadow_visible_indices;
+	int current_main_visible_offset = 0;
+	int current_shadow_visible_offset = 0;
+
 	FrameResource(ID3D12Device* device, UINT pass_count,
 		UINT object_count, UINT skinned_mesh_object_count, UINT material_count, UINT ui_mesh_count)
 	{
@@ -113,16 +120,10 @@ public:
 	std::unique_ptr<UploadBuffer<CBPass>> cb_pass;
 	std::unique_ptr<UploadBuffer<CBShadow>> cb_shadow;
 	//std::unique_ptr<UploadBuffer<CBObject>> cb_object;
-	std::unique_ptr<UploadBuffer<InstanceData>> sb_instance_data;
 	std::unique_ptr<UploadBuffer<CBBoneTransform>> cb_bone_transform;
 	std::unique_ptr<UploadBuffer<CBMaterial>> cb_material;
 	std::unique_ptr<UploadBuffer<CBUi>> cb_ui;
-	std::unique_ptr<UploadBuffer<UINT>> sb_main_visible_indices; 
-	std::unique_ptr<UploadBuffer<UINT>> sb_shadow_visible_indices;
 
-	int current_instance_offset = 0;
-	int current_main_visible_offset = 0;
-	int current_shadow_visible_offset = 0;
 	int current_bone_transform_offset = 0;
 	int current_ui_offset = 0;
 
