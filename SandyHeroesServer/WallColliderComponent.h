@@ -7,6 +7,8 @@ class WallColliderComponent :
     public MeshColliderComponent
 {
 public:
+    DECLARE_COMPONENT(WallColliderComponent, MeshColliderComponent)
+
     WallColliderComponent(Object* owner) : MeshColliderComponent(owner) {}
     WallColliderComponent(const std::shared_ptr<Object>& owner) : MeshColliderComponent(owner) {}
     WallColliderComponent(const WallColliderComponent& other) : MeshColliderComponent(other) {}

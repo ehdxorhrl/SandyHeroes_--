@@ -9,6 +9,8 @@ class PlayerComponent :
     public Component
 {
 public:
+	DECLARE_COMPONENT(PlayerComponent, Component)
+
 	PlayerComponent() {};
 	PlayerComponent(Object* owner);
 	PlayerComponent(const std::shared_ptr<Object>& owner);

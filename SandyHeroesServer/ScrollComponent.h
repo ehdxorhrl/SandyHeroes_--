@@ -20,6 +20,8 @@ class ScrollComponent :
     public Component
 {
 public:
+    DECLARE_COMPONENT(ScrollComponent, Component)
+
     ScrollComponent() = default;
     ScrollComponent(Object* owner) : Component(owner) {}
     ScrollComponent(const std::shared_ptr<Object>& owner) : Component(owner) {}

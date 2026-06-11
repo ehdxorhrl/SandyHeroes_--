@@ -8,6 +8,8 @@ class ChestComponent :
     public Component
 {
 public:
+    DECLARE_COMPONENT(ChestComponent, Component)
+
     ChestComponent() = default;
     ChestComponent(Object* owner, Scene* scene = nullptr);
     ChestComponent(const std::shared_ptr<Object>& owner, Scene* scene = nullptr);

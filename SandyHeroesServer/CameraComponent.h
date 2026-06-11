@@ -6,6 +6,8 @@ class CameraComponent :
 	public Component
 {
 public:
+	DECLARE_COMPONENT(CameraComponent, Component)
+
 	CameraComponent() = delete;
 	CameraComponent(Object* owner,
 		float near_plane_distance, float far_plane_distance, float aspect_ratio, float fov_angle);

@@ -3,17 +3,42 @@
 
 class Object;
 
-// ¿ÀºêÁ§Æ®¿¡ ±â´ÉÀ» Ãß°¡ÇØÁÖ´Â Å¬·¡½ºÀÇ ±âÃÊ Å¬·¡½º
-// 
+// ì»´í¬ë„ŒíŠ¸ì˜ ëŸ°íƒ€ì„ íƒ€ì… ì •ë³´ ë…¸ë“œ(Unreal UClass / Unity RTTIì™€ ë™ì¼í•œ êµ¬ì¡°)
+// ê° í´ë˜ìŠ¤ê°€ ì •ì  ë…¸ë“œ í•˜ë‚˜ë¥¼ ê°€ì§€ë©° base í¬ì¸í„°ë¡œ ë¶€ëª¨ ì²´ì¸ì„ í˜•ì„±í•œë‹¤.
+struct ComponentTypeInfo
+{
+	const char* name;
+	const ComponentTypeInfo* base;   // ë£¨íŠ¸(Component)ëŠ” nullptr
+
+	// ë¶€ëª¨ ì²´ì¸ì„ ë”°ë¼ê°€ë©° targetê³¼ ê°™ì€ ë…¸ë“œê°€ ìˆìœ¼ë©´ is-a ê´€ê³„ì´ë‹¤.
+	bool IsKindOf(const ComponentTypeInfo* target) const
+	{
+		for (const ComponentTypeInfo* t = this; t; t = t->base)
+			if (t == target) return true;
+		return false;
+	}
+};
+
+// Componentë¥¼ ìƒì†ë°›ëŠ” í´ë˜ìŠ¤ ë³¸ë¬¸(ì²« public: ì•„ë˜ ê¶Œì¥)ì— í•œ ì¤„ ì¶”ê°€í•œë‹¤.
+// ìƒì„±ìëŠ” ì†ëŒ€ì§€ ì•ŠëŠ”ë‹¤. C++20ì˜ static inline ë©¤ë²„ë¼ .cpp ì •ì˜ê°€ í•„ìš” ì—†ë‹¤.
+#define DECLARE_COMPONENT(Self, Parent)                                          \
+	static inline const ComponentTypeInfo kTypeInfo{ #Self, &Parent::kTypeInfo }; \
+	const ComponentTypeInfo* GetTypeInfo() const override { return &kTypeInfo; }
+
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+//
 class Component : public std::enable_shared_from_this<Component>
 {
 public:
+	static inline const ComponentTypeInfo kTypeInfo{ "Component", nullptr };
+	virtual const ComponentTypeInfo* GetTypeInfo() const { return &kTypeInfo; }
+
 	Component() = default;
 	Component(Object* owner);
 	Component(const std::shared_ptr<Object>& owner);
-	Component(Component&& other) = default; //ÀÌµ¿ »ı¼ºÀÚ
+	Component(Component&& other) = default; //ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-	//º¹»ç »ı¼ºµÈ ÄÄÆ÷³ÍÆ®´Â owner¸¦ ÀçÁöÁ¤ÇØ¾ßÇÔ(ÀÇµµ ÇÏÁö¾ÊÀº ¿ÀºêÁ§Æ®¿¡ ¿¬°á¹æÁö)
+	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ownerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½(ï¿½Çµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
 	Component(const Component& other);
 	virtual ~Component() {}
 
@@ -21,9 +46,9 @@ public:
 	std::shared_ptr<Object> owner() const;
 
 	/*
-	ÄÄÆ÷³ÍÆ®ÀÇ º¹»çº»À» ¸®ÅÏ(ÀÌ Å¬·¡½º¸¦ »ó¼Ó¹Ş´Â Å¬·¡½º¿¡¼­ ¹İµå½Ã ÀÛ¼ºÇØ¾ßÇÑ´Ù.)
-	¿ÀºêÁ§Æ® º¹»ç½Ã ±âÁ¸ ¿ÀºêÁ§Æ®°¡ °®´Â ÄÄÆ÷³ÍÆ®µµ º¹»çÇÏ±â À§ÇØ ÇÊ¿ä
-	ÀÛ¼º ¿¹½Ã
+	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½çº»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ó¹Ş´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½İµï¿½ï¿½ ï¿½Û¼ï¿½ï¿½Ø¾ï¿½ï¿½Ñ´ï¿½.)
+	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½
+	ï¿½Û¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 	Component* GetCopy() override
 	{
 		return new MeshComponent(*this);
@@ -36,6 +61,6 @@ public:
 
 protected:
 	std::weak_ptr<Object> owner_;
-	std::weak_ptr<Object> hierarchy_root_; // ¿ÀºêÁ§Æ®ÀÇ °èÃş ±¸Á¶¿¡¼­ ·çÆ® ¿ÀºêÁ§Æ®¸¦ °¡¸®Å´
+	std::weak_ptr<Object> hierarchy_root_; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å´
 };
 

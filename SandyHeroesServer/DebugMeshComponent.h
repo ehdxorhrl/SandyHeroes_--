@@ -7,6 +7,8 @@ class DebugMeshComponent :
     public MeshComponent
 {
 public:
+    DECLARE_COMPONENT(DebugMeshComponent, MeshComponent)
+
     DebugMeshComponent(Object* owner, Mesh* cube_mesh, Mesh* source_mesh);
     DebugMeshComponent(const std::shared_ptr<Object>& owner, Mesh* cube_mesh, Mesh* source_mesh);
     DebugMeshComponent(Object* owner, Mesh* cube_mesh, const BoundingBox& bounds);

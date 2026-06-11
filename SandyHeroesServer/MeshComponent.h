@@ -6,10 +6,12 @@
 class Mesh;
 class Material;
 
-class MeshComponent 
-    : public Component 
+class MeshComponent
+    : public Component
 {
 public:
+    DECLARE_COMPONENT(MeshComponent, Component)
+
     MeshComponent(Object* owner, Mesh* mesh);
     MeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh);
     MeshComponent(Object* owner, Mesh* mesh, Material* material);

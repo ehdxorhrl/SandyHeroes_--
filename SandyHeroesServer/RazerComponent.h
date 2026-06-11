@@ -4,6 +4,8 @@ class RazerComponent :
 	public Component
 {
 public:
+	DECLARE_COMPONENT(RazerComponent, Component)
+
 	RazerComponent(Object* owner);
 	RazerComponent(const std::shared_ptr<Object>& owner);
 	RazerComponent(Object* owner, XMFLOAT3 start, XMFLOAT3 end);

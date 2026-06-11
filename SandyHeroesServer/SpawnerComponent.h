@@ -11,6 +11,8 @@ class SpawnerComponent :
 	public Component
 {
 public:
+	DECLARE_COMPONENT(SpawnerComponent, Component)
+
 	SpawnerComponent(Object* owner, Scene* scene);
 	SpawnerComponent(const std::shared_ptr<Object>& owner, Scene* scene);
 	SpawnerComponent(Object* owner, Scene* scene, ModelInfo* model_info);

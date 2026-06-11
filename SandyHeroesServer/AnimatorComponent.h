@@ -10,6 +10,8 @@ class AnimatorComponent :
     public Component
 {
 public:
+    DECLARE_COMPONENT(AnimatorComponent, Component)
+
     AnimatorComponent(Object* owner,
         const std::vector<std::unique_ptr<AnimationSet>>& animation_sets,
         const std::vector<std::string>& frame_names,

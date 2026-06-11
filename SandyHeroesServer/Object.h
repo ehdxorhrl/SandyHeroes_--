@@ -18,12 +18,12 @@ enum MonsterType {
 
 struct CollideType
 {
-	bool ground_check = false;	//Áö¸é Ã¼Å©°¡ ÇÊ¿äÇÑ°¡?	
-	bool wall_check = false;	//º® Ã¼Å©°¡ ÇÊ¿äÇÑ°¡?
+	bool ground_check = false;	//ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½Ñ°ï¿½?	
+	bool wall_check = false;	//ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½Ñ°ï¿½?
 };
 
-// Scene¿¡ µîÀåÇÏ´Â ¸ðµç ¿ÀºêÁ§Æ®ÀÇ Á¶»ó Å¬·¡½º
-// ÀÚ½Ä°ú ÇüÁ¦ ³ëµå¸¦ °¡Áø Æ®¸®±¸Á¶
+// Sceneï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+// ï¿½Ú½Ä°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½å¸¦ ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 class Object : public std::enable_shared_from_this<Object>
 {
 public:
@@ -31,7 +31,7 @@ public:
 	Object(const std::string& name);
 	virtual ~Object();
 
-	//º¹»ç »ý¼ºÀÚ(child, siblingµµ º¹»çÇÏ´Â ±íÀºº¹»ç)
+	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(child, siblingï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
 	Object(const Object& other);
 
 	UINT id() const;
@@ -39,14 +39,14 @@ public:
 	void set_id(const long long id);
 
 	//getter
-	// º¯È¯Çà·Ä ¹× °¢ º¤ÅÍ
+	// ï¿½ï¿½È¯ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	XMFLOAT4X4 transform_matrix() const;
 	XMFLOAT3 position_vector() const;
 	XMFLOAT3 look_vector() const;
 	XMFLOAT3 right_vector() const;
 	XMFLOAT3 up_vector() const;
 
-	// ¿ùµåÇà·Ä ¹× °¢ º¤ÅÍ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	XMFLOAT4X4 world_matrix() const;
 	XMFLOAT3 world_position_vector() const;
 	XMFLOAT3 world_look_vector() const;
@@ -72,12 +72,12 @@ public:
 
 	XMFLOAT3 local_scale() const { return local_scale_; }
 	XMFLOAT3 local_rotation() const { return local_rotation_; }
-	XMFLOAT3 local_position() const { return local_position_; }	//·ÎÄÃ ÁÂÇ¥°è
+	XMFLOAT3 local_position() const { return local_position_; }	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½
 	MonsterType monster_type() const { return type_; }
 	int animation_state() const { return animation_state_; }
 
 	//setter
-	// º¯È¯Çà·Ä ¹× °¢ º¤ÅÍ
+	// ï¿½ï¿½È¯ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	void set_transform_matrix(const XMFLOAT4X4& value);
 	void set_position_vector(const XMFLOAT3& value);
 	void set_position_vector(float x, float y, float z);
@@ -90,7 +90,7 @@ public:
 	void set_old_position(const XMFLOAT3& value);
 	void set_is_player() { is_player_ = true; }	
 
-	// ¿ùµåÇà·ÄÀÇ setter´Â Áö¿øÇÏÁö ¾Ê´Â´Ù.(»óÀ§³ëµåÀÇ ÀÇÇØ ¾÷µ¥ÀÌÆ® µÇ±â ¶§¹®)
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ setterï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ç±ï¿½ ï¿½ï¿½ï¿½ï¿½)
 
 	void set_name(const std::string& value);
 	void set_velocity(const XMFLOAT3& value);
@@ -110,13 +110,13 @@ public:
 
 	std::string name() const;
 
-	// ³ëµå¸¦ ¼øÈ¸ÇÏ¸ç world_matrix¸¦ ¾÷µ¥ÀÌÆ®ÇÑ´Ù.(ÃÖ»óÀ§ ³ëµåÀÇ °æ¿ì ÀÎÀÚ¿¡ nullptrÀ» ³ÖÀ¸¸é µÈ´Ù)
+	// ï¿½ï¿½å¸¦ ï¿½ï¿½È¸ï¿½Ï¸ï¿½ world_matrixï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½Ñ´ï¿½.(ï¿½Ö»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ nullptrï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½È´ï¿½)
 	void UpdateWorldMatrix(const XMFLOAT4X4* const parent_transform);
 
 	virtual void Update(float elapsed_time);
 
 	void Rotate(float pitch, float yaw, float roll);
-	void Scale(float value);				// transform ÀÇ ½ºÄÉÀÏÀ» value·Î ±Õµî º¯È¯ÇÑ´Ù.
+	void Scale(float value);				// transform ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ valueï¿½ï¿½ ï¿½Õµï¿½ ï¿½ï¿½È¯ï¿½Ñ´ï¿½.
 
 	void OnDestroy(std::function<void(Object*)> func);
 
@@ -128,15 +128,15 @@ public:
 
 	void set_collide_type(const CollideType& collide_type);
 
-	Object* GetCopy() const { return new Object(*this); }; // ÃÑ¾ËÀ» À§ÇÑ º¹»ç
+	Object* GetCopy() const { return new Object(*this); }; // ï¿½Ñ¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 	template<class T>
 	static std::shared_ptr<T> GetComponent(std::shared_ptr<Object> object)
 	{
 		for (auto& component : object->component_list_)
 		{
-			if (std::shared_ptr<T> res = std::dynamic_pointer_cast<T>(component))
-				return res;
+			if (component->GetTypeInfo()->IsKindOf(&T::kTypeInfo))
+				return std::static_pointer_cast<T>(component);
 		}
 		return nullptr;
 	}
@@ -147,9 +147,9 @@ public:
 		std::list<std::shared_ptr<T>> r_value;
 		for (auto& component : object->component_list_)
 		{
-			if (std::shared_ptr<T> res = std::dynamic_pointer_cast<T>(component))
+			if (component->GetTypeInfo()->IsKindOf(&T::kTypeInfo))
 			{
-				r_value.push_back(res);
+				r_value.push_back(std::static_pointer_cast<T>(component));
 			}
 		}
 		return r_value;
@@ -200,11 +200,11 @@ public:
 	}
 
 protected:
-	// ¿ÀºêÁ§Æ®ÀÇ º¯È¯Çà·Ä
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ï¿½
 	XMFLOAT4X4 transform_matrix_ = xmath_util_float4x4::Identity();
 
 	XMFLOAT3 local_scale_{ 1.f, 1.f, 1.f };
-	XMFLOAT3 local_rotation_{}; //¿ÀÀÏ·¯°¢
+	XMFLOAT3 local_rotation_{}; //ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½
 	XMFLOAT3 local_position_{};
 
 	XMFLOAT3 old_position_{};
@@ -213,32 +213,32 @@ protected:
 	std::shared_ptr<Object> child_;
 	std::shared_ptr<Object> sibling_;
 
-	// ¿ÀºêÁ§Æ®¿¡ Ãß°¡µÈ ¸ðµç ÄÄÆ÷³ÍÆ®ÀÇ ¸®½ºÆ®
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 	std::list<std::shared_ptr<Component>> component_list_;
 
 	std::string name_ = "None";
 	std::string tag_ = "None_Tag";
 	MonsterType type_;
 
-	//¹°¸® °ü·Ã º¯¼öµé
+	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	XMFLOAT3 velocity_{ 0,0,0 };
 	const float gravity_ = { -9.8f };
 	bool is_player_ = false;
 
 	bool is_ground_ = false;
 
-	bool is_movable_ = false;	//ÀÌµ¿ °¡´ÉÇÑ°¡? 
+	bool is_movable_ = false;	//ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ°ï¿½? 
 
-	CollideType collide_type_ = { false, false };	//Áö¸é Ã¼Å©, º® Ã¼Å©
+	CollideType collide_type_ = { false, false };	//ï¿½ï¿½ï¿½ï¿½ Ã¼Å©, ï¿½ï¿½ Ã¼Å©
 
-	bool is_in_view_sector_ = false; // Ä«¸Þ¶ó ÀýµÎÃ¼ ÄÃ¸µÀ» Åë°úÇÑ ¼½ÅÍ¿¡ ÀÖ´Â°¡?
+	bool is_in_view_sector_ = false; // Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½Ö´Â°ï¿½?
 
-	std::function<void(Object*)> on_destroy_func_ = nullptr;	//¿ÀºêÁ§Æ®°¡ ÆÄ±«µÉ ¶§ È£ÃâµÇ´Â ÇÔ¼ö
+	std::function<void(Object*)> on_destroy_func_ = nullptr;	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ä±ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½Ç´ï¿½ ï¿½Ô¼ï¿½
 
 	int animation_state_{ -1 };
 
 private:
-	// ¿ÀºêÁ§Æ®ÀÇ ½ÇÁ¦ ¿ùµå Çà·Ä(Áï, »óÀ§³ëµåÀÇ º¯È¯ÀÌ ÀüºÎ Àû¿ëµÈ)
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½(ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½)
 	XMFLOAT4X4 world_matrix_ = xmath_util_float4x4::Identity();
 	static UINT kObjectNextId;
 	UINT id_ = 0;

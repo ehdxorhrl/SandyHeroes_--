@@ -121,6 +121,8 @@ class AIComponent :
     public Component
 {
 public:
+    DECLARE_COMPONENT(AIComponent, Component)
+
     AIComponent(Object* owner);
     AIComponent(const std::shared_ptr<Object>& owner);
     AIComponent(const AIComponent& other);
