@@ -4,6 +4,8 @@ class ProgressBarComponent :
     public UiComponent
 {
 public:
+	DECLARE_COMPONENT(ProgressBarComponent, UiComponent)
+
 	ProgressBarComponent() = default;
 	ProgressBarComponent(Object* owner);
 	ProgressBarComponent(const std::shared_ptr<Object>& owner);

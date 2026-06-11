@@ -8,6 +8,8 @@ class CharacterComponent :
     public Component
 {
 public:
+    DECLARE_COMPONENT(CharacterComponent, Component)
+
     CharacterComponent() = default;
 	CharacterComponent(Object* owner) : Component(owner) {}
 	CharacterComponent(const std::shared_ptr<Object>& owner) : Component(owner) {}

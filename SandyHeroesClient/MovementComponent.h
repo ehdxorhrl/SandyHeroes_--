@@ -8,6 +8,8 @@ class MovementComponent :
     public Component
 {
 public:
+    DECLARE_COMPONENT(MovementComponent, Component)
+
     MovementComponent() {}
     MovementComponent(Object* owner);
     MovementComponent(const std::shared_ptr<Object>& owner);

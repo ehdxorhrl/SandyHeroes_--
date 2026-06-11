@@ -18,6 +18,8 @@ class UiComponent :
     public Component
 {
 public:
+	DECLARE_COMPONENT(UiComponent, Component)
+
 	UiComponent() {};
 	UiComponent(Object* owner);
 	UiComponent(const std::shared_ptr<Object>& owner);

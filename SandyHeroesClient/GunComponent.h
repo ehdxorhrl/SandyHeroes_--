@@ -29,6 +29,8 @@ class GunComponent :
     public Component
 {
 public:
+    DECLARE_COMPONENT(GunComponent, Component)
+
     GunComponent(Object* owner);
     GunComponent(const std::shared_ptr<Object>& owner);
     GunComponent(const GunComponent& other);

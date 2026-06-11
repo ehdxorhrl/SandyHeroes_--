@@ -6,6 +6,8 @@ class TestControllerComponent :
     public InputControllerComponent
 {
 public:
+    DECLARE_COMPONENT(TestControllerComponent, InputControllerComponent)
+
     TestControllerComponent(Object* owner);
     TestControllerComponent(const std::shared_ptr<Object>& owner);
     virtual ~TestControllerComponent() {}

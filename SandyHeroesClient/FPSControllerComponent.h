@@ -8,6 +8,8 @@ class FPSControllerComponent :
     public InputControllerComponent
 {
 public:
+    DECLARE_COMPONENT(FPSControllerComponent, InputControllerComponent)
+
     FPSControllerComponent(Object* owner);
     FPSControllerComponent(const std::shared_ptr<Object>& owner);
     virtual ~FPSControllerComponent() {}

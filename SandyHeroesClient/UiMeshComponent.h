@@ -7,6 +7,8 @@ class UiMeshComponent :
     public MeshComponent
 {
 public:
+    DECLARE_COMPONENT(UiMeshComponent, MeshComponent)
+
     UiMeshComponent(Object* owner, Mesh* mesh);
     UiMeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh);
     UiMeshComponent(Object* owner, Mesh* mesh, Material* material, Scene* scene);

@@ -5,6 +5,8 @@ class SkinnedMeshComponent :
     public MeshComponent
 {
 public:
+    DECLARE_COMPONENT(SkinnedMeshComponent, MeshComponent)
+
     SkinnedMeshComponent(Object* owner, Mesh* mesh);
     SkinnedMeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh);
     SkinnedMeshComponent(const SkinnedMeshComponent& other);

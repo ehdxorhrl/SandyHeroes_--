@@ -5,12 +5,9 @@ class Component;
 
 struct CollideType
 {
-	bool ground_check = false;	//지면 체크가 필요한가?	
-	bool wall_check = false;	//벽 체크가 필요한가?
+	bool ground_check = false;	
+	bool wall_check = false;	
 };
-
-// Scene에 등장하는 오브젝트 클래스
-// 자식과 형제 노드를 가진 트리구조
 
 class Object : public std::enable_shared_from_this<Object>
 {
@@ -22,7 +19,6 @@ public:
 	Object(const Object& other);
 
 	//getter
-	// 변환행렬 및 각 벡터
 	XMFLOAT4X4 transform_matrix() const;
 	XMFLOAT3 position_vector() const;
 	XMFLOAT3 look_vector() const;
@@ -30,7 +26,6 @@ public:
 	XMFLOAT3 up_vector() const;
 	bool is_player() const { return is_player_; }
 
-	// 월드행렬 및 각 벡터
 	XMFLOAT4X4 world_matrix() const;
 	XMFLOAT3 world_position_vector() const;
 	XMFLOAT3 world_look_vector() const;
@@ -49,12 +44,12 @@ public:
 
 	XMFLOAT3 local_scale() const { return local_scale_; }
 	XMFLOAT3 local_rotation() const { return local_rotation_; }
-	XMFLOAT3 local_position() const { return local_position_; }	//로컬 좌표계
+	XMFLOAT3 local_position() const { return local_position_; }	
 
 	bool is_movable() const { return is_movable_; }
-	bool is_in_view_sector() const { return is_in_view_sector_; } // 카메라 절두체 컬링을 통과한 섹터에 있는가?
+	bool is_in_view_sector() const { return is_in_view_sector_; } 
 
-	float life_time() const { return life_time_; } // 오브젝트의 생존 시간
+	float life_time() const { return life_time_; } 
 
 	//setter
 	void set_transform_matrix(const XMFLOAT4X4& value);
@@ -77,9 +72,8 @@ public:
 	void set_is_player() { is_player_ = true; }
 
 	void set_is_movable(bool value); 
-	void set_is_in_view_sector(bool value) { is_in_view_sector_ = value; } // 카메라 절두체 컬링을 통과한 섹터에 있는가?
+	void set_is_in_view_sector(bool value) { is_in_view_sector_ = value; } 
 
-	//SRT 정보를 transform_matrix_로 초기화한다.
 	void ResetSRTFromTransformMatrix();
 
 	void AddChild(std::shared_ptr<Object> object);
@@ -111,8 +105,8 @@ public:
 	{
 		for (auto& component : object->component_list_)
 		{
-			if (std::shared_ptr<T> res = std::dynamic_pointer_cast<T>(component))
-				return res;
+			if (component->GetTypeInfo()->IsKindOf(&T::kTypeInfo))
+				return std::static_pointer_cast<T>(component);
 		}
 		return nullptr;
 	}
@@ -123,9 +117,9 @@ public:
 		std::list<std::shared_ptr<T>> r_value;
 		for (auto& component : object->component_list_)
 		{
-			if (std::shared_ptr<T> res = std::dynamic_pointer_cast<T>(component))
+			if (component->GetTypeInfo()->IsKindOf(&T::kTypeInfo))
 			{
-				r_value.push_back(res);
+				r_value.push_back(std::static_pointer_cast<T>(component));
 			}
 		}
 		return r_value;
@@ -179,7 +173,7 @@ protected:
 	XMFLOAT4X4 transform_matrix_ = xmath_util_float4x4::Identity();
 
 	XMFLOAT3 local_scale_{ 1.f, 1.f, 1.f };	
-	XMFLOAT3 local_rotation_{}; //오일러각
+	XMFLOAT3 local_rotation_{};
 	XMFLOAT3 local_position_{};
 
 	std::weak_ptr<Object> parent_;
@@ -189,23 +183,19 @@ protected:
 	std::list<std::shared_ptr<Component>> component_list_;
 
 	std::string name_ = "None";
-	std::string tag_ = "None_Tag";	//오브젝트를 "분류"하기 위한 태그 값 ex) "Player", "HitDragon", "ShotDragon"
+	std::string tag_ = "None_Tag";	
 	bool is_player_ = false;
 
-	float life_time_ = 0.f;	//오브젝트의 생존 시간
+	float life_time_ = 0.f;	
+	bool is_ground_ = false;	
 
-	//물리 관련 변수들
-	bool is_ground_ = false;	//지면에 닿아있는가?
+	CollideType collide_type_ = { false, false };	
 
-	//충돌 체크 관련 변수
-	CollideType collide_type_ = { false, false };	//지면 체크, 벽 체크
+	bool is_movable_ = false;	
 
-	bool is_movable_ = false;	//이동 가능한가? 
+	bool is_in_view_sector_ = false; 
 
-	bool is_in_view_sector_ = false; // 카메라 절두체 컬링을 통과한 섹터에 있는가?
-
-	std::function<void(Object*)> on_destroy_func_ = nullptr;	//오브젝트가 파괴될 때 호출되는 함수
-
+	std::function<void(Object*)> on_destroy_func_ = nullptr;	
 private:
 	XMFLOAT4X4 world_matrix_ = xmath_util_float4x4::Identity();		
 

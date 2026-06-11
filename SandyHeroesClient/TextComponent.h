@@ -7,7 +7,9 @@ class TextFormat;
 class TextComponent :
     public UiComponent
 {
-public:	
+public:
+	DECLARE_COMPONENT(TextComponent, UiComponent)
+
 	TextComponent();
 	TextComponent(Object* owner);
 	TextComponent(const std::shared_ptr<Object>& owner);

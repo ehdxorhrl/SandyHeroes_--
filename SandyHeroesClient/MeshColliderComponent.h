@@ -7,6 +7,8 @@ class MeshColliderComponent :
     public Component
 {
 public:
+    DECLARE_COMPONENT(MeshColliderComponent, Component)
+
     MeshColliderComponent(Object* owner);
     MeshColliderComponent(const std::shared_ptr<Object>& owner);
     MeshColliderComponent(const MeshColliderComponent& other);

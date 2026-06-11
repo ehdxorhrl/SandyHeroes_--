@@ -5,6 +5,8 @@
 class ColliderComponent : public Component
 {
 public:
+	DECLARE_COMPONENT(ColliderComponent, Component)
+
 	ColliderComponent() = delete;
 	ColliderComponent(Object* owner, BoundingOrientedBox* bounding_box);
 	ColliderComponent(const std::shared_ptr<Object>& owner, BoundingOrientedBox* bounding_box);

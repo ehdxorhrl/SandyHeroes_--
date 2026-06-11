@@ -7,6 +7,8 @@ class UiMeshComponent;
 class FadeInUIComponent : public Component
 {
 public:
+	DECLARE_COMPONENT(FadeInUIComponent, Component)
+
 	FadeInUIComponent(Object* owner, float duration = 5.0f);
 	FadeInUIComponent(const std::shared_ptr<Object>& owner, float duration = 5.0f);
 	FadeInUIComponent(const FadeInUIComponent& other);

@@ -7,6 +7,8 @@ class InputControllerComponent :
     public Component
 {
 public:
+    DECLARE_COMPONENT(InputControllerComponent, Component)
+
     InputControllerComponent(Object* owner);
     InputControllerComponent(const std::shared_ptr<Object>& owner);
     virtual ~InputControllerComponent() {}

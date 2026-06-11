@@ -38,6 +38,8 @@ public:
 		Count
 	};
 
+	DECLARE_COMPONENT(ParticleComponent, Component)
+
 	ParticleComponent(Object* owner);
 	ParticleComponent(const std::shared_ptr<Object>& owner);
 	ParticleComponent(Object* owner, ID3D12Device* device, UINT particle_count, eShape shape, Material* material);
