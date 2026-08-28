@@ -22,6 +22,7 @@
 #include "BaseScene.h"
 #include "RecorderScene.h"
 #include "CameraComponent.h"
+#include "BombDragonAnimationState.h"
 #include "FMODSoundManager.h"
 
 GameFramework* GameFramework::kGameFramework = nullptr;
@@ -1316,18 +1317,29 @@ void GameFramework::ProcessPacket(char* p)
     {
         auto packet = reinterpret_cast<sc_packet_object_set_dead*>(p);
         Object* obj = base_scene->FindObject(packet->id);
-        if (obj)
+
+        if (!obj) break;
+
+        if (packet->monster_type == 3)
         {
-            if (packet->monster_type == 3) break;
-            auto animator = Object::GetComponentInChildren<AnimatorComponent>(obj);
-            if (!animator) { obj->set_is_dead(true); break; }
-            auto animation_state = animator->animation_state();
-            if (animation_state)
+            auto animator =
+                Object::GetComponentInChildren<AnimatorComponent>(obj);
+
+            if (animator &&
+                animator->animation_state()->animation_track()
+                == static_cast<int>(BombDragonAnimationTrack::kExplode))
             {
-                animation_state->ChangeAnimationTrack(animation_state->GetDeadAnimationTrack(), obj, animator);
-                animation_state->set_animation_loop_type(1); // Once
+                break;
             }
-            
+        }
+
+        auto animator = Object::GetComponentInChildren<AnimatorComponent>(obj);
+        if (!animator) { obj->set_is_dead(true); break; }
+        auto animation_state = animator->animation_state();
+        if (animation_state)
+        {
+            animation_state->ChangeAnimationTrack(animation_state->GetDeadAnimationTrack(), obj, animator);
+            animation_state->set_animation_loop_type(1); // Once
         }
     }
         break;
