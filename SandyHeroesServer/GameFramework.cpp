@@ -130,27 +130,33 @@ void GameFramework::worker()
 		if (FALSE == ret) {
             if (o == nullptr) break;
 
-            //std::cout << "실패" << std::endl;
-			auto err_no = WSAGetLastError();
-			const auto& users = SessionManager::getInstance().getAllSessions();
-            if (users.count(key) != 0) {
-                SessionManager::getInstance().remove(static_cast<int>(key));
-            }
+            EXP_OVER* eo =
+                reinterpret_cast<EXP_OVER*>(o);
 
-            //delete reinterpret_cast<EXP_OVER*>(o);
+            if (eo->io_op_ == IO_SEND)
+                delete eo;
+            if (eo->io_op_ == IO_RECV)
+            {
+                SessionManager::getInstance().remove(static_cast<int>(key)
+                );
+            }
             continue;
 		}
 
         EXP_OVER* eo = reinterpret_cast<EXP_OVER*>(o);
 
-        if ((eo->io_op_ == IO_RECV || eo->io_op_ == IO_SEND) && (io_size == 0)) {
-            const auto& users = SessionManager::getInstance().getAllSessions();
-            if (users.count(key) != 0)
-                SessionManager::getInstance().remove(static_cast<int>(key));
-
+        if (eo->io_op_ == IO_RECV && io_size == 0)
+        {
+            SessionManager::getInstance().remove(static_cast<int>(key)
+            );
+            continue;
+        }
+        if (eo->io_op_ == IO_SEND && io_size == 0)
+        {
             delete eo;
             continue;
         }
+
 		switch (eo->io_op_) {
 		case IO_ACCEPT:
 		{
@@ -177,7 +183,6 @@ void GameFramework::worker()
         {
             auto session = SessionManager::getInstance().get(static_cast<int>(key));
             if (!session) {
-                delete eo;
                 break;
             }
 
@@ -194,7 +199,11 @@ void GameFramework::worker()
 
             if (p < eo->buffer_ + data_size) {
                 session->remained_ = static_cast<unsigned char>(eo->buffer_ + data_size - p);
-                memcpy(p, eo->buffer_, session->remained_);
+                memmove(
+                    eo->buffer_,
+                    p,
+                    session->remained_
+                );
             }
             else {
                 session->remained_ = 0;
