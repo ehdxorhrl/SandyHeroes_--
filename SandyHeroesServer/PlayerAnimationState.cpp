@@ -5,7 +5,7 @@
 #include "AnimatorComponent.h"
 #include "SessionManager.h"
 
-void send_player_animation(uint8_t animation_track, Object* object) {
+void send_player_animation(uint8_t animation_track, std::shared_ptr<Object> object) {
 
 	auto movement = Object::GetComponentInChildren<MovementComponent>(object);
 	auto velocity = movement->velocity();
@@ -28,7 +28,7 @@ void send_player_animation(uint8_t animation_track, Object* object) {
 	}
 }
 
-void PlayerAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
+void PlayerAnimationState::Enter(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	switch ((PlayerAnimationTrack)animation_track)
 	{
@@ -42,7 +42,7 @@ void PlayerAnimationState::Enter(int animation_track, Object* object, AnimatorCo
 	}
 }
 
-int PlayerAnimationState::Run(Object* object, bool is_end, AnimatorComponent* animator)
+int PlayerAnimationState::Run(std::shared_ptr<Object> object, bool is_end, std::shared_ptr<AnimatorComponent> animator)
 {
 	animator->set_speed_scale(1.f);
 	constexpr float kPlayerDashSpeed = 70.f;
@@ -53,7 +53,7 @@ int PlayerAnimationState::Run(Object* object, bool is_end, AnimatorComponent* an
 	return animation_track();
 }
 
-void PlayerAnimationState::Exit(int animation_track, Object* object, AnimatorComponent* animator)
+void PlayerAnimationState::Exit(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	switch ((PlayerAnimationTrack)animation_track)
 	{

@@ -1,22 +1,25 @@
 #pragma once
 #include "MeshComponent.h"
+
 class SkinnedMeshComponent :
     public MeshComponent
 {
 public:
+    DECLARE_COMPONENT(SkinnedMeshComponent, MeshComponent)
+
     SkinnedMeshComponent(Object* owner, Mesh* mesh);
+    SkinnedMeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh);
     SkinnedMeshComponent(const SkinnedMeshComponent& other);
     SkinnedMeshComponent& operator=(const SkinnedMeshComponent& rhs);
 
     virtual Component* GetCopy() override;
 
-    virtual void UpdateConstantBuffer(FrameResource* current_frame_resource, int cb_index) override;
-    virtual void UpdateConstantBufferForShadow(FrameResource* current_frame_resource, int cb_index) override;
+    virtual void UpdateConstantBuffer(FrameResource* current_frame_resource) override;
 
     virtual void Render(Material* material, ID3D12GraphicsCommandList* command_list, FrameResource* curr_frame_resource) override;
 
-    // skinned meshÀÇ bone names Á¤º¸¸¦ »ç¿ëÇÏ¿© bone_frames_ ¹è¿­À» ±¸¼ºÇÑ´Ù.
-    void AttachBoneFrames(const std::vector<std::string>& bone_names);
+    // skinned meshì˜ bone names ì •ë³´ë¥¼ ì‚¬ìš©í•˜ì—¬ bone_frames_ ë°°ì—´ì„ êµ¬ì„±í•œë‹¤.
+    void AttachBoneFrames();
 
 private:
     std::vector<Object*> bone_frames_;

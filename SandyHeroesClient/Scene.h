@@ -42,18 +42,14 @@ public:
 	virtual bool CheckObjectByObjectCollisions() { return false; };
 
 	//씬에 오브젝트 추가 및 삭제(부가적인 오브젝트 리스트가 있다면 이 함수를 오버라이드하여	사용)
-	virtual void AddObject(Object* object);
-	virtual void DeleteObject(Object* object);
-	virtual void DeleteDeadObjects();
-
+	virtual void AddObject(std::shared_ptr<Object> object);
+	virtual void DeleteObject(std::shared_ptr<Object> object);
 	void ReleaseMeshUploadBuffer();
 
 	virtual void UpdateRenderPassConstantBuffer(ID3D12GraphicsCommandList* command_list);
 	virtual void UpdateRenderPassShadowBuffer(ID3D12GraphicsCommandList* command_list);
 
-	virtual const std::list<MeshComponent*>& GetShadowMeshList(int index = 0);
-
-	void UpdateObjectConstantBuffer(FrameResource* curr_frame_resource);
+	virtual const std::list<std::weak_ptr<MeshComponent>>& GetShadowMeshList(int index = 0);
 
 	virtual void Render(ID3D12GraphicsCommandList* command_list);
 	virtual void ShadowRender(ID3D12GraphicsCommandList* command_list);
@@ -62,9 +58,6 @@ public:
 
 	virtual bool ProcessInput(UINT id, WPARAM w_param, LPARAM l_param, float time) = 0;
 
-	//반환 값: 월드 좌표계에서 피킹된 지점
-	//설명: 스크린 x, y좌표를 받아 피킹 광선과 오브젝트들간 충돌검사를 시행
-	XMVECTOR GetPickingPointAtWorld(float sx, float sy, Object* picked_object);
 
 	virtual void Update(float elapsed_time);
 
@@ -73,12 +66,12 @@ public:
 	//Sector를 순회하며 오브젝트가 올바른 섹터에 있는지 확인하고 업데이트한다.
 	void UpdateSector();
 
-	//View Frustum Culling 실시
-	void RunViewFrustumCulling();
 
-	Object* FindObject(const std::string& object_name);
-	Object* FindObject(const long long id);
+	std::shared_ptr<Object> FindObject(const std::string& object_name);
+	std::shared_ptr<Object> FindObject(const long long id);
 	ModelInfo* FindModelInfo(const std::string& name);
+
+	Material* FindMaterial(const std::string& material_name);
 
 	static Mesh* FindMesh(const std::string& mesh_name, const std::vector<std::unique_ptr<Mesh>>& meshes);
 	static Material* FindMaterial(const std::string& material_name, const std::vector<std::unique_ptr<Material>>& materials);
@@ -86,25 +79,35 @@ public:
 
 	//getter
 	const std::vector<std::unique_ptr<Mesh>>& meshes() const;
-	CameraComponent* main_camera() const;
+	std::shared_ptr<CameraComponent> main_camera() const;
 	XMFLOAT2 screen_size() const;
 	bool is_play_cutscene() const;
-	Object* player() const;
-	std::list<WallColliderComponent*> stage_wall_collider_list(int index) const { return stage_wall_collider_list_[index]; }
+	std::shared_ptr<Object> player() const;
+	std::list<std::weak_ptr<WallColliderComponent>> stage_wall_collider_list(int index) const { return stage_wall_collider_list_[index]; }
 
 	//setter
-	void set_main_camera(CameraComponent* value);
+	void set_main_camera(std::shared_ptr<CameraComponent> value);
 	void set_is_play_cutscene(bool value);
 
+private:
+	//View Frustum Culling 실시
+	void RunViewFrustumCulling();
+	void XM_CALLCONV RunShadowMapViewFrustumCulling(FXMVECTOR light_position, const BoundingBox& shadow_map_aabb, const float& radius);
+
 protected:
-	std::list<std::unique_ptr<Object>> object_list_;
-	std::list<std::unique_ptr<Object>> dead_object_list_;
+	bool is_updating_objects_ = false;	//씬이 오브젝트들을 업데이트 중인지 여부.
+	std::list<std::shared_ptr<Object>> object_list_;
+	std::list<std::shared_ptr<Object>> add_object_list_;	//업데이트 중에 추가되는 오브젝트들을 임시로 저장하는 리스트. 업데이트가 끝나면 이 리스트의 오브젝트들이 씬의 오브젝트 리스트로 옮겨진다.
+	std::list<std::shared_ptr<Object>> delete_object_list_;	//업데이트 중에 삭제되는 오브젝트들을 임시로 저장하는 리스트. 업데이트가 끝나면 이 리스트의 오브젝트들이 씬의 오브젝트 리스트에서 제거된다.
 	std::unordered_map<int, std::unique_ptr<Shader>> shaders_;
 	std::vector<std::unique_ptr<Mesh>> meshes_;
 	std::vector<std::unique_ptr<ModelInfo>> model_infos_;
 	std::vector<std::unique_ptr<Material>> materials_;
 	std::vector<std::unique_ptr<Texture>> textures_;
 	std::vector<Sector> sectors_;
+
+	// 씬에 존재하는 모든 메쉬 컴포넌트의 리스트. 절두체 컬링 과정에서 잦은 GetComponentsInChildren 호출을 줄이기 위해 씬에서 관리한다.
+	std::list<std::weak_ptr<MeshComponent>> all_mesh_component_list_;	
 
 	GameFramework* game_framework_{ nullptr };
 
@@ -114,8 +117,8 @@ protected:
 	int cb_skinned_mesh_object_capacity_{ 0 };
 	int cb_ui_mesh_capacity_{ 0 };
 
-	CameraComponent* main_camera_{ nullptr };
-	InputControllerComponent* main_input_controller_{ nullptr };
+	std::shared_ptr<CameraComponent> main_camera_{ nullptr };
+	std::shared_ptr<InputControllerComponent> main_input_controller_{ nullptr };
 
 	bool is_render_debug_mesh_ = false;	//디버그용 와이어프레임 obb를 렌더하는지 여부
 
@@ -123,20 +126,20 @@ protected:
 
 	bool is_play_cutscene_{ false };
 
-protected:
 	//그림자를 위해 일부 base scene 멤버 변수들 scene으로 옮김
 	bool is_prepare_ground_checking_ = false;
 	//맵 바닥체크를 위한 메쉬 콜라이더 리스트 배열
-	std::array<std::list<WallColliderComponent*>, 8> stage_wall_collider_list_;
-	std::list<Object*> ground_check_object_list_;	//지면 체크가 필요한 객체들의 리스트(플레이어, monster, NPC)
+	std::array<std::list<std::weak_ptr<WallColliderComponent>>, 8> stage_wall_collider_list_;
 
 	// 플레이어의 스테이지 진행도
 	int stage_clear_num_{ 0 };
 
-	Object* player_ = nullptr;
+	std::weak_ptr<Object> player_;
 
 	//For ParticleRender
 	std::unique_ptr<ParticleRenderer> particle_renderer_{ nullptr };	//파티클 렌더러
 
+	//For Skybox Render
+	Material* skybox_material_{ nullptr };
 };
 

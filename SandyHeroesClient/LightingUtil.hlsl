@@ -1,5 +1,5 @@
 
-#define MAX_LIGHTS 16
+#define MAX_LIGHTS 1
 #define DIRECTION_LIGHT 0
 #define POINT_LIGHT 1
 #define SPOT_LIGHT 2
@@ -36,9 +36,10 @@ float CalcAttenuation(float d, float falloff_start, float falloff_end)
 float3 SchlickFresnel(float3 r0, float3 normal, float3 light_vector)
 {
     float cos_seta = saturate(dot(normal, light_vector));
-    float f0 = 1 - cos_seta;
-    float3 rf = r0 + (1 - r0) * pow((1 - cos_seta), 5);
-    return rf;
+    float f = 1.0f - cos_seta;
+    float f2 = f * f;
+    float f5 = f2 * f2 * f; // = pow(f, 5)
+    return r0 + (1.0f - r0) * f5;
 }
 
 float3 HalfLambert(float3 v1, float3 v2)

@@ -4,6 +4,7 @@ class DescriptorManager;
 class Shader;
 class MeshComponent;
 class CameraComponent;
+class Mesh;
 struct FrameResource;
 
 constexpr int kTextureMaskAlbedo(1 << 0);
@@ -52,8 +53,10 @@ public:
     void UpdateShaderVariables(ID3D12GraphicsCommandList* command_list, 
         FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager);
 
+    void UpdateObjectFrameResource(FrameResource* curr_frame_resource);
+
     void Render(ID3D12GraphicsCommandList* command_list,
-        FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, CameraComponent* camera, bool bShadow = false);
+        FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, std::shared_ptr<CameraComponent> camera, bool bShadow = false);
 
     // SRV를 생성하고 다음 시작 인덱스를 리턴(리턴값을 받아서 다음 머터리얼의 srv 생성에 사용하면 됨)
     int CreateShaderResourceViews(ID3D12Device* device, DescriptorManager* descriptor_manager, int start_index);
@@ -64,10 +67,32 @@ public:
 
     std::string GetTextureName(UINT index) const;
 
-    void AddMeshComponent(MeshComponent* component);
-    bool DeleteMeshComponent(MeshComponent* component);
+    void AddMeshComponent(std::weak_ptr<MeshComponent> component);
+    bool DeleteMeshComponent(std::weak_ptr<MeshComponent> component);
 
     void CopyMaterialData(Material* material);
+
+    struct MeshInstanceInfo
+    {
+        MeshInstanceInfo() {}
+		MeshInstanceInfo(Mesh* mesh) : mesh(mesh) {}
+        MeshInstanceInfo(UINT main_offset, UINT main_count, 
+            UINT shadow_offset, UINT shadow_count, 
+            Mesh* mesh, const std::shared_ptr<MeshComponent>& component)
+            : main_visible_indices_offset(main_offset), main_visible_count(main_count),
+			shadow_visible_indices_offset(shadow_offset), shadow_visible_count(shadow_count),
+            mesh(mesh)
+        {
+			components.push_back(component);
+		}
+		UINT main_visible_indices_offset = 0;
+        UINT main_visible_count = 0;
+		UINT shadow_visible_indices_offset = 0;
+        UINT shadow_visible_count = 0;
+		Mesh* mesh = nullptr;
+		std::vector<std::shared_ptr<MeshComponent>> components;
+	};
+
 private:
     // 재질 정보가 저장된 frame resource의 버퍼 인덱스
     int frame_resource_index_ = -1;
@@ -85,7 +110,7 @@ private:
     
     std::string name_{ "None" };
 
-    std::list<MeshComponent*> mesh_component_list_;
-
+    std::vector<std::weak_ptr<MeshComponent>> mesh_components_;
+	std::vector<MeshInstanceInfo> mesh_instance_infos_;
 };
 

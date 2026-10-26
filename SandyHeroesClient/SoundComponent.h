@@ -5,7 +5,10 @@
 class SoundComponent : public Component
 {
 public:
+    DECLARE_COMPONENT(SoundComponent, Component)
+
     SoundComponent(Object* owner);
+    SoundComponent(const std::shared_ptr<Object>& owner);
     virtual ~SoundComponent() = default;
 
     virtual Component* GetCopy() override;

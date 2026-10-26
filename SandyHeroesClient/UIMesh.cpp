@@ -1,10 +1,18 @@
 #include "stdafx.h"
 #include "UIMesh.h"
 #include "Shader.h"
+#include "MeshComponent.h"
+
+UIMesh::UIMesh()
+{
+	mesh_type_ = MeshType::kUIMesh;
+}
 
 UIMesh::UIMesh(float screen_x, float screen_y, float screen_width, float screen_height, float z_depth)
     :screen_position_(screen_x, screen_y), ui_size_(screen_width, screen_height)
 {
+    mesh_type_ = MeshType::kUIMesh;
+
     positions_.reserve(4);
 
     float left = 0.f;
@@ -36,6 +44,8 @@ UIMesh::UIMesh(float screen_x, float screen_y, float screen_width, float screen_
 UIMesh::UIMesh(float screen_width, float screen_height, float z_depth)
     :screen_position_(0.f, 0.f), ui_size_(screen_width, screen_height)
 {
+    mesh_type_ = MeshType::kUIMesh;
+
     positions_.reserve(4);
 
     float left = 0.f;
@@ -81,4 +91,39 @@ XMFLOAT2 UIMesh::screen_position() const
 XMFLOAT2 UIMesh::ui_size() const
 {
     return ui_size_;
+}
+
+void UIMesh::Render(ID3D12GraphicsCommandList* command_list, int material_index, FrameResource* curr_frame_resource)
+{
+    command_list->IASetPrimitiveTopology(primitive_topology_);
+
+    //정점 버퍼 set
+    command_list->IASetVertexBuffers(0,
+        vertex_buffer_views_.size(), vertex_buffer_views_.data());
+
+    if (material_index < indices_array_.size())
+    {
+        if (indices_array_[material_index].size())
+        {
+            command_list->IASetIndexBuffer(&index_buffer_views_[material_index]);
+            command_list->DrawIndexedInstanced(indices_array_[material_index].size(), 1, 0, 0, 0);
+        }
+        else
+        {
+            command_list->DrawInstanced(positions_.size(), 1, 0, 0);
+        }
+    }
+    else
+    {
+        if (indices_array_.back().size())
+        {
+            command_list->IASetIndexBuffer(&index_buffer_views_.back());
+            command_list->DrawIndexedInstanced(indices_array_.back().size(), 1, 0, 0, 0);
+        }
+        else
+        {
+            command_list->DrawInstanced(positions_.size(), 1, 0, 0);
+        }
+    }
+
 }

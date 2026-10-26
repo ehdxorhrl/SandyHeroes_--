@@ -8,6 +8,7 @@ struct VertexOut
     float3 tangent_w : TANGENT;
     float2 uv : TEXCOORD;
     float4 position_s : POSITION1;
+    nointerpolation uint instance_id : SV_InstanceID;
 };
 
 
@@ -24,7 +25,7 @@ float4 PS(VertexOut input) : SV_Target
             float alpha = saturate(1.0 - distanceFromCenter * 2.0); // 강한 falloff
 
             float speed = 1.5f; // 내려가는 속도 (단위: UV.y/sec)
-            float bandPos = frac(1.0 - (g_object_time * speed)); // 0~1 사이 반복
+            float bandPos = frac(1.0 - (g_instance_data[input.instance_id].object_time * speed)); // 0~1 사이 반복
 
             // 픽셀이 중심선보다 아래에 있으면 바로 버림 (투명)
             if (uv.y < bandPos)

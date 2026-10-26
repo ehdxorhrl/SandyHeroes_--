@@ -25,7 +25,7 @@ public:
 
     void remove(int clientId);
 
-    Session* GetSessionByPlayerObject(Object* object);
+    Session* GetSessionByPlayerObject(std::shared_ptr<Object> object);
 
 private:
     SessionManager() = default;             

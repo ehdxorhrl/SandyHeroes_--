@@ -5,6 +5,10 @@ InputControllerComponent::InputControllerComponent(Object* owner) : Component(ow
 {
 
 }
+InputControllerComponent::InputControllerComponent(const std::shared_ptr<Object>& owner) : Component(owner)
+{
+
+}
 
 void InputControllerComponent::set_client_wnd(HWND value)
 {

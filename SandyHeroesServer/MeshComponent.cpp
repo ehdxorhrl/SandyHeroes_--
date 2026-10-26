@@ -10,10 +10,21 @@ MeshComponent::MeshComponent(Object* owner, Mesh* mesh) : Component(owner), mesh
     mesh->AddMeshComponent(this);
 
     //if (!mesh) {
-    //    OutputDebugStringA("MeshComponent 积己 角菩: mesh == nullptr\n");
+    //    OutputDebugStringA("MeshComponent 靸濎劚 鞁ろ尐: mesh == nullptr\n");
     //}
     //else {
-    //    OutputDebugStringA(("MeshComponent 积己 己傍: " + mesh->name() + "\n").c_str());
+    //    OutputDebugStringA(("MeshComponent 靸濎劚 靹标车: " + mesh->name() + "\n").c_str());
+    //}
+}
+MeshComponent::MeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh) : Component(owner), mesh_(mesh)
+{
+    mesh->AddMeshComponent(this);
+
+    //if (!mesh) {
+    //    OutputDebugStringA("MeshComponent 靸濎劚 鞁ろ尐: mesh == nullptr\n");
+    //}
+    //else {
+    //    OutputDebugStringA(("MeshComponent 靸濎劚 靹标车: " + mesh->name() + "\n").c_str());
     //}
 }
 
@@ -24,10 +35,23 @@ MeshComponent::MeshComponent(Object* owner, Mesh* mesh, Material* material) : Co
         AddMaterial(material);
 
     //if (!mesh) {
-    //    OutputDebugStringA("MeshComponent 积己 角菩: mesh == nullptr\n");
+    //    OutputDebugStringA("MeshComponent 靸濎劚 鞁ろ尐: mesh == nullptr\n");
     //}
     //else {
-    //    OutputDebugStringA(("MeshComponent 积己 己傍: " + mesh->name() + "\n").c_str());
+    //    OutputDebugStringA(("MeshComponent 靸濎劚 靹标车: " + mesh->name() + "\n").c_str());
+    //}
+}
+MeshComponent::MeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh, Material* material) : Component(owner), mesh_(mesh)
+{
+    mesh->AddMeshComponent(this);
+    if(material)
+        AddMaterial(material);
+
+    //if (!mesh) {
+    //    OutputDebugStringA("MeshComponent 靸濎劚 鞁ろ尐: mesh == nullptr\n");
+    //}
+    //else {
+    //    OutputDebugStringA(("MeshComponent 靸濎劚 靹标车: " + mesh->name() + "\n").c_str());
     //}
 }
 
@@ -41,16 +65,15 @@ MeshComponent::MeshComponent(const MeshComponent& other) : Component(other), mes
     }
 
     //if (!mesh_) {
-    //    OutputDebugStringA("MeshComponent 积己 角菩: mesh == nullptr\n");
+    //    OutputDebugStringA("MeshComponent 靸濎劚 鞁ろ尐: mesh == nullptr\n");
     //}
     //else {
-    //    OutputDebugStringA(("MeshComponent 积己 己傍: " + mesh_->name() + "\n").c_str());
+    //    OutputDebugStringA(("MeshComponent 靸濎劚 靹标车: " + mesh_->name() + "\n").c_str());
     //}
 }
 
 MeshComponent& MeshComponent::operator=(const MeshComponent& rhs)
 {
-    owner_ = nullptr;
     mesh_ = rhs.mesh_;
     mesh_->AddMeshComponent(this);
     return *this;
@@ -58,15 +81,7 @@ MeshComponent& MeshComponent::operator=(const MeshComponent& rhs)
 
 MeshComponent::~MeshComponent()
 {
-    if (mesh_)
-    {
-        mesh_->DeleteMeshComponent(this);
-    }
 
-    for (const auto& const material : materials_)
-    {
-        material->DeleteMeshComponent(this);
-    }
 }
 
 void MeshComponent::set_mesh(Mesh* mesh) {
@@ -97,7 +112,6 @@ bool MeshComponent::ChangeMaterial(int index, Material* material)
         return false;
     }
 
-    materials_[index]->DeleteMeshComponent(this);
     materials_[index] = material;
     material->AddMeshComponent(this);
 

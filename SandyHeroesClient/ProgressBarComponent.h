@@ -4,8 +4,11 @@ class ProgressBarComponent :
     public UiComponent
 {
 public:
+	DECLARE_COMPONENT(ProgressBarComponent, UiComponent)
+
 	ProgressBarComponent() = default;
 	ProgressBarComponent(Object* owner);
+	ProgressBarComponent(const std::shared_ptr<Object>& owner);
 	ProgressBarComponent(const ProgressBarComponent& other);
 	~ProgressBarComponent() = default;
 
@@ -18,19 +21,19 @@ public:
 
 	void set_max_value(float value) { max_value_ = value; is_correct_max_ = true; }
 	void set_current_value(float value) { current_value_ = value; }
-	void set_get_current_value_func(const std::function<float(Object*)>& func)
+	void set_get_current_value_func(const std::function<float(const std::shared_ptr<Object>&)>& func)
 	{
 		get_current_value_func_ = func;
 	}
-	void set_get_max_value_func(const std::function<float(Object*)>& func)
+	void set_get_max_value_func(const std::function<float(const std::shared_ptr<Object>&)>& func)
 	{
 		get_max_value_func_ = func;
 	}
 private:
-	float max_value_{ 100.f }; // ÃÖ´ë°ª
-	float current_value_{ 0.f }; // ÇöÀç°ª
+	float max_value_{ 100.f }; // ìµœëŒ€ê°’
+	float current_value_{ 0.f }; // í˜„ì¬ê°’
 	bool is_correct_max_{ false };
-	std::function<float(Object*)> get_max_value_func_{ nullptr }; // ÃÖ´ë°ªÀ» °¡Á®¿À´Â ÇÔ¼ö
-	std::function<float(Object*)> get_current_value_func_{ nullptr }; // ÇöÀç°ªÀ» °¡Á®¿À´Â ÇÔ¼ö
+	std::function<float(const std::shared_ptr<Object>&)> get_max_value_func_{ nullptr }; // ìµœëŒ€ê°’ì„ ê°€ì ¸ì˜¤ëŠ” í•¨ìˆ˜
+	std::function<float(const std::shared_ptr<Object>&)> get_current_value_func_{ nullptr }; // í˜„ì¬ê°’ì„ ê°€ì ¸ì˜¤ëŠ” í•¨ìˆ˜
 };
 

@@ -22,7 +22,7 @@ void SessionManager::remove(int clientId) {
 }
 
 
-Session* SessionManager::GetSessionByPlayerObject(Object* object)
+Session* SessionManager::GetSessionByPlayerObject(std::shared_ptr<Object> object)
 {
     std::lock_guard<std::mutex> lk(mtx_);
     for (auto& pair : sessions)

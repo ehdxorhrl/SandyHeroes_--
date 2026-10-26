@@ -54,7 +54,6 @@ public:
     std::string GetTextureName(UINT index) const;
 
     void AddMeshComponent(MeshComponent* component);
-    void DeleteMeshComponent(MeshComponent* component);
 
     void CopyMaterialData(Material* material);
 private:

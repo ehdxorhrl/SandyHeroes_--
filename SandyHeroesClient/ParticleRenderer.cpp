@@ -9,11 +9,11 @@ void ParticleRenderer::ParticleRender(
 	ID3D12GraphicsCommandList* command_list, 
 	FrameResource* curr_frame_resource,
 	DescriptorManager* descriptor_manager,
-	CameraComponent* camera)
+	std::shared_ptr<CameraComponent> camera)
 {
 	for (ParticleComponent* particleComponent : particle_components_)
 	{
-		particleComponent->material()->Render(command_list, curr_frame_resource, descriptor_manager, camera);
+		particleComponent->material()->UpdateShaderVariables(command_list, curr_frame_resource, descriptor_manager);
 		particleComponent->Render(command_list, curr_frame_resource);
 	}
 

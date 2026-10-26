@@ -13,7 +13,7 @@ int AnimationState::GetDeadAnimationTrack() const
 	return -1;
 }
 
-void AnimationState::ChangeAnimationTrack(int animation_track, Object* object, AnimatorComponent* animator)
+void AnimationState::ChangeAnimationTrack(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	if (animation_track_ == animation_track)
 	{

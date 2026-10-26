@@ -21,6 +21,7 @@ struct CBPass
 {
 	XMFLOAT4X4 view_matrix;
 	XMFLOAT4X4 proj_matrix;
+	XMFLOAT4X4 view_proj_matrix;
 	XMFLOAT3 camera_position;
 	float total_time;
 	XMFLOAT4 ambient_light;
@@ -34,6 +35,7 @@ struct CBShadow
 {
 	XMFLOAT4X4 light_view;
 	XMFLOAT4X4 light_proj;
+	XMFLOAT4X4 light_view_proj;
 	XMFLOAT4X4 shadow_transform;
 	XMFLOAT3 light_dir;
 	float near_z;
@@ -74,11 +76,24 @@ struct CBUi
 	float alpha;	
 	XMFLOAT2 gage_value; // ui 가젯 값 (0.0 ~ 1.0)
 };
+struct InstanceData
+{
+	XMFLOAT4X4 world_matrix;
+	float time;
+};
 
 // 게임에서 한 프레임에 사용하는 리소스에 대한 구조체
 struct FrameResource
 {
-public:
+public:		
+	std::unique_ptr<UploadBuffer<InstanceData>> sb_instance_data;
+	int current_instance_offset = 0;
+
+	std::unique_ptr<UploadBuffer<UINT>> sb_main_visible_indices;
+	std::unique_ptr<UploadBuffer<UINT>> sb_shadow_visible_indices;
+	int current_main_visible_offset = 0;
+	int current_shadow_visible_offset = 0;
+
 	FrameResource(ID3D12Device* device, UINT pass_count,
 		UINT object_count, UINT skinned_mesh_object_count, UINT material_count, UINT ui_mesh_count)
 	{
@@ -88,10 +103,13 @@ public:
 
 		cb_pass = std::make_unique<UploadBuffer<CBPass>>(device, pass_count, true);
 		cb_shadow = std::make_unique<UploadBuffer<CBShadow>>(device, pass_count, true);
-		cb_object = std::make_unique<UploadBuffer<CBObject>>(device, object_count, true);
+		//cb_object = std::make_unique<UploadBuffer<CBObject>>(device, object_count, true);
+		sb_instance_data = std::make_unique<UploadBuffer<InstanceData>>(device, object_count, false);
 		cb_bone_transform = std::make_unique<UploadBuffer<CBBoneTransform>>(device, skinned_mesh_object_count, true);
 		cb_material = std::make_unique<UploadBuffer<CBMaterial>>(device, material_count, true);
 		cb_ui = std::make_unique<UploadBuffer<CBUi>>(device, ui_mesh_count, true);
+		sb_main_visible_indices = std::make_unique<UploadBuffer<UINT>>(device, object_count, false);
+		sb_shadow_visible_indices = std::make_unique<UploadBuffer<UINT>>(device, object_count, false);
 	}
 	FrameResource(const FrameResource& rhs) = delete;
 	FrameResource& operator=(const FrameResource& rhs) = delete;
@@ -101,10 +119,13 @@ public:
 
 	std::unique_ptr<UploadBuffer<CBPass>> cb_pass;
 	std::unique_ptr<UploadBuffer<CBShadow>> cb_shadow;
-	std::unique_ptr<UploadBuffer<CBObject>> cb_object;
+	//std::unique_ptr<UploadBuffer<CBObject>> cb_object;
 	std::unique_ptr<UploadBuffer<CBBoneTransform>> cb_bone_transform;
 	std::unique_ptr<UploadBuffer<CBMaterial>> cb_material;
 	std::unique_ptr<UploadBuffer<CBUi>> cb_ui;
+
+	int current_bone_transform_offset = 0;
+	int current_ui_offset = 0;
 
 	UINT64 fence = 0;
 };

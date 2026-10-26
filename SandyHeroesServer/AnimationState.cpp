@@ -9,7 +9,7 @@ int AnimationState::GetDeadAnimationTrack() const
 	return -1;
 }
 
-void AnimationState::ChangeAnimationTrack(int animation_track, Object* object, AnimatorComponent* animator)
+void AnimationState::ChangeAnimationTrack(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	Exit(animation_track_, object, animator);
 	Enter(animation_track, object, animator);

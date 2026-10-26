@@ -14,7 +14,7 @@ SuperDragonAnimationState::SuperDragonAnimationState()
 
 }
 
-void SuperDragonAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
+void SuperDragonAnimationState::Enter(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	
 	switch ((SuperDragonAnimationTrack)animation_track)
@@ -43,7 +43,7 @@ void SuperDragonAnimationState::Enter(int animation_track, Object* object, Anima
 
 }
 
-int SuperDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
+int SuperDragonAnimationState::Run(float elapsed_time, std::shared_ptr<Object> object, bool is_end, std::shared_ptr<AnimatorComponent> animator)
 {
 	attack_time_ += elapsed_time; // 공격 시간 업데이트
 	constexpr float animation_spf = 0.03f; // 공격 애니메이션 프레임당 시간
@@ -61,7 +61,7 @@ int SuperDragonAnimationState::Run(float elapsed_time, Object* object, bool is_e
 	case SuperDragonAnimationTrack::kFlyDie:
 		if (is_end)
 		{
-			object->set_is_dead(true);
+			GameFramework::Instance()->scene()->DeleteObject(object);
 		}
 		break;
 	case SuperDragonAnimationTrack::kFlyBiteAttackLow:
@@ -94,7 +94,6 @@ int SuperDragonAnimationState::Run(float elapsed_time, Object* object, bool is_e
 				if (particle)
 				{
 					particle->set_hit_position(breath_frame->world_position_vector());
-					particle->set_direction_pivot_object(breath_frame);
 					particle->Play(200);
 				}
 			}
@@ -118,7 +117,7 @@ int SuperDragonAnimationState::Run(float elapsed_time, Object* object, bool is_e
 	return animation_track();
 }
 
-void SuperDragonAnimationState::Exit(int animation_track, Object* object, AnimatorComponent* animator)
+void SuperDragonAnimationState::Exit(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	if((SuperDragonAnimationTrack)animation_track == SuperDragonAnimationTrack::kFlyBiteAttackLow)
 	{

@@ -8,6 +8,11 @@ CameraComponent::CameraComponent(Object* owner,
 {
 	CreateProjectionMatrix(near_plane_distance, far_plane_distance, aspect_ratio, fov_angle);
 }
+CameraComponent::CameraComponent(const std::shared_ptr<Object>& owner,
+	float near_plane_distance, float far_plane_distance, float aspect_ratio, float fov_angle) : Component(owner)
+{
+	CreateProjectionMatrix(near_plane_distance, far_plane_distance, aspect_ratio, fov_angle);
+}
 
 CameraComponent::CameraComponent(const CameraComponent& other) :
 	Component(nullptr),
@@ -37,11 +42,14 @@ void CameraComponent::CreateProjectionMatrix(
 using namespace xmath_util_float3;
 void CameraComponent::UpdateCameraInfo()
 {
+	auto locked_owner = owner_.lock();
+	if (!locked_owner) return;
+
 	XMFLOAT3 world_up_vector{ 0,1,0 };
-	XMFLOAT3 look_vector = Normalize(owner_->world_look_vector());
-	XMFLOAT3 right_vector = Normalize(CrossProduct(world_up_vector, owner_->world_look_vector()));
+	XMFLOAT3 look_vector = Normalize(locked_owner->world_look_vector());
+	XMFLOAT3 right_vector = Normalize(CrossProduct(world_up_vector, locked_owner->world_look_vector()));
 	XMFLOAT3 up_vector = CrossProduct(look_vector, right_vector);
-	XMFLOAT3 position = owner_->world_position_vector();
+	XMFLOAT3 position = locked_owner->world_position_vector();
 	world_position_ = position;
 
 	view_matrix_._11 = right_vector.x; view_matrix_._12 = up_vector.x; view_matrix_._13 = look_vector.x;

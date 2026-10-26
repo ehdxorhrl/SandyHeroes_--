@@ -3,13 +3,15 @@
 #include "Object.h"
 #include "MovementComponent.h"
 #include "FMODSoundManager.h"
+#include "GameFramework.h"
+#include "Scene.h"
 
 HitDragonAnimationState::HitDragonAnimationState()
 {
 	set_animation_track((int)HitDragonAnimationTrack::kIdle);
 }
 
-void HitDragonAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
+void HitDragonAnimationState::Enter(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	if ((int)HitDragonAnimationTrack::kSlashLeftAttack == animation_track)
 	{
@@ -17,21 +19,20 @@ void HitDragonAnimationState::Enter(int animation_track, Object* object, Animato
 	}
 }
 
-int HitDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
+int HitDragonAnimationState::Run(float elapsed_time, std::shared_ptr<Object> object, bool is_end, std::shared_ptr<AnimatorComponent> animator)
 {
 	switch ((HitDragonAnimationTrack)animation_track())
 	{
 	case HitDragonAnimationTrack::kDie:
 		if (is_end)
 		{
-			object->set_is_dead(true);
+			GameFramework::Instance()->scene()->DeleteObject(object);
 		}
 		break;
 	case HitDragonAnimationTrack::kSlashLeftAttack:
 
 		if (is_end)
 		{
-			std::cout << "kSlashLeftAttack에서 idle로 변환" << std::endl;
 			ChangeAnimationTrack((int)HitDragonAnimationTrack::kIdle, object, animator);
 		}
 		break;
@@ -42,7 +43,7 @@ int HitDragonAnimationState::Run(float elapsed_time, Object* object, bool is_end
     return animation_track();
 }
 
-void HitDragonAnimationState::Exit(int animation_track, Object* object, AnimatorComponent* animator)
+void HitDragonAnimationState::Exit(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	if (animation_track == (int)HitDragonAnimationTrack::kSlashLeftAttack)
 	{

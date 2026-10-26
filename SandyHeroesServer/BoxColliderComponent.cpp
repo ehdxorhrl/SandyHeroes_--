@@ -9,7 +9,18 @@ BoxColliderComponent::BoxColliderComponent(Object* owner, const BoundingBox& box
 {
 	BoundingOrientedBox::CreateFromBoundingBox(box_, box);
 }
+BoxColliderComponent::BoxColliderComponent(const std::shared_ptr<Object>& owner, const BoundingBox& box)
+	: Component(owner)
+{
+	BoundingOrientedBox::CreateFromBoundingBox(box_, box);
+}
 BoxColliderComponent::BoxColliderComponent(Object* owner, const BoundingOrientedBox& box)
+	: Component(owner)
+{
+	box_ = box;
+	animated_box_ = box;
+}
+BoxColliderComponent::BoxColliderComponent(const std::shared_ptr<Object>& owner, const BoundingOrientedBox& box)
 	: Component(owner)
 {
 	box_ = box;
@@ -30,7 +41,9 @@ Component* BoxColliderComponent::GetCopy()
 void BoxColliderComponent::Update(float elapsed_time)
 {
 	// Update the animated box based on the current world matrix of the owner object
-	XMFLOAT4X4 world_mat = owner_->world_matrix();
+	auto locked_owner = owner_.lock();
+	if(!locked_owner) return;
+	XMFLOAT4X4 world_mat = locked_owner->world_matrix();
 	XMMATRIX mat = XMLoadFloat4x4(&world_mat);    
 	box_.Transform(animated_box_, mat);           
 

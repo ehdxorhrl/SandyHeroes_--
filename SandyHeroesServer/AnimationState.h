@@ -9,16 +9,16 @@ class AnimationState
 public:
 	virtual ~AnimationState() {}
 
-	virtual void Enter(int animation_track, Object* object, AnimatorComponent* animator) = 0;
-	virtual int Run(Object* object, bool is_end, AnimatorComponent* animator) = 0;
-	virtual void Exit(int animation_track, Object* object, AnimatorComponent* animator) = 0;
+	virtual void Enter(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator) = 0;
+	virtual int Run(std::shared_ptr<Object> object, bool is_end, std::shared_ptr<AnimatorComponent> animator) = 0;
+	virtual void Exit(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator) = 0;
 
 
 	virtual AnimationState* GetCopy() = 0;
 
 	virtual int GetDeadAnimationTrack() const;
 
-	void ChangeAnimationTrack(int animation_track, Object* object, AnimatorComponent* animator);
+	void ChangeAnimationTrack(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator);
 
 	void set_animation_loop_type(int value);
 

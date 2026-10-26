@@ -7,15 +7,19 @@ class UiMeshComponent :
     public MeshComponent
 {
 public:
+    DECLARE_COMPONENT(UiMeshComponent, MeshComponent)
+
     UiMeshComponent(Object* owner, Mesh* mesh);
+    UiMeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh);
     UiMeshComponent(Object* owner, Mesh* mesh, Material* material, Scene* scene);
+    UiMeshComponent(const std::shared_ptr<Object>& owner, Mesh* mesh, Material* material, Scene* scene);
     UiMeshComponent(const UiMeshComponent& other);
     UiMeshComponent& operator=(const UiMeshComponent& rhs);
     ~UiMeshComponent() {}
 
     virtual Component* GetCopy() override;
 
-    virtual void UpdateConstantBuffer(FrameResource* current_frame_resource, int cb_index);
+    virtual void UpdateConstantBuffer(FrameResource* current_frame_resource);
 
     virtual void Render(Material* material, ID3D12GraphicsCommandList* command_list, FrameResource* curr_frame_resource);
 

@@ -5,24 +5,12 @@
 #include "DescriptorManager.h"
 #include "FrameResource.h"
 #include "Material.h"
+#include "Object.h"
 
 Mesh::~Mesh()
 {
-	for (auto& mesh_component : mesh_component_list_)
-	{
-		mesh_component->set_mesh(nullptr);
-	}
 }
 
-void Mesh::AddMeshComponent(MeshComponent* mesh_component)
-{
-	mesh_component_list_.push_back(mesh_component);
-}
-
-void Mesh::DeleteMeshComponent(MeshComponent* mesh_component)
-{
-	mesh_component_list_.remove(mesh_component);
-}
 
 void Mesh::CreateShaderVariables(ID3D12Device* device, ID3D12GraphicsCommandList* command_list)
 {
@@ -159,50 +147,74 @@ void Mesh::ReleaseUploadBuffer()
 
 }
 
-void Mesh::UpdateConstantBuffer(FrameResource* curr_frame_resource, int& cb_index)
+void Mesh::Render(ID3D12GraphicsCommandList* command_list, int material_index, FrameResource* curr_frame_resource)
 {
-	//메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
-	for (MeshComponent* mesh_component : mesh_component_list_)
-	{
-		// 그릴 필요 없는 대상에 대해서는 업데이트를 할 필요 없음
-		if (!mesh_component->IsVisible())
-			continue;
+	// 인스턴싱 렌더는 따로 RenderInstancing 함수로 빼서 구현
+	
+	//command_list->IASetPrimitiveTopology(primitive_topology_);
 
-		mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
+	////정점 버퍼 set
+	//command_list->IASetVertexBuffers(0,
+	//	vertex_buffer_views_.size(), vertex_buffer_views_.data());
 
-		++cb_index;
-	}
+	////인스턴스 버퍼 set
+	//D3D12_GPU_VIRTUAL_ADDRESS base =
+	//	curr_frame_resource->sb_instance_data->Resource()->GetGPUVirtualAddress();
+
+	//command_list->SetGraphicsRootShaderResourceView(
+	//	(int)RootParameterIndex::kInstanceData,
+	//	base + instance_buffer_offset_ * sizeof(InstanceData)
+	//);
+
+
+	//if (material_index < indices_array_.size()) 
+	//{
+	//	if (indices_array_[material_index].size())
+	//	{
+	//		command_list->IASetIndexBuffer(&index_buffer_views_[material_index]);
+	//		command_list->DrawIndexedInstanced(indices_array_[material_index].size(), instance_count_, 0, 0, 0);
+	//	}
+	//	else
+	//	{
+	//		command_list->DrawInstanced(positions_.size(), instance_count_, 0, 0);
+	//	}
+	//}
+	//else
+	//{
+	//	if (indices_array_.back().size())
+	//	{
+	//		command_list->IASetIndexBuffer(&index_buffer_views_.back());
+	//		command_list->DrawIndexedInstanced(indices_array_.back().size(), instance_count_, 0, 0, 0);
+	//	}
+	//	else
+	//	{
+	//		command_list->DrawInstanced(positions_.size(), instance_count_, 0, 0);
+	//	}
+	//}
 }
 
-void Mesh::UpdateConstantBufferForShadow(FrameResource* curr_frame_resource, int& cb_index)
+void Mesh::RenderInstancing(ID3D12GraphicsCommandList* command_list, int material_index, 
+	FrameResource* curr_frame_resource, UINT instance_count)
 {
-	//메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
-	for (MeshComponent* mesh_component : mesh_component_list_)
-	{
-		mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
+	if(instance_count == 0)
+		return;
 
-		++cb_index;
-	}
-}
-
-void Mesh::Render(ID3D12GraphicsCommandList* command_list, int material_index)
-{
 	command_list->IASetPrimitiveTopology(primitive_topology_);
 
 	//정점 버퍼 set
 	command_list->IASetVertexBuffers(0,
 		vertex_buffer_views_.size(), vertex_buffer_views_.data());
 
-	if (material_index < indices_array_.size()) 
+	if (material_index < indices_array_.size())
 	{
 		if (indices_array_[material_index].size())
 		{
 			command_list->IASetIndexBuffer(&index_buffer_views_[material_index]);
-			command_list->DrawIndexedInstanced(indices_array_[material_index].size(), 1, 0, 0, 0);
+			command_list->DrawIndexedInstanced(indices_array_[material_index].size(), instance_count, 0, 0, 0);
 		}
 		else
 		{
-			command_list->DrawInstanced(positions_.size(), 1, 0, 0);
+			command_list->DrawInstanced(positions_.size(), instance_count, 0, 0);
 		}
 	}
 	else
@@ -210,11 +222,11 @@ void Mesh::Render(ID3D12GraphicsCommandList* command_list, int material_index)
 		if (indices_array_.back().size())
 		{
 			command_list->IASetIndexBuffer(&index_buffer_views_.back());
-			command_list->DrawIndexedInstanced(indices_array_.back().size(), 1, 0, 0, 0);
+			command_list->DrawIndexedInstanced(indices_array_.back().size(), instance_count, 0, 0, 0);
 		}
 		else
 		{
-			command_list->DrawInstanced(positions_.size(), 1, 0, 0);
+			command_list->DrawInstanced(positions_.size(), instance_count, 0, 0);
 		}
 	}
 }
@@ -299,11 +311,6 @@ void Mesh::ClearTangents()
 std::string Mesh::name() const
 {
 	return name_;
-}
-
-const std::list<MeshComponent*>& Mesh::mesh_component_list() const
-{
-	return mesh_component_list_;
 }
 
 BoundingBox Mesh::bounds() const

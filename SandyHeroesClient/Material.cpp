@@ -6,6 +6,7 @@
 #include "MeshComponent.h"
 #include "Scene.h"
 #include "CameraComponent.h"
+#include "Mesh.h"
 
 using namespace file_load_util;
 
@@ -109,35 +110,114 @@ void Material::UpdateShaderVariables(ID3D12GraphicsCommandList* command_list,
 
 }
 
+void Material::UpdateObjectFrameResource(FrameResource* curr_frame_resource)
+{
+	//메시 컴포넌트 vector에서 expired된 weak_ptr 제거 및 
+	//카메라 절두체, 그림자 범위 두 곳 모두에 포함되지 않은 메시 컴포넌트 제거
+	std::erase_if(mesh_components_, [](const std::weak_ptr<MeshComponent>& weak_component)
+		{
+			auto mesh_component = weak_component.lock();
+			if(!mesh_component)
+				return true;
+			return !mesh_component->is_in_shadow_map_obb() && !mesh_component->is_in_view_frustum();
+		});
+
+	//메쉬순으로 정렬하여 같은 메쉬를 사용하는 컴포넌트들이 연속되도록 함(인스턴싱 렌더링을 위해)
+	std::sort(mesh_components_.begin(), mesh_components_.end(),
+		[](const std::weak_ptr<MeshComponent>& a, const std::weak_ptr<MeshComponent>& b)
+		{
+			auto mesh_a = a.lock();
+			auto mesh_b = b.lock();
+			return mesh_a->GetMesh() < mesh_b->GetMesh();
+		});
+
+	//정렬된 메시 컴포넌트 vector를 순회하면서 메시가 바뀔 때마다 mesh_instance_infos_에 새로운 요소 추가
+	mesh_instance_infos_.reserve(mesh_components_.size());
+	Mesh* prev_mesh = nullptr;
+	for(const auto& weak_component : mesh_components_)
+	{
+		auto mesh_component = weak_component.lock();
+		const auto& mesh = mesh_component->GetMesh();
+		if(prev_mesh != mesh)
+		{
+			mesh_instance_infos_.emplace_back(mesh);
+			prev_mesh = mesh;
+		}
+		mesh_instance_infos_.back().components.push_back(mesh_component);
+	}
+
+	//mesh_instance_infos_를 순회하면서 각 메시 인스턴스 버퍼 업데이트 및 인스턴스 횟수 체크
+	for(auto& mesh_instance_info : mesh_instance_infos_)
+	{
+		const auto& mesh = mesh_instance_info.mesh;
+		auto mesh_type = mesh->mesh_type();
+		mesh_instance_info.shadow_visible_indices_offset = curr_frame_resource->current_shadow_visible_offset;
+		mesh_instance_info.main_visible_indices_offset = curr_frame_resource->current_main_visible_offset;
+		for(const auto& component : mesh_instance_info.components)
+		{
+			if (mesh_type != MeshType::kBillboardMesh)
+				component->UpdateConstantBuffer(curr_frame_resource);
+			else
+				component->UpdateConstantBufferForBillboard(curr_frame_resource);
+			mesh_instance_info.main_visible_count += component->is_in_view_frustum();
+			mesh_instance_info.shadow_visible_count += component->is_in_shadow_map_obb();
+		}
+	}
+}
+
 void Material::Render(ID3D12GraphicsCommandList* command_list, 
-	FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, CameraComponent* camera, bool bShadow)
+	FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, std::shared_ptr<CameraComponent> camera, bool bShadow)
 {
 	//set current material at graphics pipeline
 	if(!bShadow)
 		UpdateShaderVariables(command_list, curr_frame_resource, descriptor_manager);
 
-
-	for (const auto& mesh_component : mesh_component_list_)
+	for(const auto& mesh_instance_info : mesh_instance_infos_)
 	{
-		if (bShadow)
+		auto mesh_type = mesh_instance_info.mesh->mesh_type();
+		//skinned mesh와 ui mesh는 일반 렌더링으로 처리
+		if (mesh_type == MeshType::kSkinnedMesh || mesh_type == MeshType::kUIMesh)
 		{
-			mesh_component->Render(this, command_list, curr_frame_resource);
-			continue;
-		}
-		if (camera)
-		{
-			if (mesh_component->hierarchy_root()->is_in_view_sector())
+			for (const auto& component : mesh_instance_info.components)
 			{
-				if (camera->CollisionCheckByMeshComponent(mesh_component))
-				{
-					mesh_component->Render(this, command_list, curr_frame_resource);
-				}
+				component->Render(this, command_list, curr_frame_resource);
 			}
 		}
+		//인스턴싱 렌더링
 		else
 		{
-			mesh_component->Render(this, command_list, curr_frame_resource);
+			auto sub_mesh_index = mesh_instance_info.components.front()->GetMaterialIndex(this);
+			if (bShadow)
+			{
+				auto gpu_address =
+					curr_frame_resource->sb_shadow_visible_indices->Resource()->GetGPUVirtualAddress()
+					+ (sizeof(UINT) * mesh_instance_info.shadow_visible_indices_offset);
+				command_list->SetGraphicsRootShaderResourceView(
+					(int)RootParameterIndex::kShadowVisibleIndices,
+					gpu_address);
+				mesh_instance_info.mesh->RenderInstancing(
+					command_list, sub_mesh_index, 
+					curr_frame_resource, mesh_instance_info.shadow_visible_count);
+			}
+			else
+			{
+				auto gpu_address =
+					curr_frame_resource->sb_main_visible_indices->Resource()->GetGPUVirtualAddress()
+					+ (sizeof(UINT) * mesh_instance_info.main_visible_indices_offset);
+				command_list->SetGraphicsRootShaderResourceView(
+					(int)RootParameterIndex::kMainVisibleIndices,
+					gpu_address);
+				mesh_instance_info.mesh->RenderInstancing(
+					command_list, sub_mesh_index, 
+					curr_frame_resource, mesh_instance_info.main_visible_count);
+			}
 		}
+	}
+
+	if (!bShadow)
+	{
+		mesh_components_.clear();
+		mesh_instance_infos_.clear();
 	}
 }
 
@@ -339,16 +419,17 @@ std::string Material::GetTextureName(UINT index) const
 	}
 }
 
-void Material::AddMeshComponent(MeshComponent* component)
+void Material::AddMeshComponent(std::weak_ptr<MeshComponent> component)
 {
-	mesh_component_list_.push_back(component);
+	mesh_components_.push_back(component);
 }
 
-bool Material::DeleteMeshComponent(MeshComponent* component)
+bool Material::DeleteMeshComponent(std::weak_ptr<MeshComponent> component)
 {
-	auto remove_count = mesh_component_list_.remove(component);
+	//함수 삭제전 임시 조치
+	//auto remove_count = mesh_component_list_.remove(component);
 
-	return remove_count;
+	return false;
 }
 
 void Material::CopyMaterialData(Material* material)

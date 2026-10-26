@@ -15,6 +15,18 @@ TestControllerComponent::TestControllerComponent(Object* owner)
 	is_key_down_[VK_LBUTTON] = false;
 	is_key_down_[VK_SHIFT] = false;
 }
+TestControllerComponent::TestControllerComponent(const std::shared_ptr<Object>& owner)
+	: InputControllerComponent(owner)
+{
+	is_key_down_['W'] = false;
+	is_key_down_['A'] = false;
+	is_key_down_['S'] = false;
+	is_key_down_['D'] = false;
+	is_key_down_['Q'] = false;
+	is_key_down_['E'] = false;
+	is_key_down_[VK_LBUTTON] = false;
+	is_key_down_[VK_SHIFT] = false;
+}
 
 Component* TestControllerComponent::GetCopy()
 {
@@ -50,7 +62,8 @@ bool TestControllerComponent::ProcessInput(UINT message_id, WPARAM w_param, LPAR
 		if (is_key_down_[VK_LBUTTON])
 		{
 			int x = LOWORD(l_param), y = HIWORD(l_param);
-			owner_->Rotate((y - mouse_xy_.y) * rotate_speed_, (x - mouse_xy_.x) * rotate_speed_, 0.f);
+			auto locked_owner = owner_.lock();
+			if (locked_owner) locked_owner->Rotate((y - mouse_xy_.y) * rotate_speed_, (x - mouse_xy_.x) * rotate_speed_, 0.f);
 
 			RECT client_rect;
 			GetClientRect(client_wnd_, &client_rect);
@@ -187,7 +200,9 @@ bool TestControllerComponent::ProcessInput(UINT message_id, WPARAM w_param, LPAR
 
 void TestControllerComponent::Update(float elapsed_time)
 {
-	auto movement = Object::GetComponentInChildren<MovementComponent>(owner_);
+	auto locked_owner = owner_.lock();
+	if (!locked_owner) return;
+	auto movement = Object::GetComponentInChildren<MovementComponent>(locked_owner);
 	if (!movement)
 	{
 		return;
@@ -196,8 +211,8 @@ void TestControllerComponent::Update(float elapsed_time)
 	movement->Stop();
 
 	XMFLOAT3 velocity{ 0,0,0 };
-	XMFLOAT3 look = owner_->look_vector();
-	XMFLOAT3 right = owner_->right_vector();
+	XMFLOAT3 look = locked_owner->look_vector();
+	XMFLOAT3 right = locked_owner->right_vector();
 	XMFLOAT3 up{ 0,1,0 };
 	float speed_rate = 1.f;
 	if (is_key_down_['W']) velocity += look;

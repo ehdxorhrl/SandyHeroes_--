@@ -9,15 +9,18 @@ class ChestComponent :
     public CharacterComponent
 {
 public:
+    DECLARE_COMPONENT(ChestComponent, CharacterComponent)
+
     ChestComponent() = default;
     ChestComponent(Object* owner, Scene* scene = nullptr);
+    ChestComponent(const std::shared_ptr<Object>& owner, Scene* scene = nullptr);
     virtual ~ChestComponent() = default;
 
     virtual Component* GetCopy() override;
 
     virtual void Update(float elapsed_time) override;
 
-    virtual void HendleCollision(Object* other_object) override;
+    virtual void HendleCollision(std::shared_ptr<Object> other_object) override;
 
     void OpenChest(uint8_t scroll_type, ModelInfo* scroll_model);
 
@@ -26,14 +29,14 @@ public:
     void set_scroll_model(ModelInfo* scroll_model)
     {
         scroll_model_ = scroll_model;
-	}
+    }
 
-private:		
-	bool is_open_{ false }; // Ã¼½ºÆ®°¡ ¿­·ÁÀÖ´ÂÁö ¿©ºÎ
+    private:		
+    bool is_open_{ false }; // Ã¼Æ® Ö´ 
     ModelInfo* scroll_model_{ nullptr };
 
-	Object* scroll_object_{ nullptr }; // ½ºÅ©·Ñ ¿ÀºêÁ§Æ®
+    std::weak_ptr<Object> scroll_object_{}; // Å© Æ®
 
-	Scene* scene_{ nullptr }; // ¾À Á¤º¸
+	Scene* scene_{ nullptr }; // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 };
 

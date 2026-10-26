@@ -3,13 +3,17 @@
 
 class MeshComponent;
 
-//¿ÀºêÁ§Æ®¿¡ Ä«¸Ş¶ó ±â´É Ãß°¡
+//ì˜¤ë¸Œì íŠ¸ì— ì¹´ë©”ë¼ ê¸°ëŠ¥ ì¶”ê°€
 class CameraComponent :
     public Component
 {
 public:
+	DECLARE_COMPONENT(CameraComponent, Component)
+
 	CameraComponent() = delete;
 	CameraComponent(Object* owner, 
+		float near_plane_distance, float far_plane_distance, float aspect_ratio, float fov_angle);
+	CameraComponent(const std::shared_ptr<Object>& owner, 
 		float near_plane_distance, float far_plane_distance, float aspect_ratio, float fov_angle);
 	CameraComponent(const CameraComponent& other);
 	virtual ~CameraComponent() {}
@@ -20,12 +24,12 @@ public:
 
 	void CreateProjectionMatrix(float near_plane_distance, float far_plane_distance, float aspect_ratio, float fov_angle);
 
-	bool CollisionCheckByMeshComponent(MeshComponent* mesh_component);
+	bool CollisionCheckByMeshComponent(const std::shared_ptr<MeshComponent>& mesh_component);
 
 	void GetPickingRay(int screen_x, int screen_y, XMFLOAT3& ray_origin, XMFLOAT3& ray_direction);
 
-	//ownerÀÇ ¿ùµå Çà·Ä ±â¹İÀ¸·Î view matrix ¾÷µ¥ÀÌÆ® 
-	//(ownerÀÇ ¿ùµåÇà·ÄÀÌ ¾÷µ¥ÀÌÆ®°¡ µÇ°í ÀÌ ÇÔ¼ö°¡ È£ÃâµÇ¾î¾ßÇÔ)
+	//ownerì˜ ì›”ë“œ í–‰ë ¬ ê¸°ë°˜ìœ¼ë¡œ view matrix ì—…ë°ì´íŠ¸ 
+	//(ownerì˜ ì›”ë“œí–‰ë ¬ì´ ì—…ë°ì´íŠ¸ê°€ ë˜ê³  ì´ í•¨ìˆ˜ê°€ í˜¸ì¶œë˜ì–´ì•¼í•¨)
 	void UpdateCameraInfo();
 
 	//getter
@@ -34,6 +38,7 @@ public:
 	XMFLOAT3 world_position() const;
 	XMFLOAT3 up_vector() const;
 	BoundingFrustum view_frustum() const;
+	BoundingFrustum world_frustum() const;
 
 private:
 	XMFLOAT4X4 view_matrix_ = xmath_util_float4x4::Identity();

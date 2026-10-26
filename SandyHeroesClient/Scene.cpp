@@ -17,143 +17,35 @@
 #include "WallColliderComponent.h"
 
 
-XMVECTOR Scene::GetPickingPointAtWorld(float sx, float sy, Object* picked_object)
-{
-	//picking ray 계산
-	Object* camera_object = main_camera_->owner();
-
-	XMVECTOR picking_point_w = XMLoadFloat3(&(camera_object->world_position_vector() + (camera_object->world_look_vector() * 100.f)));
-	float picking_length_min = std::numeric_limits<float>::max();
-
-	XMFLOAT4X4 proj = main_camera_->projection_matrix();
-
-	float vx = (2.f * sx / kDefaultFrameBufferWidth - 1.f) / proj(0, 0);
-	float vy = (-2.f * sy / kDefaultFrameBufferHeight + 1.f) / proj(1, 1);
-
-	XMMATRIX view = XMLoadFloat4x4(&main_camera_->view_matrix());
-	XMMATRIX inverse_view = XMMatrixInverse(&XMMatrixDeterminant(view), view);
-
-	//월드좌표계에서 피킹광선
-	XMVECTOR ray_origin{ XMVectorSet(0, 0, 0, 1.f) };
-	XMVECTOR ray_direction{ XMVectorSet(vx, vy, 1.f, 0) };
-
-	ray_origin = XMVector3TransformCoord(ray_origin, inverse_view);
-	ray_direction = XMVector3Normalize(XMVector3Transform(ray_direction, inverse_view));
-
-	for (const auto& mesh : meshes_)
-	{
-		if (mesh->name() == "Debug_Mesh")
-			continue;
-		const auto& mesh_component_list = mesh->mesh_component_list();
-		for (const auto& mesh_component : mesh_component_list)
-		{
-			XMMATRIX world = XMLoadFloat4x4(&mesh_component->owner()->world_matrix());
-			XMMATRIX inverse_world = XMMatrixInverse(&XMMatrixDeterminant(world), world);
-
-			// 메쉬 로컬좌표의 피킹반직선
-			XMVECTOR ray_origin_local = XMVector3TransformCoord(ray_origin, inverse_world);
-			XMVECTOR ray_direction_local = XMVector3Normalize(XMVector3Transform(ray_direction, inverse_world));
-
-			float t_min{ 0 }; // 반직선 교점 매개변수 최저값, 즉 가장 가까운 교점의 매개변수
-			if (mesh->bounds().Intersects(ray_origin_local, ray_direction_local, t_min))
-			{
-				auto& positions = mesh->positions();
-				auto& indices_array = mesh->indices_array();
-
-				t_min = std::numeric_limits<float>::max();
-				for (auto& indices : indices_array)
-				{
-					float t{ 0 };
-					for (int i = 0; i < indices.size(); i += 3)
-					{
-						UINT i0 = indices[i + 0];
-						UINT i1 = indices[i + 1];
-						UINT i2 = indices[i + 2];
-
-						XMVECTOR v0 = XMLoadFloat3(&positions[i0]);
-						XMVECTOR v1 = XMLoadFloat3(&positions[i1]);
-						XMVECTOR v2 = XMLoadFloat3(&positions[i2]);
-
-						if (TriangleTests::Intersects(ray_origin_local, ray_direction_local, v0, v1, v2, t))
-						{
-							if (t < t_min) // 가장 반직선에 가까운 삼각형과의 교점 매개변수
-							{
-								t_min = t;
-							}
-						}
-					}
-				}	//forend indices_array
-				if (t_min < std::numeric_limits<float>::max()) // t_min 유효한지 실제 메쉬와 부딪힌건지 체크
-				{
-					// 피킹지점을 월드 좌표계와 비교
-					XMVECTOR picking_point = ray_origin_local + (ray_direction_local * t_min);
-					picking_point = XMVector3TransformCoord(picking_point, world);
-					float length = XMVectorGetX(XMVector3Length(picking_point - ray_origin));
-					if (length < picking_length_min)
-					{
-						picking_length_min = length;
-						picking_point_w = picking_point;
-						picked_object = mesh_component->owner();
-					}
-				}
-			}	//ifend mesh->bounds().Intersects
-		}
-	}
-
-	return picking_point_w;
-}
-
 void Scene::Update(float elapsed_time)
 {
-	for (const std::unique_ptr<Object>& object : object_list_)
+	is_updating_objects_ = true;
+	for (const std::shared_ptr<Object>& object : object_list_)
 	{
 		object->Update(elapsed_time);
 	}
+	is_updating_objects_ = false;
+
+	for(const std::shared_ptr<Object>& object : add_object_list_)
+	{
+		AddObject(object);
+	}
+	add_object_list_.clear();
+
+	for(const std::shared_ptr<Object>& object : delete_object_list_)
+	{
+		object_list_.remove(object);
+	}
+	delete_object_list_.clear();
 
 	UpdateSector();
 
 	total_time_ += elapsed_time;
 }
 
-void Scene::DeleteDeadObjects()
-{
-	for (auto& sector : sectors_)
-	{
-		sector.DeleteDeadObject();
-	}
-
-	auto it = object_list_.begin();
-	while (it != object_list_.end()) {
-		if ((*it)->is_dead()) {
-			auto current = it++;
-			(*current)->Destroy();
-			dead_object_list_.splice(dead_object_list_.end(), object_list_, current);
-		}
-		else {
-			Object* dead_object = (*it)->PopDeadChild();
-			while(dead_object)
-			{
-				dead_object_list_.emplace_back(std::unique_ptr<Object>(dead_object));
-				dead_object = (*it)->PopDeadChild();
-			}
-			++it;
-		}
-	}
-
-	dead_object_list_.remove_if([](const std::unique_ptr<Object>& object) {
-			return (object->dead_frame_count() > FrameResourceManager::kFrameCount);
-		});	
-
-	for (const std::unique_ptr<Object>& object : dead_object_list_)
-	{
-		object->AddDeadFrameCount(1);
-	}
-
-}
-
 void Scene::UpdateObjectWorldMatrix()
 {
-	for (const std::unique_ptr<Object>& object : object_list_)
+	for (const std::shared_ptr<Object>& object : object_list_)
 	{
 		object->UpdateWorldMatrix(nullptr);
 	}
@@ -163,78 +55,107 @@ void Scene::UpdateSector()
 {
 	for (auto& sector : sectors_)
 	{
-		//섹터로 부터 벗어난 오브젝트를 해당 섹터에서 삭제
-		sector.DeleteOutOfBoundsObjects();
+		//섹터로 부터 벗어난 메쉬 컴포넌트를 해당 섹터에서 삭제
+		sector.DeleteOutOfBounds();
 	}
 
-	for (const auto& object : object_list_)
+	for (const auto& wp : all_mesh_component_list_)
 	{
-		if(!object->is_movable())
+		auto mesh_component = wp.lock();
+		if (!mesh_component)
 			continue;
-		bool is_inserted = false;
+		auto object = mesh_component->owner();
+		if(!object || !object->is_movable())
+			continue;
+
 		for (auto& sector : sectors_)
 		{
-			if (sector.CheckObjectInSectorObjectList(object.get()))
-			{
-				is_inserted = true;
-				break;
-			}
-		}
-		if (is_inserted)
-			continue;
-		for (auto& sector : sectors_)
-		{
-			if (sector.InsertObject(object.get()))
-				break;
+			sector.InsertMeshComponent(mesh_component);
 		}
 	}
 }
 
 void Scene::RunViewFrustumCulling()
 {
-	int i = 0;
-	int j = 0;
-	BoundingFrustum world_frustum;
-	auto view = XMLoadFloat4x4(&main_camera_->view_matrix());
-	auto inv_view = XMMatrixInverse(&XMMatrixDeterminant(view), view);
-	main_camera_->view_frustum().Transform(world_frustum, inv_view);
+	const auto& world_frustum = main_camera_->world_frustum();
 
 	for (auto& sector : sectors_)
 	{
-		bool is_in_view_sector = sector.bounds().Intersects(world_frustum);
-		for (const auto& object : sector.object_list())
+		if (sector.bounds().Intersects(world_frustum))
 		{
-			object->set_is_in_view_sector(is_in_view_sector);
+			for (const auto& mesh_component : sector.mesh_component_list())
+			{
+				auto locked_mesh_component = mesh_component.lock();
+				if (!locked_mesh_component)
+					continue;
+				BoundingOrientedBox obb;
+				auto aabb = locked_mesh_component->GetMesh()->bounds();
+				BoundingOrientedBox::CreateFromBoundingBox(obb, aabb);
+				obb.Transform(obb, XMLoadFloat4x4(&locked_mesh_component->owner()->world_matrix()));
+				locked_mesh_component->set_is_in_view_frustum(world_frustum.Intersects(obb));
+			}
 		}
 	}
-	//std::string str = "View Frustum Culling: " + std::to_string(i) + " objects checked.\n" + std::to_string(j) + " Sectors checked.\n";
-	//std::wstring wstr(str.begin(), str.end());
-	//OutputDebugString(wstr.c_str());
 }
 
-Object* Scene::FindObject(const std::string& object_name)
+void Scene::RunShadowMapViewFrustumCulling(FXMVECTOR light_position, const BoundingBox& shadow_map_aabb, const float& radius)
 {
-	auto it = std::find_if(object_list_.begin(), object_list_.end(), [&object_name](const std::unique_ptr<Object>& object) {
-		return object.get()->name() == object_name;
+	constexpr float culling_radius_offset = 10.0f; // 오브젝트의 반지름에 추가할 여유 공간
+	const float culling_radius = radius + culling_radius_offset;
+	const float culling_radius_squared = culling_radius * culling_radius;
+	int a = 0;
+	for(auto it = all_mesh_component_list_.begin(); it != all_mesh_component_list_.end();)
+	{
+		auto locked_mesh_component = it->lock();
+		if (!locked_mesh_component)
+		{
+			it = all_mesh_component_list_.erase(it);
+			continue;
+		}
+		++it;
+
+		auto object = locked_mesh_component->owner();
+		if(!object)
+			continue;
+
+		XMVECTOR object_position = XMLoadFloat3(&object->world_position_vector());
+		float distance_squared = XMVectorGetX(XMVector3LengthSq(object_position - light_position));
+		if (distance_squared < culling_radius_squared)
+		{
+			BoundingOrientedBox obb;
+			auto aabb = locked_mesh_component->GetMesh()->bounds();
+			BoundingOrientedBox::CreateFromBoundingBox(obb, aabb);
+			obb.Transform(obb, XMLoadFloat4x4(&locked_mesh_component->owner()->world_matrix()));
+			locked_mesh_component->set_is_in_shadow_map_obb(shadow_map_aabb.Intersects(obb));
+		}
+		else
+			locked_mesh_component->set_is_in_shadow_map_obb(false);
+	}
+}
+
+std::shared_ptr<Object> Scene::FindObject(const std::string& object_name)
+{
+	auto it = std::find_if(object_list_.begin(), object_list_.end(), [&object_name](const std::shared_ptr<Object>& object) {
+		return object->name() == object_name;
 		});
 
 	if (it != object_list_.end())
 	{
-		return (*it).get();
+		return *it;
 	}
 
 	return nullptr;
 }
 
-Object* Scene::FindObject(const long long id)
+std::shared_ptr<Object> Scene::FindObject(const long long id)
 {
-	auto it = std::find_if(object_list_.begin(), object_list_.end(), [&id](const std::unique_ptr<Object>& object) {
+	auto it = std::find_if(object_list_.begin(), object_list_.end(), [&id](const std::shared_ptr<Object>& object) {
 		return object.get()->id() == id;
 		});
 
 	if (it != object_list_.end())
 	{
-		return (*it).get();
+		return *it;
 	}
 
 	return nullptr;
@@ -247,6 +168,18 @@ ModelInfo* Scene::FindModelInfo(const std::string& name)
 		});
 
 	if (it != model_infos_.end())
+	{
+		return (*it).get();
+	}
+	return nullptr;
+}
+
+Material* Scene::FindMaterial(const std::string& material_name)
+{
+	auto it = std::find_if(materials_.begin(), materials_.end(), [&material_name](const std::unique_ptr<Material>& mat) {
+		return mat.get()->name() == material_name;
+		});
+	if (it != materials_.end())
 	{
 		return (*it).get();
 	}
@@ -300,7 +233,7 @@ const std::vector<std::unique_ptr<Mesh>>& Scene::meshes() const
 	return meshes_;
 }
 
-CameraComponent* Scene::main_camera() const
+std::shared_ptr<CameraComponent> Scene::main_camera() const
 {
 	return main_camera_;
 }
@@ -315,12 +248,12 @@ bool Scene::is_play_cutscene() const
 	return is_play_cutscene_;
 }
 
-Object* Scene::player() const
+std::shared_ptr<Object> Scene::player() const
 {
-	return player_;
+	return player_.lock();
 }
 
-void Scene::set_main_camera(CameraComponent* value)
+void Scene::set_main_camera(std::shared_ptr<CameraComponent> value)
 {
 	main_camera_ = value;
 }
@@ -330,22 +263,28 @@ void Scene::set_is_play_cutscene(bool value)
 	is_play_cutscene_ = value;
 }
 
-void Scene::AddObject(Object* object)
+void Scene::AddObject(std::shared_ptr<Object> object)
 {
-	object_list_.emplace_back();
-	object_list_.back().reset(object);
+	if(is_updating_objects_)
+	{
+		add_object_list_.push_back(object);
+		return;
+	}
+	object_list_.push_back(object);
+	for (const auto& mesh_component : Object::GetComponentsInChildren<MeshComponent>(object))
+	{
+		all_mesh_component_list_.push_back(mesh_component);
+	}
 }
 
-void Scene::DeleteObject(Object* object)
+void Scene::DeleteObject(std::shared_ptr<Object> object)
 {
-	for (auto& sector : sectors_)
+	if(is_updating_objects_)
 	{
-		sector.DeleteObject(object);
+		delete_object_list_.push_back(object);
+		return;
 	}
-
-	object_list_.remove_if([&object](const std::unique_ptr<Object>& obj) {
-		return obj.get() == object;
-		});
+	object_list_.remove(object);
 }
 
 void Scene::ReleaseMeshUploadBuffer()
@@ -360,9 +299,15 @@ void Scene::UpdateRenderPassConstantBuffer(ID3D12GraphicsCommandList* command_li
 {
 	main_camera_->UpdateCameraInfo();
 
+	RunViewFrustumCulling();
+
+	XMMATRIX view = XMLoadFloat4x4(&main_camera_->view_matrix());
+	XMMATRIX proj = XMLoadFloat4x4(&main_camera_->projection_matrix());
+	XMMATRIX view_proj = view * proj;
 	CBPass cb_pass{};
 	cb_pass.view_matrix = xmath_util_float4x4::TransPose(main_camera_->view_matrix());
 	cb_pass.proj_matrix = xmath_util_float4x4::TransPose(main_camera_->projection_matrix());
+	XMStoreFloat4x4(&cb_pass.view_proj_matrix, XMMatrixTranspose(view_proj));
 	cb_pass.camera_position = main_camera_->world_position();
 	cb_pass.camera_up_axis = main_camera_->up_vector();
 
@@ -385,8 +330,8 @@ void Scene::UpdateRenderPassConstantBuffer(ID3D12GraphicsCommandList* command_li
 	//cb_pass.lights[1].enable = true;
 	//cb_pass.lights[1].type = 2;
 
-	for (int i = 1; i < 16; ++i)
-		cb_pass.lights[i].enable = false;
+	//for (int i = 1; i < 16; ++i)
+	//	cb_pass.lights[i].enable = false;
 
 	FrameResourceManager* frame_resource_manager = game_framework_->frame_resource_manager();
 	frame_resource_manager->curr_frame_resource()->cb_pass.get()->CopyData(0, cb_pass);
@@ -421,7 +366,14 @@ void Scene::UpdateRenderPassShadowBuffer(ID3D12GraphicsCommandList* command_list
 	XMVECTOR targetPos = XMLoadFloat3(&player_pos); // 플레이어를 타겟으로
 	XMVECTOR lightDir = XMLoadFloat3(&shadow_pass.light_dir);
 	XMVECTOR lightPos = targetPos - 2.0f * radius * lightDir;
+	// [수정 3] Up 벡터 평행(Gimbal Lock) 방지
 	XMVECTOR lightUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMVECTOR epsilon = XMVectorSet(0.0001f, 0.0001f, 0.0001f, 0.0f);
+	if (XMVector3NearEqual(XMVectorAbs(lightDir), lightUp, epsilon))
+	{
+		// 빛이 수직에 가까우면 Up 벡터를 Z축으로 임시 변경
+		lightUp = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	}
 
 	XMMATRIX lightView = XMMatrixLookAtLH(lightPos, targetPos, lightUp);
 	XMStoreFloat3(&shadow_pass.light_pos_w, lightPos);
@@ -450,9 +402,16 @@ void Scene::UpdateRenderPassShadowBuffer(ID3D12GraphicsCommandList* command_list
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.5f, 0.5f, 0.0f, 1.0f);
 
+	// [수정 1] 직교 투영이므로 BoundingFrustum 대신 BoundingBox(OBB) 생성
+	// 월드 스페이스에서의 섀도우 영역은 중심이 player_pos 이고 반경이 radius인 AABB입니다.
+	BoundingBox light_space_aabb(player_pos, XMFLOAT3(radius, radius, radius));
+
+	RunShadowMapViewFrustumCulling(targetPos, light_space_aabb, radius);
+
 	XMMATRIX S = lightView * lightProj * T;
 	XMStoreFloat4x4(&shadow_pass.light_view, XMMatrixTranspose(lightView));
 	XMStoreFloat4x4(&shadow_pass.light_proj, XMMatrixTranspose(lightProj));
+	XMStoreFloat4x4(&shadow_pass.light_view_proj, XMMatrixTranspose(lightView * lightProj));
 	XMStoreFloat4x4(&shadow_pass.shadow_transform, XMMatrixTranspose(S));
 
 	FrameResourceManager* frame_resource_manager = game_framework_->frame_resource_manager();
@@ -462,30 +421,6 @@ void Scene::UpdateRenderPassShadowBuffer(ID3D12GraphicsCommandList* command_list
 		frame_resource_manager->curr_frame_resource()->cb_shadow.get()->Resource()->GetGPUVirtualAddress();
 
 	command_list->SetGraphicsRootConstantBufferView((int)RootParameterIndex::kShadowPass, cb_shadow_address);
-}
-
-void Scene::UpdateObjectConstantBuffer(FrameResource* curr_frame_resource)
-{
-	int cb_object_index = 0;
-	int cb_skinned_mesh_index = 0;
-	int cb_ui_mesh_index = 0;
-	for (const auto& mesh : meshes_)
-	{
-		auto skinned_mesh = dynamic_cast<SkinnedMesh*>(mesh.get());
-		auto ui_mesh = dynamic_cast<UIMesh*>(mesh.get());
-		if (skinned_mesh)
-		{
-			skinned_mesh->UpdateConstantBuffer(curr_frame_resource, cb_skinned_mesh_index);
-		}
-		else if (ui_mesh)
-		{
-			ui_mesh->UpdateConstantBuffer(curr_frame_resource, cb_ui_mesh_index);
-		}
-		else
-		{
-			mesh->UpdateConstantBuffer(curr_frame_resource, cb_object_index);
-		}
-	}
 }
 
 void Scene::Render(ID3D12GraphicsCommandList* command_list)
@@ -501,7 +436,10 @@ void Scene::Render(ID3D12GraphicsCommandList* command_list)
 
 	for (const auto& [type, shader] : shaders_)
 	{
-		if (shader->shader_type() == ShaderType::kDebug && !is_render_debug_mesh_)
+		auto shader_type = shader->shader_type();
+		if ((shader_type == ShaderType::kDebug && !is_render_debug_mesh_) 
+			|| shader_type == ShaderType::kShadow 
+			|| shader_type == ShaderType::kSkinnedShadow)
 		{
 			continue;
 		}
@@ -517,7 +455,18 @@ void Scene::ShadowRender(ID3D12GraphicsCommandList* command_list)
 	//Shadow-Render-Pass
 	UpdateRenderPassConstantBuffer(command_list);
 	UpdateRenderPassShadowBuffer(command_list);
-	UpdateObjectConstantBuffer(curr_frame_resource);
+
+
+	for (const auto& material : materials_)
+	{
+		material->UpdateObjectFrameResource(curr_frame_resource);
+	}
+
+	//인스턴스 버퍼 set
+	D3D12_GPU_VIRTUAL_ADDRESS base =
+		curr_frame_resource->sb_instance_data->Resource()->GetGPUVirtualAddress();
+	command_list->SetGraphicsRootShaderResourceView(
+		(int)RootParameterIndex::kInstanceData, base);
 
 	{
 		auto& skinnedShadow = shaders_[(int)ShaderType::kSkinnedShadow];
@@ -526,31 +475,11 @@ void Scene::ShadowRender(ID3D12GraphicsCommandList* command_list)
 		skinnedShader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_, true);
 	}
 
-	//{
-	//	auto& shadow_shader = shaders_[(int)ShaderType::kShadow];
-	//	auto& mesh_shader = shaders_[(int)ShaderType::kStandardMesh];
-	//	shadow_shader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_);
-	//	mesh_shader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_, true);
-	//}
-
-	auto& shadow_shader = shaders_[(int)ShaderType::kShadow];
-	shadow_shader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_);
-	for (int i = -1; i <= 1; ++i)
 	{
-		int idx = std::clamp(stage_clear_num_ + i, 0, 7);
-		const auto& mesh_list_ = GetShadowMeshList(idx);
-		for (auto& mesh_component : mesh_list_)
-		{
-			mesh_component->UpdateConstantBufferForShadow(curr_frame_resource, -1);
-
-			auto gpu_address = curr_frame_resource->cb_object->Resource()->GetGPUVirtualAddress();
-			const auto cb_size = d3d_util::CalculateConstantBufferSize((sizeof(CBObject)));
-			gpu_address += cb_size * mesh_component->constant_buffer_index();
-
-			command_list->SetGraphicsRootConstantBufferView((int)RootParameterIndex::kWorldMatrix, gpu_address);
-
-			mesh_component->GetMesh()->Render(command_list, 0);
-		}
+		auto& shadow_shader = shaders_[(int)ShaderType::kShadow];
+		auto& mesh_shader = shaders_[(int)ShaderType::kStandardMesh];
+		shadow_shader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_);
+		mesh_shader->Render(command_list, curr_frame_resource, game_framework_->descriptor_manager(), main_camera_, true);
 	}
 
 }
@@ -683,8 +612,7 @@ void Scene::BuildScene()
 		if (load_token[0] == '@')
 		{
 			load_token.erase(0, 1);
-			object_list_.emplace_back();
-			object_list_.back().reset(FindModelInfo(load_token)->GetInstance());
+			object_list_.push_back(std::shared_ptr<Object>(FindModelInfo(load_token)->GetInstance()));
 
 			ReadStringFromFile(scene_file, load_token);
 			XMFLOAT4X4 transfrom = ReadFromFile<XMFLOAT4X4>(scene_file);
@@ -699,8 +627,7 @@ void Scene::BuildScene()
 
 			model_infos_.push_back(std::make_unique<ModelInfo>("./Resource/Model/World/" + object_name + ".bin", meshes_, materials_, textures_));
 
-			object_list_.emplace_back();
-			object_list_.back().reset(model_infos_.back()->GetInstance());
+			object_list_.push_back(std::shared_ptr<Object>(model_infos_.back()->GetInstance()));
 
 			object_list_.back()->set_transform_matrix(transfrom);
 
@@ -710,28 +637,19 @@ void Scene::BuildScene()
 
 void Scene::InitializeSectorObjectlist()
 {
-	for (const auto& object : object_list_)
+	for (const auto& mesh_component : all_mesh_component_list_)
 	{
-		bool is_inserted = false;
-		for (auto& sector : sectors_)
-		{
-			if (sector.CheckObjectInSectorObjectList(object.get()))
-			{
-				is_inserted = true;
-				break;
-			}
-		}
-		if (is_inserted)
+		auto locked_mesh_component = mesh_component.lock();
+		if (!locked_mesh_component)
 			continue;
 		for (auto& sector : sectors_)
 		{
-			if (sector.InsertObject(object.get()))
-				break;
+			sector.InsertMeshComponent(locked_mesh_component);
 		}
 	}
 }
 
-const std::list<MeshComponent*>& Scene::GetShadowMeshList(int index)
+const std::list<std::weak_ptr<MeshComponent>>& Scene::GetShadowMeshList(int index)
 {
-	return std::list<MeshComponent*>();
+	return std::list<std::weak_ptr<MeshComponent>>();
 }

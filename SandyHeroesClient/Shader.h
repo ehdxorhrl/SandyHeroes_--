@@ -49,7 +49,7 @@ public:
 	void AddMaterial(Material* material);
 
 	void Render(ID3D12GraphicsCommandList* command_list, 
-		FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, CameraComponent* camera, bool bShadow = false);
+		FrameResource* curr_frame_resource, DescriptorManager* descriptor_manager, std::shared_ptr<CameraComponent> camera, bool bShadow = false);
 
 	void set_is_render(bool value) { is_render_ = value; }
 

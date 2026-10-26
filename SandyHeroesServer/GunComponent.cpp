@@ -22,8 +22,11 @@ const std::array<XMFLOAT4, kElementCount> GunComponent::kElementColors{
 GunComponent::GunComponent(Object* owner) : Component(owner)
 {
 }
+GunComponent::GunComponent(const std::shared_ptr<Object>& owner) : Component(owner)
+{
+}
 
-GunComponent::GunComponent(const GunComponent& other) : Component(other.owner_),
+GunComponent::GunComponent(const GunComponent& other) : Component(other),
     gun_name_(other.gun_name_),
     damage_(other.damage_),
     critical_damage_rate_(other.critical_damage_rate_),
@@ -40,8 +43,8 @@ GunComponent::GunComponent(const GunComponent& other) : Component(other.owner_),
     is_reload_(other.is_reload_),
     flamethrow_box_(other.flamethrow_box_)
 {
-    std::cout << "ÃÑ±â ÀÌ¸§: " << gun_name_ << std::endl;
-    std::cout << "ÃÑ±â µ¥¹ÌÁö: " << damage_ << std::endl;
+    std::cout << "ì´ê¸° ì´ë¦„: " << gun_name_ << std::endl;
+    std::cout << "ì´ê¸° ë°ë¯¸ì§€: " << damage_ << std::endl;
 }
 
 Component* GunComponent::GetCopy()
@@ -84,13 +87,27 @@ void GunComponent::Update(float elapsed_time)
         user->do_send(&lb);
     }
 
-    for (const auto& bullet : fired_bullet_list_)
+    for (auto it = fired_bullet_list_.begin(); it != fired_bullet_list_.end(); )
     {
-		auto bullet_position = bullet->world_position_vector();
-        if(xmath_util_float3::LengthSq(bullet_position - owner_->world_position_vector()) > 10000.f)
+        if (auto bullet = it->lock())
         {
-            bullet->set_is_dead(true);
-		}
+            auto locked_owner = owner_.lock();
+            if (locked_owner)
+            {
+                auto bullet_position = bullet->world_position_vector();
+                if(xmath_util_float3::LengthSq(bullet_position - locked_owner->world_position_vector()) > 10000.f)
+                {
+                    GameFramework::Instance()->GetScene()->DeleteObject(bullet);
+                    it = fired_bullet_list_.erase(it);
+                    continue;
+                }
+            }
+            ++it;
+        }
+        else
+        {
+            it = fired_bullet_list_.erase(it);
+        }
     }
 }
 
@@ -104,7 +121,7 @@ void GunComponent::ReloadBullets()
     }
 }
 
-bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* scene, int id)
+bool GunComponent::FireBullet(XMFLOAT3 direction, std::shared_ptr<Object> bullet_model, Scene* scene, int id)
 {
     if (loaded_bullets_ > 0)
     {
@@ -120,7 +137,7 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* s
 
             --loaded_bullets_;
 
-            // ÃÑ¾Ë »ý¼º ÆÐÅ¶ ºê·ÎµåÄ³½ºÆ®
+            // ì´ì•Œ ìƒì„± íŒ¨í‚· ë¸Œë¡œë“œìºìŠ¤íŠ¸
             sc_packet_create_bullet bp;
             bp.size = sizeof(bp);
             bp.type = S2C_P_CREATE_BULLET;
@@ -143,7 +160,10 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* s
             if (gun_name_ == "flamethrower")
                 return true;
 
-            Object* bullet = bullet_model->GetCopy();
+            auto locked_owner = owner_.lock();
+            if (!locked_owner) return false;
+
+            std::shared_ptr<Object> bullet = bullet_model;
             bullet->set_is_movable(true);
             XMFLOAT3 bullet_look = xmath_util_float3::Normalize(bullet->look_vector());
             XMFLOAT3 rotate_axis = xmath_util_float3::CrossProduct(bullet_look, direction);
@@ -154,23 +174,21 @@ bool GunComponent::FireBullet(XMFLOAT3 direction, Object* bullet_model, Scene* s
             XMStoreFloat4x4(&transform_matrix, rotation_matrix * XMLoadFloat4x4(&transform_matrix));
             bullet->set_transform_matrix(transform_matrix);
 
-            MovementComponent* movement = new MovementComponent(bullet);
+            auto movement = std::make_shared<MovementComponent>(bullet.get());
             bullet->AddComponent(movement);
-            bullet->set_position_vector(owner_->world_position_vector());
+            bullet->set_position_vector(locked_owner->world_position_vector());
             movement->DisableFriction();
             movement->set_gravity_acceleration(1.f);
             movement->set_max_speed_xz(bullet_speed_);
             movement->Move(direction, bullet_speed_);
             bullet->Scale(3.f);
             scene->AddObject(bullet);
-            std::function<void(Object*)> on_destroy_func = [this](Object* bullet) {
-                fired_bullet_list_.remove(bullet);
-            };
-            bullet->OnDestroy(on_destroy_func);
             fired_bullet_list_.push_back(bullet);
             
             auto base_scene = dynamic_cast<BaseScene*>(scene);
-            base_scene->CheckRayHitEnemy(owner_->world_position_vector(), direction, id);
+            base_scene->CheckRayHitEnemy(locked_owner->world_position_vector(), direction, id);
+
+            std::cout << "ì´ì•Œ ë°œì‚¬! ë‚¨ì€ íƒ„ì°½: " << loaded_bullets_ << std::endl;
         }
     }
     else
@@ -198,13 +216,13 @@ void GunComponent::LoadGunInfo(const std::string& gun_name)
 
     loaded_bullets_ = magazine_cacity_;
 
-    std::cout << "ÃÑ±â ÀÌ¸§: " << gun_name << std::endl;
-    std::cout << "ÃÑ±â µ¥¹ÌÁö: " << gun_info.damage << std::endl;
-    std::cout << "ÃÑ±â Å©µ©: " << gun_info.critical_damage_rate << std::endl;
-    std::cout << "ÃÑ±â rpm: " << gun_info.rpm << std::endl;
-    std::cout << "ÃÑ±â reload_time_: " << gun_info.reload_time << std::endl;
-    std::cout << "ÃÑ±â burst_num_: " << gun_info.burst_num << std::endl;
-    std::cout << "ÃÑ±â bullet_speed_: " << gun_info.bullet_speed << std::endl;
+    std::cout << "ì´ê¸° ì´ë¦„: " << gun_name << std::endl;
+    std::cout << "ì´ê¸° ë°ë¯¸ì§€: " << gun_info.damage << std::endl;
+    std::cout << "ì´ê¸° í¬ëŽ€: " << gun_info.critical_damage_rate << std::endl;
+    std::cout << "ì´ê¸° rpm: " << gun_info.rpm << std::endl;
+    std::cout << "ì´ê¸° reload_time_: " << gun_info.reload_time << std::endl;
+    std::cout << "ì´ê¸° burst_num_: " << gun_info.burst_num << std::endl;
+    std::cout << "ì´ê¸° bullet_speed_: " << gun_info.bullet_speed << std::endl;
 }
 
 GunFireType GunComponent::fire_type() const
@@ -217,7 +235,7 @@ BulletType GunComponent::bullet_type() const
     return bullet_type_;
 }
 
-std::list<Object*> GunComponent::fired_bullet_list() const
+std::list<std::weak_ptr<Object>> GunComponent::fired_bullet_list() const
 {
     return fired_bullet_list_;
 }

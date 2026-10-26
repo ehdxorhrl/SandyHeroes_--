@@ -78,12 +78,12 @@ void CutSceneTrack::Run(float elapsed_time)
 
 }
 
-void CutSceneTrack::set_camera(Object* value)
+void CutSceneTrack::set_camera(std::shared_ptr<Object> value)
 {
 	camera_ = value;
 }
 
-Object* CutSceneTrack::camera() const
+std::shared_ptr<Object> CutSceneTrack::camera() const
 {
 	return camera_;
 }

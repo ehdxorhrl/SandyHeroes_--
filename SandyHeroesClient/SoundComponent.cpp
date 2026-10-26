@@ -2,6 +2,7 @@
 #include "FMODSoundManager.h"
 
 SoundComponent::SoundComponent(Object* owner) : Component(owner) {}
+SoundComponent::SoundComponent(const std::shared_ptr<Object>& owner) : Component(owner) {}
 
 Component* SoundComponent::GetCopy()
 {

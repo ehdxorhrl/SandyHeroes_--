@@ -6,6 +6,9 @@
 MovementComponent::MovementComponent(Object* owner) : Component(owner)
 {
 }
+MovementComponent::MovementComponent(const std::shared_ptr<Object>& owner) : Component(owner)
+{
+}
 
 MovementComponent::MovementComponent(const MovementComponent& other) : Component(other)
 {
@@ -18,26 +21,28 @@ Component* MovementComponent::GetCopy()
 
 void MovementComponent::Update(float elapsed_time)
 {
-    old_position_ = owner_->position_vector();
+    auto locked_owner = owner_.lock();
+    if(!locked_owner) return;
+    old_position_ = locked_owner->position_vector();
 
     if (is_gravity_)
     {
         velocity_.y -= gravity_acceleration_ * elapsed_time;
     }
 
-    //Áö¸é¿¡ ¼­ÀÖÀ¸¸é ´õ ÀÌ»ó ¶³¾îÁöÁö ¾ÊÀ½.
-    if (owner_->is_ground() && velocity_.y < 0.f)
+    //ì§€ë©´ì— ì„œìžˆìœ¼ë©´ ë” ì´ìƒ ë–¨ì–´ì§€ì§€ ì•ŠìŒ.
+    if (locked_owner->is_ground() && velocity_.y < 0.f)
     {
         velocity_.y = 0.f;
     }
 
-    //Á¡ÇÁ ³ôÀÌ Á¦ÇÑ
-    if (velocity_.y > 0 && (jump_before_y_ + jump_max_height_) <= owner_->position_vector().y)
+    //ì í”„ ë†’ì´ ì œí•œ
+    if (velocity_.y > 0 && (jump_before_y_ + jump_max_height_) <= locked_owner->position_vector().y)
     {
         velocity_.y = 0.f;
     }
 
-    //ÃÖ´ë ¼Ó·Â Á¦ÇÑ
+    //ìµœëŒ€ ì†ë ¥ ì œí•œ
     float speed = xmath_util_float3::Length(velocity_);
     XMFLOAT3 direction = xmath_util_float3::Normalize(velocity_);
     if (speed > max_speed_)
@@ -45,20 +50,20 @@ void MovementComponent::Update(float elapsed_time)
         velocity_ = xmath_util_float3::ScalarProduct(direction, max_speed_);
     }
 
-    //xz Æò¸é ÀÌµ¿¿¡ ÇÊ¿äÇÑ º¯¼öµé
+    //xz í‰ë©´ ì´ë™ì— í•„ìš”í•œ ë³€ìˆ˜ë“¤
     XMFLOAT3 velocity_xz{ velocity_.x, 0.f, velocity_.z };
     XMFLOAT3 direction_xz = xmath_util_float3::Normalize(velocity_xz);
     float speed_xz = xmath_util_float3::Length(velocity_xz);
     constexpr float kFrictionAcceleration{ 70.f };
 
-    //xz Æò¸é ÃÖ´ë ¼Óµµ Á¦ÇÑ
+    //xz í‰ë©´ ìµœëŒ€ ì†ë„ ì œí•œ
     if (speed_xz > max_speed_xz_)
     {
         velocity_.x *= (max_speed_xz_ / speed_xz);
         velocity_.z *= (max_speed_xz_ / speed_xz);
     }
 
-    //¸¶Âû ±¸Çö
+    //ë§ˆì°° êµ¬í˜„
     if (is_friction_)
     {
         if (is_gravity_)
@@ -85,15 +90,15 @@ void MovementComponent::Update(float elapsed_time)
         }
     }
 
-    owner_->set_position_vector(owner_->position_vector() + (velocity_ * (elapsed_time)));
+    locked_owner->set_position_vector(locked_owner->position_vector() + (velocity_ * (elapsed_time)));
 
     
 
-    //if (owner_->is_player() && velocity_.y > 0)
+    //if (locked_owner->is_player() && velocity_.y > 0)
     //{
     //    std::cout << "[Session ID: " << "] "
-    //        << owner_->name() << "Á¡ÇÁ ÈÄ y°ª" << owner_->position_vector().y << std::endl;
-    //    std::cout << "Á¡ÇÁ ÈÄ velocity_.y°ª" << velocity_.y << std::endl;
+    //        << locked_owner->name() << "ì í”„ í›„ yê°’" << owner_->position_vector().y << std::endl;
+    //    std::cout << "ì í”„ í›„ velocity_.yê°’" << velocity_.y << std::endl;
     //}
 }
 
@@ -138,22 +143,26 @@ void MovementComponent::MoveXZ(float x, float z, float speed)
 
 void MovementComponent::Jump(float speed, float max_height)
 {
-    jump_before_y_ = owner_->position_vector().y;
+    auto locked_owner = owner_.lock();
+    if(!locked_owner) return;
+    jump_before_y_ = locked_owner->position_vector().y;
     velocity_.y = speed;
     jump_max_height_ = max_height;
 }
 
 void MovementComponent::Stop()
 {
+    auto locked_owner = owner_.lock();
+    if(!locked_owner) return;
     velocity_ = XMFLOAT3{ 0.f, 0.f, 0.f };
 
     sc_packet_monster_change_animation mca;
     mca.size = sizeof(sc_packet_monster_change_animation);
     mca.type = S2C_P_MONSTER_CHANGE_ANIMATION;
-    mca.id = owner_->id();
+    mca.id = locked_owner->id();
     mca.loop_type = 0; // Once
 
-    switch (owner_->monster_type()) {
+    switch (locked_owner->monster_type()) {
     case MonsterType::Strong_Dragon:
     case MonsterType::Shot_Dragon:
         mca.animation_track = 0; // kIdle
@@ -199,5 +208,7 @@ float MovementComponent::max_speed_xz() const
 
 void MovementComponent::BackupPosition()
 {
-    old_position_ = owner_->position_vector();
+    auto locked_owner = owner_.lock();
+    if(!locked_owner) return;
+    old_position_ = locked_owner->position_vector();
 }

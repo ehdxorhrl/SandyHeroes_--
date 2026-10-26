@@ -4,12 +4,12 @@
 #include "MovementComponent.h"
 #include "AnimatorComponent.h"
 
-void PlayerAnimationState::Enter(int animation_track, Object* object, AnimatorComponent* animator)
+void PlayerAnimationState::Enter(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	animator->set_is_ignore_root_bone_traslation(true);
 }
 
-int PlayerAnimationState::Run(float elapsed_time, Object* object, bool is_end, AnimatorComponent* animator)
+int PlayerAnimationState::Run(float elapsed_time, std::shared_ptr<Object> object, bool is_end, std::shared_ptr<AnimatorComponent> animator)
 {
 
 	switch ((PlayerAnimationTrack)animation_track())
@@ -28,7 +28,7 @@ int PlayerAnimationState::Run(float elapsed_time, Object* object, bool is_end, A
 
 }
 
-void PlayerAnimationState::Exit(int animation_track, Object* object, AnimatorComponent* animator)
+void PlayerAnimationState::Exit(int animation_track, std::shared_ptr<Object> object, std::shared_ptr<AnimatorComponent> animator)
 {
 	animator->set_is_ignore_root_bone_traslation(false);
 }

@@ -2,14 +2,24 @@
 #include "RazerComponent.h"
 #include "Object.h"
 #include "FMODSoundManager.h"
+#include "GameFramework.h"
+#include "Scene.h"
 
 RazerComponent::RazerComponent(Object* owner) : Component(owner)
 {
 }
-
-RazerComponent::RazerComponent(Object* owner, XMFLOAT3 start, XMFLOAT3 end)
+RazerComponent::RazerComponent(const std::shared_ptr<Object>& owner) : Component(owner)
 {
-    owner_ = owner;
+}
+
+RazerComponent::RazerComponent(Object* owner, XMFLOAT3 start, XMFLOAT3 end) 
+{
+    owner_ = owner->shared_from_this();
+    InitRazer(start, end);
+}
+RazerComponent::RazerComponent(const std::shared_ptr<Object>& owner, XMFLOAT3 start, XMFLOAT3 end) 
+{
+    owner_ = owner->shared_from_this();
     InitRazer(start, end);
 }
 
@@ -37,7 +47,10 @@ void RazerComponent::Update(float elapsed_time)
 
     if (life_time_ > max_life_time_)
     {
-        owner_->set_is_dead(true); // 레이저가 죽으면 오브젝트를 제거한다.
+        if (auto locked_owner = owner_.lock())
+        {
+            GameFramework::Instance()->scene()->DeleteObject(locked_owner);
+        }
         return;
     }
 }
@@ -46,10 +59,16 @@ void RazerComponent::InitRazer(XMFLOAT3 start, XMFLOAT3 end)
 {
     start_position_ = start;
     end_position_ = end;
-    owner_->set_position_vector(start);
-    XMFLOAT3 direction = { end.x - start.x, end.y - start.y, end.z - start.z };
-    direction = xmath_util_float3::Normalize(direction);
-    owner_->set_up_vector(direction);
-    owner_->set_right_vector(xmath_util_float3::Normalize(xmath_util_float3::CrossProduct(owner_->up_vector(), owner_->look_vector())));
-    owner_->set_look_vector(xmath_util_float3::Normalize(xmath_util_float3::CrossProduct(owner_->right_vector(), owner_->up_vector())));
+    auto locked_owner = owner_.lock();
+    if (!locked_owner) 
+        return;
+    XMVECTOR direction = { end.x - start.x, end.y - start.y, end.z - start.z };
+    direction = XMVector3NormalizeEst(direction);
+	auto& rotation_q = GetRotationBetweenVectors(XMVECTOR{ 0, 1, 0 }, direction);
+	XMMATRIX rotation_matrix = XMMatrixRotationQuaternion(rotation_q);
+	auto& transform_matrix = XMLoadFloat4x4(&locked_owner->transform_matrix()) * rotation_matrix;
+    XMFLOAT4X4 new_transform_matrix{};
+	XMStoreFloat4x4(&new_transform_matrix, transform_matrix);
+	locked_owner->set_transform_matrix(new_transform_matrix);
+    locked_owner->set_position_vector(start);
 }

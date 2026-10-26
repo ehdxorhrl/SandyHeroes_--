@@ -21,6 +21,21 @@ AnimatorComponent::AnimatorComponent(Object* owner,
 	root_bone_name_ = root_bone_name;
 	animation_state_.reset(animation_state);
 }
+AnimatorComponent::AnimatorComponent(const std::shared_ptr<Object>& owner, 
+	const std::vector<std::unique_ptr<AnimationSet>>& animation_sets, 
+	const std::vector<std::string>& frame_names,
+	const std::string& root_bone_name,
+	AnimationState* animation_state) : Component(owner)
+{
+	animation_tracks_.reserve(animation_sets.size());
+	for (int i = 0; i < animation_sets.size(); ++i)
+	{
+		animation_tracks_.emplace_back(animation_sets[i].get());
+	}
+	frame_names_ = frame_names;
+	root_bone_name_ = root_bone_name;
+	animation_state_.reset(animation_state);
+}
 
 AnimatorComponent::AnimatorComponent(const AnimatorComponent& other) : Component(other), 
 	animation_tracks_(other.animation_tracks_), frame_names_(other.frame_names_), root_bone_name_(other.root_bone_name_)
@@ -35,31 +50,35 @@ Component* AnimatorComponent::GetCopy()
 
 void AnimatorComponent::Update(float elapsed_time)
 {
-	if (!is_attached_bone_frames_)
-		AttachBoneFrames();
+	auto owner_ptr = owner();
+	if (!owner_ptr) return;
 
-	// 0Çà·Ä ÃÊ±âÈ­
+	if (!is_attached_bone_frames_)
+		AttachBoneFrames(owner_ptr);
+
+	// 0í–‰ë ¬ ì´ˆê¸°í™”
 	std::fill(animated_tramsforms_.begin(), animated_tramsforms_.end(), XMFLOAT4X4{});
 
-	int track_state = animation_state_->Run(elapsed_time, owner_, animation_tracks_[track_index_].is_end(), this);
+
+	int track_state = animation_state_->Run(elapsed_time, owner_ptr, animation_tracks_[track_index_].is_end(), std::static_pointer_cast<AnimatorComponent>(shared_from_this()));
 	//int track_state = animation_state_->Run(elapsed_time, owner_, animation_tracks_[0].is_end(), this);
 
 	if (track_state != track_index_)
 	{
-		const int dieTrack = animation_state_->GetDeadAnimationTrack(); // ¸ó½ºÅÍº° ¿À¹ö¶óÀÌµå ÇÊ¿ä
+		const int dieTrack = animation_state_->GetDeadAnimationTrack(); // ëª¬ìŠ¤í„°ë³„ ì˜¤ë²„ë¼ì´ë“œ í•„ìš”
 		const bool toDie = (dieTrack >= 0 && track_state == dieTrack);
 
 		before_track_index_ = track_index_;
 		track_index_ = track_state;
 
 		if (toDie) {
-			// ¡Ú Á×À½Àº 'Áï½Ã ÀüÈ¯': ºí·»µù »ý·« + Once·Î °­Á¦ ½ÃÀÛ
-			change_time_ = max_change_time_;                 // weight=1.0·Î ¹Ù·Î ½Å±Ô Æ®·¢¸¸ Àç»ý
-			animation_tracks_[before_track_index_].Pause();  // ¾ÈÀü: ÀÌÀü Æ®·¢ ÁßÁö
+			// â˜… ì£½ìŒì€ 'ì¦‰ì‹œ ì „í™˜': ë¸”ë Œë”© ìƒëžµ + Onceë¡œ ê°•ì œ ì‹œìž‘
+			change_time_ = max_change_time_;                 // weight=1.0ë¡œ ë°”ë¡œ ì‹ ê·œ íŠ¸ëž™ë§Œ ìž¬ìƒ
+			animation_tracks_[before_track_index_].Pause();  // ì•ˆì „: ì´ì „ íŠ¸ëž™ ì¤‘ì§€
 			animation_tracks_[track_index_].Start(AnimationLoopType::kOnce);
 		}
 		else {
-			// ±âÁ¸ ºí·»µù ÀüÈ¯
+			// ê¸°ì¡´ ë¸”ë Œë”© ì „í™˜
 			change_time_ = 0.f;
 			if (before_track_index_ == -1) before_track_index_ = track_index_;
 			animation_tracks_[track_index_].Start((AnimationLoopType)animation_state_->animation_loop_type());
@@ -67,7 +86,8 @@ void AnimatorComponent::Update(float elapsed_time)
 		}
 	}
 
-	XMFLOAT3 before_root_bone_position = root_bone_frame_->position_vector();
+	auto root_bone_ptr = root_bone_frame_.lock();
+	XMFLOAT3 before_root_bone_position = root_bone_ptr ? root_bone_ptr->position_vector() : XMFLOAT3(0,0,0);
 
 	change_time_ += elapsed_time;
 	change_time_ = std::min(change_time_, max_change_time_);
@@ -81,31 +101,33 @@ void AnimatorComponent::Update(float elapsed_time)
 
 	for (int i = 0; i < bone_frames_.size(); ++i)
 	{
-		bone_frames_[i]->set_transform_matrix(animated_tramsforms_[i]);
+		if (auto bone = bone_frames_[i].lock()) {
+			bone->set_transform_matrix(animated_tramsforms_[i]);
+		}
 	}
 
 	if (is_root_motion_animation_)
 	{
-		XMFLOAT3 delta_translation = root_bone_frame_->position_vector() - before_root_bone_position;
-		owner_->set_position_vector(owner_->position_vector() + delta_translation);
-		root_bone_frame_->set_position_vector(before_root_bone_position);
+		XMFLOAT3 delta_translation = root_bone_frame_.lock()->position_vector() - before_root_bone_position;
+		owner_ptr->set_position_vector(owner_ptr->position_vector() + delta_translation);
+		if (root_bone_ptr) root_bone_ptr->set_position_vector(before_root_bone_position);
 	}
 	if (is_ignore_root_bone_traslation_)
 	{
-		root_bone_frame_->set_position_vector(before_root_bone_position);
+		if (root_bone_ptr) root_bone_ptr->set_position_vector(before_root_bone_position);
 	}
 
 }
 
-void AnimatorComponent::AttachBoneFrames()
+void AnimatorComponent::AttachBoneFrames(std::shared_ptr<Object> owner_ptr)
 {
 	bone_frames_.resize(frame_names_.size());
 	animated_tramsforms_.resize(frame_names_.size());
 	for (int i = 0; i < frame_names_.size(); ++i)
 	{
-		bone_frames_[i] = owner_->FindFrame(frame_names_[i]);
+		bone_frames_[i] = owner_ptr->FindFrame(frame_names_[i]);
 	}
-	root_bone_frame_ = owner_->FindFrame(root_bone_name_);
+	root_bone_frame_ = owner_ptr->FindFrame(root_bone_name_);
 }
 
 

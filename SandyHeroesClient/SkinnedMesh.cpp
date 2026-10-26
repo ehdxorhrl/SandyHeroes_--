@@ -6,6 +6,11 @@
 #include "SkinnedMeshComponent.h"
 #include "Material.h"
 
+SkinnedMesh::SkinnedMesh()
+{
+	mesh_type_ = MeshType::kSkinnedMesh;
+}
+
 void SkinnedMesh::CreateShaderVariables(ID3D12Device* device, ID3D12GraphicsCommandList* command_list)
 {
 	Mesh::CreateShaderVariables(device, command_list);
@@ -60,49 +65,43 @@ void SkinnedMesh::ReleaseUploadBuffer()
 		d3d_bone_weight_upload_buffer_.Reset();
 }
 
-void SkinnedMesh::UpdateConstantBuffer(FrameResource* curr_frame_resource, int& cb_index)
-{
-	//메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
-	for (MeshComponent* mesh_component : mesh_component_list_)
-	{
-		// 그릴 필요 없는 대상에 대해서는 업데이트를 할 필요 없음
-		if (!mesh_component->IsVisible())
-			continue;
 
-		//스킨메쉬의 컴포넌트가 bone frame과 연결되었는지 체크 및 연결
-		SkinnedMeshComponent* skinned_mesh_component =
-			static_cast<SkinnedMeshComponent*>(mesh_component);
-		skinned_mesh_component->AttachBoneFrames(bone_names_);
 
-		mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
-
-		++cb_index;
-	}
-}
-
-void SkinnedMesh::UpdateConstantBufferForShadow(FrameResource* curr_frame_resource, int& cb_index)
-{
-	//메쉬 컴포넌트를 활용하여 오브젝트 CB를 업데이트한다.
-	for (MeshComponent* mesh_component : mesh_component_list_)
-	{
-
-		//스킨메쉬의 컴포넌트가 bone frame과 연결되었는지 체크 및 연결
-		SkinnedMeshComponent* skinned_mesh_component =
-			static_cast<SkinnedMeshComponent*>(mesh_component);
-		skinned_mesh_component->AttachBoneFrames(bone_names_);
-
-		mesh_component->UpdateConstantBuffer(curr_frame_resource, cb_index);
-
-		++cb_index;
-	}
-}
-
-void SkinnedMesh::Render(ID3D12GraphicsCommandList* command_list, int material_index)
+void SkinnedMesh::Render(ID3D12GraphicsCommandList* command_list, int material_index, FrameResource* curr_frame_resource)
 {
 	command_list->SetGraphicsRootConstantBufferView(
 		(int)RootParameterIndex::kBoneOffset, d3d_bone_offset_buffer_->GetGPUVirtualAddress());
 
-	Mesh::Render(command_list, material_index);
+	command_list->IASetPrimitiveTopology(primitive_topology_);
+
+	//정점 버퍼 set
+	command_list->IASetVertexBuffers(0,
+		vertex_buffer_views_.size(), vertex_buffer_views_.data());
+
+	if (material_index < indices_array_.size())
+	{
+		if (indices_array_[material_index].size())
+		{
+			command_list->IASetIndexBuffer(&index_buffer_views_[material_index]);
+			command_list->DrawIndexedInstanced(indices_array_[material_index].size(), 1, 0, 0, 0);
+		}
+		else
+		{
+			command_list->DrawInstanced(positions_.size(), 1, 0, 0);
+		}
+	}
+	else
+	{
+		if (indices_array_.back().size())
+		{
+			command_list->IASetIndexBuffer(&index_buffer_views_.back());
+			command_list->DrawIndexedInstanced(indices_array_.back().size(), 1, 0, 0, 0);
+		}
+		else
+		{
+			command_list->DrawInstanced(positions_.size(), 1, 0, 0);
+		}
+	}
 }
 
 using namespace file_load_util;

@@ -30,8 +30,8 @@ private:
 	std::string		name_;
 
 	EXP_OVER		recv_over_{ IO_RECV };
-	Object* player_object_ = nullptr;
-	Object* camera_object_ = nullptr;
+	std::shared_ptr<Object> player_object_;
+	std::shared_ptr<Object> camera_object_;
 
 	std::unordered_map<int, bool> is_key_down_;
 
@@ -67,13 +67,13 @@ public:
 	void process_packet(unsigned char* p, float elapsed_time);
 
 
-	void set_player_object(Object* obj);
-	void set_camera_object(Object* obj);
+	void set_player_object(std::shared_ptr<Object> obj);
+	void set_camera_object(std::shared_ptr<Object> obj);
 
 	long long get_id() const;
 
-	Object* get_player_object() const { return player_object_; }
-	Object* get_camera_object() const { return camera_object_; }
+	std::shared_ptr<Object> get_player_object() const { return player_object_; }
+	std::shared_ptr<Object> get_camera_object() const { return camera_object_; }
 
 	bool IsKeyDown(int key_code) const;
 	void SetKeyDown(int key_code, bool is_down);

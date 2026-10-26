@@ -21,6 +21,21 @@ AnimatorComponent::AnimatorComponent(Object* owner,
 	root_bone_name_ = root_bone_name;
 	animation_state_.reset(animation_state);
 }
+AnimatorComponent::AnimatorComponent(const std::shared_ptr<Object>& owner,
+	const std::vector<std::unique_ptr<AnimationSet>>& animation_sets,
+	const std::vector<std::string>& frame_names,
+	const std::string& root_bone_name,
+	AnimationState* animation_state) : Component(owner)
+{
+	animation_tracks_.reserve(animation_sets.size());
+	for (int i = 0; i < animation_sets.size(); ++i)
+	{
+		animation_tracks_.emplace_back(animation_sets[i].get());
+	}
+	frame_names_ = frame_names;
+	root_bone_name_ = root_bone_name;
+	animation_state_.reset(animation_state);
+}
 
 AnimatorComponent::AnimatorComponent(const AnimatorComponent& other) : Component(other),
 animation_tracks_(other.animation_tracks_), frame_names_(other.frame_names_), root_bone_name_(other.root_bone_name_)
@@ -38,7 +53,7 @@ void AnimatorComponent::Update(float elapsed_time)
 	//if (!is_attached_bone_frames_)
 	//	AttachBoneFrames();
 	//
-	//int track_state = animation_state_->Run(owner_, animation_tracks_[track_index_].is_end(), this);
+	//int track_state = animation_state_->Run(owner_, animation_tracks_[track_index_].is_end(), std::static_pointer_cast<AnimatorComponent>(shared_from_this()));
 	//
 	//if (track_state != track_index_)
 	//{
@@ -63,14 +78,14 @@ void AnimatorComponent::Update(float elapsed_time)
 
 }
 
-void AnimatorComponent::AttachBoneFrames()
+void AnimatorComponent::AttachBoneFrames(std::shared_ptr<Object> owner_ptr)
 {
 	bone_frames_.resize(frame_names_.size());
 	for (int i = 0; i < frame_names_.size(); ++i)
 	{
-		bone_frames_[i] = owner_->FindFrame(frame_names_[i]);
+		bone_frames_[i] = owner_ptr->FindFrame(frame_names_[i]);
 	}
-	root_bone_frame_ = owner_->FindFrame(root_bone_name_);
+	root_bone_frame_ = owner_ptr->FindFrame(root_bone_name_);
 }
 
 

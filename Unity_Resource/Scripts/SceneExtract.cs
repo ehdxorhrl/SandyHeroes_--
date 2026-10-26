@@ -681,6 +681,9 @@ public class SceneExtract : MonoBehaviour
 			{
 				//노드의 위치
 				WriteVector("<MapNode>:", current.position);
+				Debug.Log($"WorldPos: {current.position}, LocalPos: {current.localPosition}");
+				Debug.Log("Parent scale: " + current.parent.localScale);
+				Debug.Log("Parent lossyScale: " + current.parent.lossyScale);
 				//노드의 아이디
 				WriteInteger(mapNode.GetNodeId());
 				//이웃의 개수
@@ -849,8 +852,6 @@ public class SceneExtract : MonoBehaviour
 	}
 	void Start()
 	{
-		
-
 		Scene scene = transform.gameObject.scene;
 		GameObject[] rootGameObjects = scene.GetRootGameObjects();
 
@@ -904,9 +905,9 @@ public class SceneExtract : MonoBehaviour
 				Quaternion rotation = rootObject.transform.rotation;
 				Vector3 scale = rootObject.transform.localScale;
 
-				rootObject.transform.position = Vector3.zero;
-				rootObject.transform.rotation = Quaternion.identity;
-				rootObject.transform.localScale = Vector3.one;
+				//rootObject.transform.position = Vector3.zero;
+				//rootObject.transform.rotation = Quaternion.identity;
+				//rootObject.transform.localScale = Vector3.one;
 
 				WriteString("<Hierarchy>:");
 				WriteFrameHierarchyInfo(rootObject.transform);

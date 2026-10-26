@@ -1,11 +1,11 @@
 #include "LightingUtil.hlsl"
 
-cbuffer ObjectInfo : register(b0)
-{
-    matrix g_world_matrix;
-    float g_object_time;
-    float3 o_padding;
-}
+//cbuffer ObjectInfo : register(b0)
+//{
+//    matrix g_world_matrix;
+//    float g_object_time;
+//    float3 o_padding;
+//}
 
 #define SKINNED_ANIMATION_BONES 128
 #define MAX_BONE_PER_VERTEX 4
@@ -36,6 +36,7 @@ cbuffer RenderPass : register(b4)
 {
     matrix g_view_matrix;
     matrix g_projection_matrix;
+    matrix g_vp_matrix;
     float3 g_camera_position;
     float g_time;
     float4 g_ambient_light;
@@ -62,12 +63,23 @@ cbuffer ShadowPass : register(b6)
 {
     float4x4 light_view;
     float4x4 light_proj;
+    float4x4 light_view_proj;
     float4x4 shadow_transform;
     float3 light_dir;
     float near_z;
     float3 light_pos_w;
     float far_z;
 }
+
+struct InstanceData
+{
+    matrix world_matrix;
+    float object_time;
+};
+
+StructuredBuffer<InstanceData> g_instance_data : register(t0, space1);
+StructuredBuffer<uint> g_main_visible_indices : register(t1, space1);
+StructuredBuffer<uint> g_shadow_visible_indices : register(t2, space1);
 
 Texture2D g_albedo_map : register(t0);
 Texture2D g_spec_glos_map : register(t1);
@@ -90,11 +102,11 @@ float CalcShadowFactor(float4 shadowPosH)
     // Depth in NDC space.
     float depth = shadowPosH.z;
 
-    uint width, height, numMips;
-    g_shadow_map.GetDimensions(0, width, height, numMips);
+    //uint width, height, numMips;
+    //g_shadow_map.GetDimensions(0, width, height, numMips);
     
     // Texel size.
-    float dx = 1.0f / (float) width;
+    float dx = 1.0f / (float) 1024;
 
     float percentLit = 0.0f;
     const float2 offsets[9] =

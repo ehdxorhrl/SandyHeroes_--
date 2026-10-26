@@ -79,7 +79,7 @@ constexpr int kDefaultFrameBufferWidth = 1920;
 constexpr int kDefaultFrameBufferHeight = 1080;
 constexpr UINT kDefaultRefreshRate = 60;
 constexpr int kMaxBoneCount = 128; //skinned mesh의 본 최대 개수
-constexpr int kMaxLights = 16;		// 조명처리의 최대 개수
+constexpr int kMaxLights = 1;		// 조명처리의 최대 개수
 
 //랜덤 머신
 extern std::random_device kRandomDevice;
@@ -87,7 +87,7 @@ extern std::mt19937 kRandomGenerator;
 
 
 enum class RootParameterIndex {
-	kWorldMatrix = 0, kBoneTransform, kBoneOffset, kUi, kRenderPass,
+	kInstanceData = 0, kMainVisibleIndices, kShadowVisibleIndices, kBoneTransform, kBoneOffset, kUi, kRenderPass,
 	kMaterial, kAlbedoMap, kSpecGlosMap, kMetalGlosMap, kEmissionMap,
 	kNormalMap, kCubeMap, kShadowMap, kShadowPass
 };
@@ -98,6 +98,55 @@ inline bool IsZero(float value, float epsilon = std::numeric_limits<float>::epsi
 {
 	return std::fabs(value) < epsilon;
 }
+inline bool IsZero(XMFLOAT4 value, float epsilon = std::numeric_limits<float>::epsilon() * 100)
+{
+	if(std::fabs(value.x) >= epsilon)
+		return false;
+	if (std::fabs(value.y) >= epsilon)
+		return false;
+	if (std::fabs(value.z) >= epsilon)
+		return false;
+	if (std::fabs(value.w) >= epsilon)
+		return false;
+	return true;
+}
+
+// 두 단위 벡터 a에서 b로 회전하는 쿼터니언을 반환합니다.
+// (주의: a와 b는 반드시 정규화된 단위 벡터여야 합니다.)
+inline XMVECTOR GetRotationBetweenVectors(FXMVECTOR a, FXMVECTOR b)
+{
+	// 1. 내적을 통해 두 벡터 사이의 코사인 값을 구합니다.
+	XMVECTOR dot = XMVector3Dot(a, b);
+	float d = XMVectorGetX(dot);
+
+	// 2. 엣지 케이스: 두 벡터가 정반대 방향일 경우 (180도 회전)
+	// 내적값이 -1에 매우 가까울 때를 잡아냅니다.
+	if (d < -0.999999f)
+	{
+		// a와 직교하는 임의의 축을 찾기 위해 Right 벡터와 외적합니다.
+		XMVECTOR right = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+		XMVECTOR axis = XMVector3Cross(right, a);
+
+		// 만약 a가 Right 벡터와 평행에 가깝다면 Up 벡터를 대신 사용합니다.
+		if (XMVectorGetX(XMVector3LengthSq(axis)) < 1e-6f)
+		{
+			XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+			axis = XMVector3Cross(up, a);
+		}
+
+		axis = XMVector3Normalize(axis);
+		return XMQuaternionRotationAxis(axis, XM_PI); // 찾은 축을 기준으로 180도 회전
+	}
+
+	// 3. 일반 케이스 (최적화된 방식)
+	// 외적 벡터의 W 컴포넌트를 (1 + 내적값)으로 덮어씌운 후 정규화합니다.
+	XMVECTOR cross = XMVector3Cross(a, b);
+	XMVECTOR q = XMVectorSetW(cross, 1.0f + d);
+
+	return XMQuaternionNormalize(q);
+}
+
+std::wstring StringToWString(const std::string& str);
 
 namespace d3d_util
 {
@@ -268,6 +317,7 @@ inline void operator+=(XMFLOAT3& lhs, const XMFLOAT3& rhs) { lhs = xmath_util_fl
 inline XMFLOAT3 operator-(const XMFLOAT3& lhs, const XMFLOAT3& rhs) { return xmath_util_float3::Subtract(lhs, rhs); }
 inline void operator-=(XMFLOAT3& lhs, const XMFLOAT3& rhs) { lhs = xmath_util_float3::Subtract(lhs, rhs); }
 inline XMFLOAT3 operator*(const XMFLOAT3& lhs, const float& rhs) { return xmath_util_float3::ScalarProduct(lhs, rhs); }
+inline XMFLOAT4 operator-(const XMFLOAT4& lhs, const XMFLOAT4& rhs) { return xmath_util_float4::Subtract(lhs, rhs); }
 inline XMFLOAT4X4 operator*(const XMFLOAT4X4& lhs, const XMFLOAT4X4& rhs) { return xmath_util_float4x4::Multiply(lhs, rhs); }
 inline bool operator==(const XMFLOAT4X4& lhs, const XMFLOAT4X4& rhs) 
 {  

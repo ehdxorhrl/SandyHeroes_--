@@ -20,7 +20,7 @@ public:
 		ID3D12GraphicsCommandList* command_list,
 		FrameResource* curr_frame_resource,
 		DescriptorManager* descriptor_manager,
-		CameraComponent* camera);
+		std::shared_ptr<CameraComponent> camera);
 
 private:
 	std::list<ParticleComponent*> particle_components_;

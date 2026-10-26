@@ -9,6 +9,12 @@ CameraComponent::CameraComponent(Object* owner,
 	CreateProjectionMatrix(near_plane_distance, far_plane_distance, aspect_ratio, fov_angle);
 	BoundingFrustum::CreateFromMatrix(view_frustum_, XMLoadFloat4x4(&projection_matrix_));
 }
+CameraComponent::CameraComponent(const std::shared_ptr<Object>& owner, 
+	float near_plane_distance, float far_plane_distance, float aspect_ratio, float fov_angle) : Component(owner)
+{
+	CreateProjectionMatrix(near_plane_distance, far_plane_distance, aspect_ratio, fov_angle);
+	BoundingFrustum::CreateFromMatrix(view_frustum_, XMLoadFloat4x4(&projection_matrix_));
+}
 
 CameraComponent::CameraComponent(const CameraComponent& other) : 
 	Component(nullptr), 
@@ -24,9 +30,6 @@ Component* CameraComponent::GetCopy()
 
 void CameraComponent::Update(float elapsed_time)
 {
-	auto view = XMLoadFloat4x4(&view_matrix_);
-	auto inv_view = XMMatrixInverse(&XMMatrixDeterminant(view), view);
-	view_frustum_.Transform(world_frustum_, inv_view);
 }
 
 void CameraComponent::CreateProjectionMatrix(
@@ -38,7 +41,7 @@ void CameraComponent::CreateProjectionMatrix(
 
 }
 
-bool CameraComponent::CollisionCheckByMeshComponent(MeshComponent* mesh_component)
+bool CameraComponent::CollisionCheckByMeshComponent(const std::shared_ptr<MeshComponent>& mesh_component)
 {
 	BoundingOrientedBox obb;
 	auto aabb = mesh_component->GetMesh()->bounds();
@@ -59,21 +62,27 @@ void CameraComponent::GetPickingRay(int screen_x, int screen_y, XMFLOAT3& ray_or
 
 	XMVECTOR ray_view = XMVectorSet(x, y, 1.0f, 1.0f);
 
-	// ¿ùµå °ø°£¿¡¼­ ÃÖÁ¾ ·¹ÀÌ ¹æÇâ °è»ê
+	// ì›”ë“œ ê³µê°„ì—ì„œ ìµœì¢… ë ˆì´ ë°©í–¥ ê³„ì‚°
 	XMFLOAT3 ray_world;
 	XMStoreFloat3(&ray_world, XMVector3TransformCoord(ray_view, inv_view));
-	ray_origin = owner_->world_position_vector();
-	ray_direction = xmath_util_float3::Normalize(ray_world - ray_origin);
+	if (auto locked_owner = owner_.lock())
+	{
+		ray_origin = locked_owner->world_position_vector();
+		ray_direction = xmath_util_float3::Normalize(ray_world - ray_origin);
+	}
 }
 
 using namespace xmath_util_float3;
 void CameraComponent::UpdateCameraInfo()
 {
+	auto locked_owner = owner_.lock();
+	if (!locked_owner) return;
+
 	XMFLOAT3 world_up_vector{ 0,1,0 };
-	XMFLOAT3 look_vector = Normalize(owner_->world_look_vector());
-	XMFLOAT3 right_vector = Normalize(CrossProduct(world_up_vector, owner_->world_look_vector()));
+	XMFLOAT3 look_vector = Normalize(locked_owner->world_look_vector());
+	XMFLOAT3 right_vector = Normalize(CrossProduct(world_up_vector, locked_owner->world_look_vector()));
 	XMFLOAT3 up_vector = CrossProduct(look_vector, right_vector);
-	XMFLOAT3 position = owner_->world_position_vector();
+	XMFLOAT3 position = locked_owner->world_position_vector();
 	world_position_ = position;
 	up_vector_ = up_vector;
 
@@ -83,6 +92,10 @@ void CameraComponent::UpdateCameraInfo()
 	view_matrix_._41 = -DotProduct(position, right_vector);
 	view_matrix_._42 = -DotProduct(position, up_vector);
 	view_matrix_._43 = -DotProduct(position, look_vector);
+
+	auto view = XMLoadFloat4x4(&view_matrix_);
+	auto inv_view = XMMatrixInverse(&XMMatrixDeterminant(view), view);
+	view_frustum_.Transform(world_frustum_, inv_view);
 }
 
 XMFLOAT4X4 CameraComponent::view_matrix() const
@@ -108,4 +121,9 @@ XMFLOAT3 CameraComponent::up_vector() const
 BoundingFrustum CameraComponent::view_frustum() const
 {
 	return view_frustum_;
+}
+
+BoundingFrustum CameraComponent::world_frustum() const
+{
+	return world_frustum_;
 }
