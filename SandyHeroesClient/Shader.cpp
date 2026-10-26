@@ -148,7 +148,7 @@ void Shader::Render(ID3D12GraphicsCommandList* command_list,
 	if(!bShadow)
 		command_list->SetPipelineState(d3d_pipeline_state_.Get());
 
-	for (const auto& const material : materials_)
+	for (const auto& material : materials_)
 	{
 		if(is_frustum_culling_)
 			material->Render(command_list, curr_frame_resource, descriptor_manager, camera, bShadow);

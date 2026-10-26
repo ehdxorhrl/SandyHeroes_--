@@ -45,7 +45,7 @@ public:
 	void set_is_using_shadow_map_obb_culling(bool value) { is_using_shadow_map_obb_culling = value; }
 
 	bool is_in_view_frustum() const;
-    bool is_in_shadow_map_obb() const { if (is_using_shadow_map_obb_culling) return is_in_shadow_map_obb_; else true; }
+    bool is_in_shadow_map_obb() const { if (is_using_shadow_map_obb_culling) return is_in_shadow_map_obb_; else return true; }
 
     Mesh* GetMesh() const;
 

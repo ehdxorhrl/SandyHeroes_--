@@ -103,7 +103,6 @@ void Scene::RunShadowMapViewFrustumCulling(FXMVECTOR light_position, const Bound
 	constexpr float culling_radius_offset = 10.0f; // 오브젝트의 반지름에 추가할 여유 공간
 	const float culling_radius = radius + culling_radius_offset;
 	const float culling_radius_squared = culling_radius * culling_radius;
-	int a = 0;
 	for(auto it = all_mesh_component_list_.begin(); it != all_mesh_component_list_.end();)
 	{
 		auto locked_mesh_component = it->lock();
